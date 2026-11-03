@@ -1,0 +1,22 @@
+{
+  "outputDirectory": ".",
+  "functions": {
+    "api/slate.js":    { "maxDuration": 60 },
+    "api/plays.js":    { "maxDuration": 60 },
+    "api/sgp.js":      { "maxDuration": 60 },
+    "api/backtest.js": { "maxDuration": 60 },
+    "api/grades.js":   { "maxDuration": 30 },
+    "api/sync.js":     { "maxDuration": 60 },
+    "api/status.js":   { "maxDuration": 20 },
+    "api/health.js":   { "maxDuration": 45 },
+    "api/live.js":     { "maxDuration": 15 }
+  },
+  "crons": [
+    { "path": "/api/sync?cron=1", "schedule": "0 9 * * *" },
+    { "path": "/api/sync?snapshot=1", "schedule": "30 15 * * *" }
+  ],
+  "rewrites": [
+    { "source": "/", "destination": "/app.html" },
+    { "source": "/app", "destination": "/app.html" }
+  ]
+}
