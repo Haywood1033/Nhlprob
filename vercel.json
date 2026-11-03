@@ -9,7 +9,8 @@
     "api/sync.js":     { "maxDuration": 60 },
     "api/status.js":   { "maxDuration": 20 },
     "api/health.js":   { "maxDuration": 45 },
-    "api/live.js":     { "maxDuration": 15 }
+    "api/live.js":     { "maxDuration": 15 },
+    "api/starters.js": { "maxDuration": 15 }
   },
   "crons": [
     { "path": "/api/sync?cron=1", "schedule": "0 9 * * *" },

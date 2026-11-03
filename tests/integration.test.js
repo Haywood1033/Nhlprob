@@ -45,6 +45,30 @@ test('slate: every game simulated, probabilities consistent, best play', async (
   }
 });
 
+test('starters: injured number one not projected; manual pick re-simulates the game', async () => {
+  const body = (await call('slate')).body, team = world.hurt.abbrev;
+  // The injured number one still has the most starts in the last 12, but wasn't dressed last game.
+  const { loadHistory } = require('../lib/store'), { prepare, projectStarter, teamGoalies } = require('../lib/ratings');
+  const prep = prepare((await loadHistory({ before: world.today })).games);
+  const recent = prep.teams.get(team).slice(-12);
+  assert.ok(recent.filter(r => r.starter === world.hurt.G[0].id).length >= 3, 'fixture: he started plenty before the injury');
+  const proj = projectStarter(prep, team, world.today);
+  assert.equal(proj.id, world.hurt.G[1].id, 'the backup who has been starting is projected');
+  assert.ok(teamGoalies(prep, team, world.today).some(o => o.id === world.hurt.callup.id), 'the call-up shows up as an option');
+  // Pick a different starter for the first game's home side: that game re-simulates with him.
+  const g0 = body.games[0], other = g0.goalies.home.options.find(o => o.id !== g0.goalies.home.id);
+  const picked = (await call('slate', { query: { starters: `${g0.home.abbrev}:${other.id}` } })).body.games[0];
+  assert.equal(picked.goalies.home.id, other.id);
+  assert.equal(picked.goalies.home.projection.manual, true);
+  assert.notEqual(picked.pHome, g0.pHome);
+  assert.equal(picked.snapshot, undefined);
+  // The SGP route prices against the same pick.
+  const t = (await call('sgp', { body: { starters: `${g0.home.abbrev}:${other.id}`, legs: [{ game: g0.id, market: 'ml', side: 'home' }] } })).body;
+  assert.ok(Math.abs(t.joint - picked.pHome) < 1e-9);
+  // Without a database, the shared-pick route says so.
+  assert.equal((await call('starters', { body: { team: g0.home.abbrev, goalieId: other.id } })).code, 400);
+});
+
 test('plays: model mode without prices, value mode with them; SGP pricing', async () => {
   const slate = (await call('slate')).body;
   const m = (await call('plays', { body: { book: '' } })).body;

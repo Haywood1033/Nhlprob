@@ -37,6 +37,7 @@ Create Deployment → branch `main` starts one by hand; Settings → Git should 
 | `/api/plays` (POST `{book}`) | Best plays and suggested same-game parlays; pasted prices switch to value ranking |
 | `/api/sgp` (POST `{legs}`) | Prices a ticket inside the simulated games |
 | `/api/live?date=` | Scores, period, clock, goals |
+| `/api/starters` (POST `{team, goalieId}`) | Set tonight's starting goalie (shared via the database; `goalieId: null` clears) |
 | `/api/backtest?days=20` | Leak-free backtest |
 | `/api/grades` | Graded pre-game snapshots |
 | `/api/sync` | History backfill / nightly update (`?snapshot=1` saves today's projections) |

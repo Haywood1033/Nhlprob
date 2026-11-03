@@ -566,9 +566,13 @@ document.addEventListener('mouseout', e => { if (e.target.closest('[data-tip]'))
 addEventListener('scroll', hideTip, true);
 function wireTips(el, sel, html) { el.querySelectorAll(sel).forEach(g => { g.addEventListener('mousemove', e => showTip(html(g), e.clientX, e.clientY)); g.addEventListener('mouseleave', hideTip); }); }
 
-const withDate = p => `${p}${p.includes('?') ? '&' : '?'}${S.date ? `date=${S.date}` : ''}`;
+// Starter picks kept in this browser (used when no database is connected to share them).
+const picksKey = () => `nhlprob-starters-${S.data?.date || S.date || 'today'}`;
+const localPicks = () => { try { return JSON.parse(store.get(picksKey()) || '{}'); } catch { return {}; } };
+const picksParam = () => Object.entries(localPicks()).map(([t, id]) => `${t}:${id}`).join(',');
+const withDate = p => { const q = [S.date ? `date=${S.date}` : '', picksParam() ? `starters=${encodeURIComponent(picksParam())}` : ''].filter(Boolean).join('&'); return q ? `${p}${p.includes('?') ? '&' : '?'}${q}` : p; };
 async function api(path) { const res = await fetch(withDate(path)); let b = null; try { b = await res.json(); } catch {} if (!res.ok) throw new Error(b?.error || `${res.status} ${res.statusText}`); return b; }
-async function apiPost(path, payload) { const res = await fetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...payload, date: S.data?.date || S.date || undefined }) }); let b = null; try { b = await res.json(); } catch {} if (!res.ok) throw new Error(b?.error || `${res.status} ${res.statusText}`); return b; }
+async function apiPost(path, payload) { const res = await fetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...payload, date: S.data?.date || S.date || undefined, starters: picksParam() || undefined }) }); let b = null; try { b = await res.json(); } catch {} if (!res.ok) throw new Error(b?.error || `${res.status} ${res.statusText}`); return b; }
 const stateHtml = (kind, title, text, detail) => `<div class="card state ${kind === 'err' ? 'err' : ''}"><h3>${esc(title)}</h3><p>${text}</p>${detail ? `<pre>${esc(detail)}</pre>` : ''}</div>`;
 const store = { get: k => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
 // Last-10 strip: bar height = shots, aqua = scored.
@@ -604,7 +608,7 @@ function gameCard(g) {
   const L = g.leans, H = leanHits(g), showScore = g.state !== 'pre';
   const row = (t, p, side) => `<div class="tm"><span class="ab" style="color:${side === 'home' ? SA : SB}">${esc(t.abbrev)}</span><span class="nm">${esc(t.name || '')} · ${rec(t.record)}${t.record?.pts !== null && t.record?.pts !== undefined ? ` · ${t.record.pts} pts` : ''}</span>${showScore ? `<span class="sc">${t.score ?? 0}</span>` : '<span></span>'}<span class="pr">${pct(p, 0)}</span></div>`;
   const G = k => g.goalies[k];
-  const gtxt = k => (G(k) ? `<b>${esc(G(k).name)}</b> ${(G(k).svPct * 100).toFixed(1)}%${G(k).projection?.confirmed ? '' : ' <span class="muted">proj.</span>'}` : '—');
+  const gtxt = k => (G(k) ? `<b>${esc(G(k).name)}</b> ${(G(k).svPct * 100).toFixed(1)}%${G(k).projection?.confirmed ? '' : G(k).projection?.manual ? ' <span class="muted">set</span>' : ' <span class="muted">proj.</span>'}` : '—');
   return `<div class="card game" data-game="${esc(g.id)}">
     <div class="game-h">${stateChip(g)}<span class="spacer"></span><span>Model total ${g.total.mean}</span></div>
     ${row(g.away, g.pAway, 'away')}${row(g.home, g.pHome, 'home')}
@@ -671,14 +675,39 @@ function rangeSvg(s, max) {
   return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" role="img" aria-label="Saves range">${ticks.map(t => `<line x1="${x(t)}" x2="${x(t)}" y1="4" y2="22" stroke="var(--grid)"/><text x="${x(t)}" y="34" text-anchor="middle">${t}</text>`).join('')}
     <rect x="${x(s.p10)}" y="7" width="${Math.max(3, x(s.p90) - x(s.p10))}" height="12" rx="3" fill="var(--s1)" opacity="0.3"/><line x1="${x(s.p50)}" x2="${x(s.p50)}" y1="5" y2="21" stroke="var(--s1)" stroke-width="2.5"/><circle cx="${x(s.mean)}" cy="13" r="4.5" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/></svg>`;
 }
+function starterTag(G) {
+  const p = G.projection || {};
+  if (p.confirmed) return '<span class="tag pos">Confirmed</span>';
+  if (p.manual) return `<span class="tag info">Set by you${G.shared ? ' · shared' : ''}</span>`;
+  const skipped = p.skipped ? G.options?.find(o => o.id === p.skipped)?.name : null;
+  return `<span class="tag" data-tip="${esc(`${p.reason || ''}${skipped ? `<br>${skipped} wasn’t dressed last game` : ''}<br>Not confirmed: the NHL doesn’t publish starters before puck drop`)}">Projected</span>`;
+}
+function starterPicker(G, g, home) {
+  const team = home ? g.home.abbrev : g.away.abbrev, opts = G.options || [];
+  const ids = new Set(opts.map(o => o.id)); if (!ids.has(G.id)) opts.unshift({ id: G.id, name: G.name, starts: 0 });
+  return `<div class="gl" style="border-top:0;padding-top:0"><label class="muted" for="st-${esc(team)}">Starter</label>
+    <select class="select" id="st-${esc(team)}" data-starter="${esc(team)}" style="height:28px;flex:1;max-width:260px">
+      <option value="" ${G.projection?.manual ? '' : 'selected'}>Projection${G.projection?.manual ? '' : ` (${esc(G.name)})`}</option>
+      ${opts.map(o => `<option value="${o.id}" data-name="${esc(o.name)}" ${G.projection?.manual && o.id === G.id ? 'selected' : ''}>${esc(o.name)}${o.starts ? ` · ${o.starts} recent start${o.starts === 1 ? '' : 's'}` : ' · no recent starts'}</option>`).join('')}
+    </select></div>`;
+}
+async function setStarterPick(team, id, name) {
+  if (S.data?.startersShared) {
+    try { await apiPost('/api/starters', { team, goalieId: id || null, goalieName: name || null }); } catch (err) { alert(`Couldn’t save the starter: ${err.message}`); return; }
+  } else {
+    const p = localPicks(); if (id) p[team] = id; else delete p[team]; store.set(picksKey(), JSON.stringify(p));
+  }
+  S.slip = []; S.slipRes = null; await load(true);
+}
 function goalieCard(G, g, home) {
   const s = G.saves, opp = home ? g.away : g.home, avg = G.season.savesPerStart;
   const near = avg ? Math.round(avg - 0.5) + 0.5 : null;
   const lean = near !== null ? (() => { const l = s.lines.reduce((a, b) => (Math.abs(b.line - near) < Math.abs(a.line - near) ? b : a)); return { line: l.line, side: l.over >= 0.5 ? 'over' : 'under', p: Math.max(l.over, 1 - l.over) }; })() : null;
   const priced = (S.plays?.book?.rows || []).find(r => r.market === 'saves' && r.game === g.id && r.team === (home ? 'home' : 'away'));
   return `<div class="card gcard">
-    <div class="top"><div style="flex:1"><div class="who">${esc(G.name)}</div><div class="sub">${esc(G.team)} vs ${esc(opp.abbrev)} · ${esc(puck(g.start))} · ${G.projection?.confirmed ? '<span class="tag pos">Confirmed</span>' : `<span class="tag" data-tip="${esc(G.projection?.reason || '')}">Projected</span>`}</div></div>
+    <div class="top"><div style="flex:1"><div class="who">${esc(G.name)}</div><div class="sub">${esc(G.team)} vs ${esc(opp.abbrev)} · ${esc(puck(g.start))} · ${starterTag(G)}</div></div>
       <div style="text-align:right"><div class="big">${s.mean}</div><div class="sub">saves expected</div></div></div>
+    ${g.state === 'pre' ? starterPicker(G, g, home) : ''}
     <div class="rng">${rangeSvg(s, Math.max(40, Math.ceil((s.p90 + 4) / 10) * 10))}<p class="note">80% of simulated games: ${s.p10}–${s.p90} saves · median ${s.p50} · ${s.shotsAgainst} shots against expected (${esc(opp.abbrev)} take ${opp.sfPerGame}/game)</p></div>
     <div class="lines">${s.lines.map(l => `<div class="${near === l.line ? 'near' : ''}" data-tip="${esc(`Over ${l.line}: ${pct(l.over)} (fair ${fair(l.over)})<br>Under: ${pct(1 - l.over)} (fair ${fair(1 - l.over)})`)}">O ${l.line}<b>${pct(l.over, 0)}</b></div>`).join('')}</div>
     <div class="gl"><span>Save % <b>${(G.svPct * 100).toFixed(1)}</b> model · ${G.season.svPct ? `<b>${(G.season.svPct * 100).toFixed(1)}</b> season` : 'no starts yet'}</span><span>${avg ? `Season <b>${avg.toFixed(1)}</b> saves/start` : ''}</span></div>
@@ -689,7 +718,7 @@ function renderSaves() {
   const el = $('#panel-saves');
   if (!S.data) { el.innerHTML = '<div class="skel" style="height:420px"></div>'; return; }
   const cards = ready().flatMap(g => ['away', 'home'].filter(k => g.goalies[k]).map(k => ({ G: g.goalies[k], g, home: k === 'home' })));
-  el.innerHTML = `<div class="callout">Saves count only while the starter is in net: a goalie who gives up four or five early can get pulled, which is most of the long tail under a line. Starters are projected from recent starts (the backup on the second night of a back-to-back) until the box score confirms them; books void saves bets on a goalie who doesn’t start.</div>
+  el.innerHTML = `<div class="callout">Saves count only while the starter is in net: a goalie who gives up four or five early can get pulled, which is most of the long tail under a line. The NHL doesn’t publish starters before puck drop, so they’re projected from recent starts (weighted to the latest, only goalies dressed last game, the backup on the second night of a back-to-back) until the box score confirms them. If you know the starter, set it on the card: that game is re-simulated with him, so saves, goals against, every player’s chances and the parlays all update. Books void saves bets on a goalie who doesn’t start.</div>
     ${cards.length ? `<div class="goalies">${cards.map(c => goalieCard(c.G, c.g, c.home)).join('')}</div>` : stateHtml('', 'No starters', 'No projected starters on this date.')}
     <p class="note foot">The highlighted line is the one nearest his season saves per start, a stand-in for the book’s line. Paste real lines (“Name, saves o27.5, -115”) on Best plays to price them.</p>`;
 }
@@ -923,6 +952,7 @@ document.addEventListener('change', e => {
   if (t.id === 'scMode') { S.scorerMode = t.value; const u = new URL(location.href); u.searchParams.set('market', S.scorerMode); history.replaceState(null, '', u); renderScorers(); }
   if (t.id === 'scGame') { S.scorerGame = t.value; renderScorers(); }
   if (t.id === 'slGame') { S.slipGame = t.value; renderSgp(); }
+  if (t.dataset.starter) { const o = t.selectedOptions[0]; setStarterPick(t.dataset.starter, t.value ? Number(t.value) : null, o?.dataset.name || null); return; }
   if (t.dataset.price !== undefined) { S.slip[Number(t.dataset.price)].price = t.value; priceSlip(); }
 });
 document.addEventListener('input', e => { if (e.target.id === 'scQ') { S.scorerQ = e.target.value; clearTimeout(S._qT); S._qT = setTimeout(() => { renderScorers(); const q = $('#scQ'); q.focus(); q.setSelectionRange(q.value.length, q.value.length); }, 180); } });

@@ -35,8 +35,10 @@ function playGame(h, a, date, rng, rest) {
   const dress = t => {
     const scratchF = new Set([Math.floor(rng.uniform() * 14), 13]), scratchD = new Set([7, Math.floor(rng.uniform() * 8)]);
     const F = t.F.filter((_, j) => !scratchF.has(j)).slice(0, 12), D = t.D.filter((_, j) => !scratchD.has(j)).slice(0, 6);
+    // An injured number one: the backup starts every game and a call-up dresses as his backup.
+    if (t.injuredFrom && date >= t.injuredFrom) return { sk: [...F, ...D], g: t.G[1], bench: t.callup };
     const g = rest.get(t.abbrev) === shift(date, -1) && rng.uniform() < 0.8 ? t.G[1] : rng.uniform() < 0.85 ? t.G[0] : t.G[1];
-    return { sk: [...F, ...D], g };
+    return { sk: [...F, ...D], g, bench: g === t.G[0] ? t.G[1] : t.G[0] };
   };
   const H = dress(h), A = dress(a);
   const side = (me, op, M) => ({ rate: 30 * me.pace / op.suppress * (M ? 1.03 : 0.97), sk: (M ? H : A).sk, g: (M ? A : H).g });
@@ -69,6 +71,8 @@ function makeWorld({ now, live = false } = {}) {
   const { teams, rng } = makeLeague();
   const byAbbrev = new Map(teams.map(t => [t.abbrev, t]));
   const today = new Date(Date.parse(now)).toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+  // Team 4's number one is hurt six days before today; a call-up backs up his replacement.
+  const hurt = teams[3]; hurt.injuredFrom = shift(today, -6); hurt.callup = { id: 8479999, name: 'Callum Upton', sv: 0.895 };
   const days = new Map(); // date -> [game]
   const rest = new Map();
   let gid = 0;
@@ -89,7 +93,7 @@ function makeWorld({ now, live = false } = {}) {
       days.set(d, games);
     }
   }
-  return { teams, byAbbrev, days, today };
+  return { teams, byAbbrev, days, today, hurt };
 }
 
 const tName = t => ({ id: t.id, abbrev: t.abbrev, placeName: { default: t.place }, commonName: { default: t.nick } });
@@ -113,7 +117,8 @@ function boxJson(g) {
   const old = Number(g.id.slice(-1)) % 5 === 0; // older goalie format on some games
   const side = (dr, s) => ({
     forwards: dr.sk.filter(p => p.pos !== 'D').map(p => sk(p)), defense: dr.sk.filter(p => p.pos === 'D').map(p => sk(p)),
-    goalies: [dr.g].map(gl => old ? { playerId: gl.id, name: { default: gl.name }, toi: '60:00', saveShotsAgainst: `${r.saved[s]}/${r.faced[s]}` } : { playerId: gl.id, name: { default: gl.name }, toi: '60:00', starter: true, shotsAgainst: r.faced[s], saves: r.saved[s], goalsAgainst: r.faced[s] - r.saved[s] }),
+    // Both dressed goalies are listed, as on NHL.com: the backup with no ice time.
+    goalies: [...[dr.g].map(gl => old ? { playerId: gl.id, name: { default: gl.name }, toi: '60:00', saveShotsAgainst: `${r.saved[s]}/${r.faced[s]}` } : { playerId: gl.id, name: { default: gl.name }, toi: '60:00', starter: true, shotsAgainst: r.faced[s], saves: r.saved[s], goalsAgainst: r.faced[s] - r.saved[s] }), ...(dr.bench ? [old ? { playerId: dr.bench.id, name: { default: dr.bench.name }, toi: '00:00', saveShotsAgainst: '0/0' } : { playerId: dr.bench.id, name: { default: dr.bench.name }, toi: '00:00', starter: false, shotsAgainst: 0, saves: 0, goalsAgainst: 0 }] : [])],
   });
   const sk = p => { const L = r.line.get(p.id); return { playerId: p.id, name: { default: p.name }, position: p.pos, goals: L.goals, assists: 0, sog: L.shots, toi: `${Math.floor(L.toi)}:${String(Math.floor((L.toi % 1) * 60)).padStart(2, '0')}`, powerPlayGoals: 0 }; };
   return { ...base, playerByGameStats: { homeTeam: side(r.H, 0), awayTeam: side(r.A, 1) } };
@@ -147,6 +152,7 @@ function installMockFetch({ now, live = false } = {}) {
     if ((m = u.match(/\/v1\/score\/(\d{4}-\d\d-\d\d)$/))) return ok({ games: (w.days.get(m[1]) || []).map(scoreJson) });
     if ((m = u.match(/\/v1\/gamecenter\/(\d+)\/boxscore$/))) { const g = byId.get(m[1]); return g ? ok(boxJson(g)) : notFound; }
     if ((m = u.match(/\/v1\/standings\/(\d{4}-\d\d-\d\d)$/))) return ok({ standings: standingsAt(w, m[1]) });
+    if ((m = u.match(/\/v1\/roster\/([A-Z]+)\/current$/))) { const t = w.byAbbrev.get(m[1]); return t ? ok({ forwards: [], defensemen: [], goalies: [...t.G, ...(t.callup ? [t.callup] : [])].map(g => ({ id: g.id, firstName: { default: g.name.split(' ')[0] }, lastName: { default: g.name.split(' ').slice(1).join(' ') } })) }) : notFound; }
     return notFound;
   };
   return { restore: () => { global.fetch = real; }, ...w, byId };
