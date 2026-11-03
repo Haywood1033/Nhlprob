@@ -544,6 +544,7 @@ const shortDate = iso => new Date(`${String(iso).slice(0, 10)}T12:00:00Z`).toLoc
 const puck = iso => (iso ? `${new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' })} ET` : '');
 const ICON = { close: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>', play: '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg>' };
 const SA = 'var(--s1)', SB = 'var(--s2)';
+const rec = r => (r ? `${r.w}-${r.l}-${r.otl ?? 0}` : '—');
 const gameById = id => S.data?.games.find(g => g.id === String(id));
 const ready = () => (S.data?.games || []).filter(g => !g.unavailable);
 const allPlayers = () => ready().flatMap(g => g.players.map(p => ({ ...p, game: g })));
@@ -601,7 +602,7 @@ function leanHits(g) {
 function gameCard(g) {
   if (g.unavailable) return `<div class="card game"><div class="game-h">${esc(matchup(g))}</div><div class="card-b note">${esc(g.unavailable)}</div></div>`;
   const L = g.leans, H = leanHits(g), showScore = g.state !== 'pre';
-  const row = (t, p, side) => `<div class="tm"><span class="ab" style="color:${side === 'home' ? SA : SB}">${esc(t.abbrev)}</span><span class="nm">${esc(t.name || '')} · ${t.record.w}-${t.record.l}</span>${showScore ? `<span class="sc">${t.score ?? 0}</span>` : '<span></span>'}<span class="pr">${pct(p, 0)}</span></div>`;
+  const row = (t, p, side) => `<div class="tm"><span class="ab" style="color:${side === 'home' ? SA : SB}">${esc(t.abbrev)}</span><span class="nm">${esc(t.name || '')} · ${rec(t.record)}${t.record?.pts !== null && t.record?.pts !== undefined ? ` · ${t.record.pts} pts` : ''}</span>${showScore ? `<span class="sc">${t.score ?? 0}</span>` : '<span></span>'}<span class="pr">${pct(p, 0)}</span></div>`;
   const G = k => g.goalies[k];
   const gtxt = k => (G(k) ? `<b>${esc(G(k).name)}</b> ${(G(k).svPct * 100).toFixed(1)}%${G(k).projection?.confirmed ? '' : ' <span class="muted">proj.</span>'}` : '—');
   return `<div class="card game" data-game="${esc(g.id)}">
@@ -874,7 +875,7 @@ function openGame(id) {
     `<div class="kv2"><div><div class="l">${esc(g.away.abbrev)} win</div><div class="v">${pct(g.pAway)}</div><div class="l">fair ${esc(g.fair.away)}</div></div><div><div class="l">${esc(g.home.abbrev)} win</div><div class="v">${pct(g.pHome)}</div><div class="l">fair ${esc(g.fair.home)}</div></div><div><div class="l">Overtime</div><div class="v">${pct(g.overtime, 0)}</div><div class="l">shootout ${pct(g.shootout, 0)}</div></div></div>
     <div><div class="section-t">Goals in the game · model ${g.total.mean}</div>${distSvg(g.total.dist, g.leans.total.line)}<p class="note">Over 5.5 ${pct(g.total.over['5.5'], 0)} · over 6.5 ${pct(g.total.over['6.5'], 0)} · 1st period over 0.5 ${pct(g.firstPeriod.over['0.5'], 0)}</p></div>
     <div><div class="section-t">Team comparison</div><table class="data"><thead><tr><th>${esc(g.away.abbrev)}</th><th></th><th>${esc(g.home.abbrev)}</th></tr></thead><tbody>
-      <tr>${T('Record', t => `${t.record.w}-${t.record.l}`)}</tr><tr>${T('Shots for / game', t => t.sfPerGame)}</tr><tr>${T('Shots against / game', t => t.saPerGame)}</tr><tr>${T('Goals for / game', t => t.gfPerGame)}</tr><tr>${T('Goals against / game', t => t.gaPerGame)}</tr><tr>${T('Shots tonight (model)', t => t.expectedShots)}</tr>
+      <tr>${T('Record (W-L-OT)', t => rec(t.record))}</tr><tr>${T('Shots for / game', t => t.sfPerGame)}</tr><tr>${T('Shots against / game', t => t.saPerGame)}</tr><tr>${T('Goals for / game', t => t.gfPerGame)}</tr><tr>${T('Goals against / game', t => t.gaPerGame)}</tr><tr>${T('Shots tonight (model)', t => t.expectedShots)}</tr>
       <tr>${T('Starter', t => { const G = g.goalies[t === g.home ? 'home' : 'away']; return G ? `${esc(G.name)} ${(G.svPct * 100).toFixed(1)}%` : '—'; })}</tr>
     </tbody></table></div>
     <div class="two" style="grid-template-columns:1fr 1fr"><div><div class="section-t">${esc(g.away.abbrev)} likeliest scorers</div><table class="data"><tbody>${top('away')}</tbody></table></div><div><div class="section-t">${esc(g.home.abbrev)} likeliest scorers</div><table class="data"><tbody>${top('home')}</tbody></table></div></div>

@@ -36,6 +36,13 @@ test('slate: every game simulated, probabilities consistent, best play', async (
   assert.ok(Math.abs(avg - body.league.goalsPerGame) < 0.5, `slate total ${avg} vs league ${body.league.goalsPerGame}`);
   assert.ok(body.best && body.best.anytime === Math.max(...body.games.flatMap(g => g.players.map(p => p.anytime))));
   assert.equal(body.snapshot.saved, 0);
+  // Records come from the standings (W-L-OT), matching the season's finished games.
+  const { standingsAt } = require('./fixtures');
+  const official = new Map(standingsAt(world, world.today).map(r => [r.teamAbbrev.default, r]));
+  for (const g of body.games) for (const t of [g.home, g.away]) {
+    const o = official.get(t.abbrev);
+    assert.deepEqual([t.record.w, t.record.l, t.record.otl, t.record.pts, t.record.source], [o.wins, o.losses, o.otLosses, o.points, 'standings']);
+  }
 });
 
 test('plays: model mode without prices, value mode with them; SGP pricing', async () => {
@@ -63,7 +70,7 @@ test('backtest beats simple baselines; health, status, grades, sync', async () =
   assert.ok(bt.first.logLoss.model < bt.first.logLoss.uniform, 'first goal beats an even split');
   const h = await call('health');
   assert.equal(h.code, 200, JSON.stringify(h.body.checks.filter(c => !c.ok)));
-  assert.equal(h.body.checks.length, 5);
+  assert.equal(h.body.checks.length, 6);
   const st = (await call('status')).body;
   assert.equal(st.history.source, 'live-recent'); assert.equal(st.snapshots.connected, false);
   const gr = (await call('grades')).body;

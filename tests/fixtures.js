@@ -119,6 +119,21 @@ function boxJson(g) {
   return { ...base, playerByGameStats: { homeTeam: side(r.H, 0), awayTeam: side(r.A, 1) } };
 }
 
+// Official-style standings as of a date: this season's finished games, OT/SO losses separate.
+function standingsAt(w, date) {
+  const s = seasonOf(date), rec = new Map(w.teams.map(t => [t.abbrev, { w: 0, l: 0, otl: 0 }]));
+  for (const [d, games] of w.days) {
+    if (d >= date || seasonOf(d) !== s) continue;
+    for (const g of games) {
+      if (!g.res || g.state !== 'OFF') continue;
+      const hw = g.res.sc[0] > g.res.sc[1], ot = g.res.outcome !== 'REG';
+      const W = rec.get(hw ? g.home.abbrev : g.away.abbrev), L = rec.get(hw ? g.away.abbrev : g.home.abbrev);
+      W.w++; if (ot) L.otl++; else L.l++;
+    }
+  }
+  return [...rec.entries()].map(([abbrev, r]) => ({ teamAbbrev: { default: abbrev }, wins: r.w, losses: r.l, otLosses: r.otl, points: 2 * r.w + r.otl, gamesPlayed: r.w + r.l + r.otl }));
+}
+
 function installMockFetch({ now, live = false } = {}) {
   const w = makeWorld({ now, live });
   const byId = new Map([...w.days.values()].flat().map(g => [g.id, g]));
@@ -131,9 +146,10 @@ function installMockFetch({ now, live = false } = {}) {
     if ((m = u.match(/\/v1\/schedule\/(\d{4}-\d\d-\d\d)$/))) return ok({ gameWeek: [0, 1, 2].map(i => shift(m[1], i)).map(d => ({ date: d, games: (w.days.get(d) || []).map(scheduleJson) })) });
     if ((m = u.match(/\/v1\/score\/(\d{4}-\d\d-\d\d)$/))) return ok({ games: (w.days.get(m[1]) || []).map(scoreJson) });
     if ((m = u.match(/\/v1\/gamecenter\/(\d+)\/boxscore$/))) { const g = byId.get(m[1]); return g ? ok(boxJson(g)) : notFound; }
+    if ((m = u.match(/\/v1\/standings\/(\d{4}-\d\d-\d\d)$/))) return ok({ standings: standingsAt(w, m[1]) });
     return notFound;
   };
   return { restore: () => { global.fetch = real; }, ...w, byId };
 }
 
-module.exports = { installMockFetch, makeWorld, makeLeague };
+module.exports = { installMockFetch, makeWorld, makeLeague, standingsAt };

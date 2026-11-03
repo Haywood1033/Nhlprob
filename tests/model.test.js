@@ -59,6 +59,11 @@ test('ratings are leak-free; back-to-back starts the backup', async () => {
     assert.equal(after.games, before.games + 1);
     assert.ok(before.last10.every(r => r.date < g.date));
     assert.ok(lg.svPct > 0.85 && lg.svPct < 0.95 && lg.sogPerTeam > 20);
+    // Fallback record from history: overtime and shootout losses are their own column.
+    const { teamAt } = require('../lib/ratings');
+    const t = teamAt(prep, g.home, '2099-01-01', lg).record, mine = games.filter(x => x.home === g.home || x.away === g.home);
+    const otl = mine.filter(x => x.outcome !== 'REG' && (x.home === g.home ? x.homeScore < x.awayScore : x.awayScore < x.homeScore)).length;
+    assert.equal(t.otl, otl); assert.equal(t.w + t.l + t.otl, t.gp); assert.equal(t.pts, 2 * t.w + t.otl);
     // A team that played yesterday with its usual starter projects the backup today.
     const today = w.today, yesterday = new Date(Date.parse(`${today}T12:00:00Z`) - 864e5).toISOString().slice(0, 10);
     const b2b = (w.days.get(yesterday) || []).flatMap(x => [x.home.abbrev, x.away.abbrev]).find(t => (w.days.get(today) || []).some(x => x.home.abbrev === t || x.away.abbrev === t));

@@ -36,6 +36,8 @@ async function probe() {
     const t = box.playerByGameStats?.homeTeam || {};
     out.push({ name: `boxscore ${s0.id}`, keys: keys(box), teamKeys: keys(t), forward: clip(t.forwards?.[0], 600), defense: clip(t.defense?.[0], 400), goalie: clip(t.goalies?.[0], 600), homeTeam: clip(box.homeTeam, 300) });
     const pid = t.forwards?.[0]?.playerId;
+    const sd = await fetchJson(nhl.URLS.standings(today)).catch(e => ({ error: e.message }));
+    out.push({ name: 'standings', keys: keys(sd), row: clip(sd.standings?.[0], 600) });
     if (pid) { const gl = await fetchJson(nhl.URLS.gameLog(pid, s0.season, 2)).catch(e => ({ error: e.message })); out.push({ name: 'player game log', keys: keys(gl), row: clip(gl.gameLog?.[0], 500) }); }
   }
   return out;
@@ -71,6 +73,12 @@ module.exports = async (req, res) => {
     need(gs.filter(x => x.starter).length === 2, 'starting goalies not identified');
     need(sk.some(p => p.shots > 0) && sk.some(p => p.toi > 0), 'skater shots or ice time missing');
     return { game: `${b.away.abbrev} @ ${b.home.abbrev}`, skaters: sk.length, goalies: gs.map(x => `${x.name} ${x.saves}/${x.shotsAgainst}${x.starter ? ' (started)' : ''}`), shots: sk.reduce((s, p) => s + p.shots, 0), sogOnScoreboard: (b.home.sog || 0) + (b.away.sog || 0), sample: sk[0] };
+  }));
+  checks.push(await check('Standings', async () => {
+    const st = await nhl.fetchStandings(etDate());
+    const m = Number(etDate().slice(5, 7));
+    need(st.size >= 30 || (m >= 7 && m <= 9), `only ${st.size} teams in the standings`);
+    return { teams: st.size, sample: [...st.entries()].slice(0, 3).map(([k, v]) => `${k} ${v.w}-${v.l}-${v.otl} (${v.pts} pts)`) };
   }));
   checks.push(await check('History store', async () => dataStatus()));
   checks.push(await check('Snapshot storage (accuracy tracking)', async () => { const st = await snapshotStatus(); if (st.variable && !st.connected) throw new Error(st.note); return st; }));
