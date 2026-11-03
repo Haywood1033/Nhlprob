@@ -22,6 +22,12 @@ Two daily crons: `/api/sync?cron=1` at 09:00 UTC adds yesterday's games and grad
 projections; `/api/sync?snapshot=1` at 15:30 UTC (11:30am ET) saves each game's pre-game
 projection even if nobody opens the site.
 
+### If Vercel shows the repo connected but no deployment
+
+Vercel deploys on the first push after a project is connected. Project → Deployments → ⋯ →
+Create Deployment → branch `main` starts one by hand; Settings → Git should list
+`Haywood1033/nhlprob` with production branch `main`.
+
 ## Routes
 
 | Route | What it does |
