@@ -130,6 +130,43 @@ test('signals: each one fires on its own data; tags need the count and a real ch
   assert.ok(d.find(s => s.key === 'volume').on && d.find(s => s.key === 'minutes').on);
 });
 
+test('calibration: fit recovers a known stretch; re-weighted games stay consistent', () => {
+  const { calibrate, stretch } = require('../lib/calibration');
+  const { calibrateWins } = require('../lib/simulator');
+  const { makeRng } = require('../lib/rng');
+  // Games whose true win chance is the model's stretched by 1.6: the fit should land near 1.6.
+  const rng = makeRng(9), rows = [];
+  for (let i = 0; i < 4000; i++) { const p = 0.35 + 0.3 * rng.uniform(); rows.push({ p, y: rng.uniform() < stretch(p, 1.6) ? 1 : 0, date: `2026-${String(1 + (i % 9)).padStart(2, '0')}-01` }); }
+  const c = calibrate(rows);
+  assert.ok(Math.abs(c.kFit - 1.6) <= 0.15, `fitted ${c.kFit}`);
+  assert.ok(c.kApplied > 1 && c.kApplied < c.kFit, 'applied is shrunk toward 1');
+  assert.ok(c.check.calibrated < c.check.raw, 'helps on held-out games when the stretch is real');
+  // Re-weighting a simulated game: weights average 1, the home win share moves to σ(k·logit p),
+  // and every market moves consistently with it.
+  const g1 = simulateGame(toyGame(), { sims: 10000, seed: 11 });
+  const raw = summarizeGame(g1).pHome;
+  calibrateWins(g1, 1.5);
+  const S = g1.sims; let wsum = 0; for (let k = 0; k < S; k++) wsum += g1.w[k];
+  assert.ok(Math.abs(wsum / S - 1) < 1e-6);
+  const cal = summarizeGame(g1);
+  assert.ok(Math.abs(cal.pHome - stretch(raw, 1.5)) < 1e-6 && cal.pHome > raw);
+  assert.ok(cal.puckLine.homeMinus > 0 && cal.puckLine.homeMinus < cal.pHome);
+  const book = makeBook(new Map([['g1', g1], ['g2', simulateGame({ ...toyGame(), id: 'g2' }, { sims: 10000, seed: 12 })]]));
+  const ml = priceTicket(book, [{ game: 'g1', market: 'ml', side: 'home' }]).joint;
+  assert.ok(Math.abs(ml - cal.pHome) < 1e-6, 'market pricing uses the same weights as the summary');
+  assert.ok(Math.abs(ml + priceTicket(book, [{ game: 'g1', market: 'ml', side: 'away' }]).joint - 1) < 1e-6);
+  const pl = priceTicket(book, [{ game: 'g1', market: 'ml', side: 'home' }, { game: 'g1', market: 'pl', side: 'home', line: -1.5 }]);
+  assert.ok(Math.abs(pl.joint - pl.legs[1].prob) < 1e-6);
+  const fa = priceTicket(book, [{ game: 'g1', market: 'first', player: 100 }, { game: 'g1', market: 'goal', player: 100 }]);
+  assert.ok(Math.abs(fa.joint - fa.legs[0].prob) < 1e-6);
+  assert.ok(Math.abs(fa.legs[1].prob - summarizePlayer(g1, 0).anytime) < 1e-6);
+  const cross = priceTicket(book, [{ game: 'g1', market: 'ml', side: 'home' }, { game: 'g2', market: 'ml', side: 'home' }]);
+  assert.ok(Math.abs(cross.lift - 1) < 0.05, 'games stay independent');
+  // A home scorer's chance rises with his team's (calibrated) win chance.
+  const g3 = simulateGame(toyGame(), { sims: 10000, seed: 11 });
+  assert.ok(summarizePlayer(g1, 0).anytime > summarizePlayer(g3, 0).anytime);
+});
+
 test('book parsing: players, goalies, teams, totals, skipped lines', async () => {
   const games = [{ id: 'g1', home: { abbrev: 'TOR', name: 'Toronto Maple Leafs', short: 'Maple Leafs' }, away: { abbrev: 'MTL', name: 'Montréal Canadiens', short: 'Canadiens' },
     players: [{ id: 1, name: 'Auston Matthews' }, { id: 2, name: 'Nick Suzuki' }], goalies: { home: { id: 9, name: 'Joseph Woll' }, away: { id: 8, name: 'Sam Montembeault' } } }];

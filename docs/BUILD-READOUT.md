@@ -44,6 +44,19 @@ One history row per completed game; two seasons when a database is connected.
      then a shootout. In the playoffs, sudden-death periods instead.
    - Every market and same-game parlay counts from the same runs.
 
+## Moneyline calibration (fitted by the backtest)
+
+- **The finding:** a real 60-day backtest (265 games) showed strong-lean favorites winning 83%
+  against 65% predicted. The shot model's win chances sit too close to 50/50, most likely because
+  team strength beyond shot rates and goalies (shot quality, special teams) isn't in it.
+- **The fit:** the backtest fits a stretch k with calibrated p = σ(k·logit p), and checks it by
+  fitting on the older half of the games and scoring on the newer half.
+- **Saving and shrinking:** with a database, runs over 150+ games save it. The slate applies it
+  shrunk by sample size: k_applied = 1 + (k_fit − 1)·n/(n + 400).
+- **Applied across every market:** it re-weights the simulated games (home-win runs by p′/p,
+  away-win runs by (1−p′)/(1−p), averaging 1), so puck lines, totals, scorers, saves and parlays
+  all stay consistent with the calibrated moneyline.
+
 ## Goalscorer signals and tags
 
 - **Eight signals per skater (lib/signals.js):** shot volume, top-line minutes, finisher

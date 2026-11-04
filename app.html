@@ -616,7 +616,7 @@ function renderHero() {
   const live = d.games.filter(g => g.state === 'in').length, pre = d.games.filter(g => g.state === 'pre').length;
   $('#hero').innerHTML = `<h1>NHL · ${esc(fmtDate(d.date))}</h1>
     <div class="meta"><span>${d.games.length} game${d.games.length === 1 ? '' : 's'}</span>${pre ? `<span>${pre} still to start</span>` : ''}<span>League ${d.league.goalsPerGame} goals a game · save ${(d.league.svPct * 100).toFixed(1)}%</span></div>
-    <div class="chips">${live ? `<span class="chip live"><span class="dot"></span>${live} live</span>` : ''}<span class="chip">${d.sims.toLocaleString()} sims per game</span><span class="chip">${d.history.games.toLocaleString()} past games${d.history.source === 'database' ? '' : ' (last few weeks, live)'}</span>${d.snapshot?.saved ? '<span class="chip accent">Projections saved for grading</span>' : ''}</div>`;
+    <div class="chips">${live ? `<span class="chip live"><span class="dot"></span>${live} live</span>` : ''}<span class="chip">${d.sims.toLocaleString()} sims per game</span><span class="chip">${d.history.games.toLocaleString()} past games${d.history.source === 'database' ? '' : ' (last few weeks, live)'}</span>${d.snapshot?.saved ? '<span class="chip accent">Projections saved for grading</span>' : ''}${d.calibration?.k && d.calibration.k !== 1 ? `<span class="chip" data-tip="${esc(`Moneyline calibration from the backtest: favorites’ chances stretched ×${Number(d.calibration.k).toFixed(2)} (fitted ×${Number(d.calibration.kFit).toFixed(2)} on ${d.calibration.n} games, shrunk for sample size)`)}">Calibrated ×${Number(d.calibration.k).toFixed(2)}</span>` : ''}</div>`;
   $('#updated').textContent = `Updated ${new Date(d.generatedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
 }
 
@@ -894,7 +894,21 @@ function drawCalibration(el, bins) {
     ${bins.map((b, i) => `<g data-i="${i}"><circle cx="${x(Math.min(top, b.predicted))}" cy="${y(Math.min(top, b.actual))}" r="12" fill="transparent"/><circle cx="${x(Math.min(top, b.predicted))}" cy="${y(Math.min(top, b.actual))}" r="${Math.min(9, 3 + Math.sqrt(b.n) / 6)}" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/></g>`).join('')}</svg>`;
   wireTips(el, 'g[data-i]', g => { const b = bins[+g.dataset.i]; return `<div class="t">Model ${pct(b.lo, 0)}–${pct(b.hi, 0)}</div><div class="r">Avg predicted <b>${pct(b.predicted)}</b></div><div class="r">Actually scored <b>${pct(b.actual)}</b></div><div class="r">Player-games <b>${b.n.toLocaleString()}</b></div>`; });
 }
-async function runBacktestNow() { S.btLoading = true; S.btErr = null; renderAccuracy(); try { S.backtest = await api(`/api/backtest?days=${S.btDays}`); } catch (err) { S.btErr = err.message; } S.btLoading = false; renderAccuracy(); }
+// The backtest's fitted moneyline stretch: what it found, what's applied (shrunk by sample size),
+// whether it was saved, and the honest older-half → newer-half check.
+function calibrationCard(B) {
+  const c = B.moneyline.calibration, live = S.data?.calibration;
+  if (c.kFit === null) return `<div class="card" style="margin-top:16px"><div class="card-b note">${esc(c.note || 'Too few games to fit a calibration.')}</div></div>`;
+  const ex = p => { const q = 1 / (1 + Math.exp(-c.kApplied * Math.log(p / (1 - p)))); return `${pct(p, 0)} → ${pct(q, 0)}`; };
+  const chk = c.check, helped = chk && chk.calibrated < chk.raw;
+  return `<div class="card" style="margin-top:16px"><div class="card-h"><h2>Moneyline calibration</h2><span class="sub">Fitted from these ${c.n} games</span></div><div class="card-b">
+    <div class="kv2"><div><div class="l">Stretch the data wants</div><div class="v">×${c.kFit.toFixed(2)}</div></div><div><div class="l">Applied (shrunk for ${c.n} games)</div><div class="v">×${c.kApplied.toFixed(2)}</div></div><div><div class="l">Status</div><div class="v" style="font-size:14px">${B.calibrationSaved ? 'Saved · now live' : S.data?.startersShared ? (c.n < 150 ? 'Needs 150+ games to save' : 'Not saved') : 'Needs the database'}</div></div></div>
+    <p class="note" style="margin-top:10px">${c.kFit > 1.02 ? 'Favorites won more often than the model said, so their chances are widened' : c.kFit < 0.98 ? 'Favorites won less often than the model said, so their chances are pulled in' : 'The model’s win chances already fit'}: at ×${c.kApplied.toFixed(2)}, a ${ex(0.55)} favorite, ${ex(0.6)}, ${ex(0.65)}. Every market in a game moves with it (puck line, scorers, saves, parlays), because the simulated games are re-weighted rather than just relabeled. The applied stretch moves toward the fitted one as more games are graded.</p>
+    ${chk ? `<p class="note">Honest check: fitted on the older ${chk.fitOn} games, scored on the newer ${chk.testedOn}: log loss ${chk.raw.toFixed(3)} raw vs ${chk.calibrated.toFixed(3)} calibrated, <b class="${helped ? 'edge-pos' : 'edge-neg'}">${helped ? 'helped' : 'did not help'}</b> on games it hadn’t seen.</p>` : ''}
+    ${live && live.k !== 1 ? `<p class="note">Live slate is using ×${Number(live.k).toFixed(2)}${live.n ? ` (fitted on ${live.n} games${live.fittedAt ? `, ${shortDate(live.fittedAt)}` : ''})` : ''}.</p>` : ''}
+  </div></div>`;
+}
+async function runBacktestNow() { S.btLoading = true; S.btErr = null; renderAccuracy(); try { S.backtest = await api(`/api/backtest?days=${S.btDays}`); if (S.backtest.calibrationSaved) { S.plays = null; S.playsKey = null; load(); } } catch (err) { S.btErr = err.message; } S.btLoading = false; renderAccuracy(); }
 async function loadGrades() { try { S.grades = await api('/api/grades'); } catch { S.grades = { games: [], note: 'Grades unavailable.' }; } renderAccuracy(); }
 function renderAccuracy() {
   const el = $('#panel-accuracy'), B = S.backtest, G = S.grades;
@@ -917,6 +931,7 @@ function renderAccuracy() {
       <div class="card"><div class="card-h"><h2>Anytime goal calibration</h2><span class="sub">When the model says x%, how often he scored</span></div><div class="card-b"><div class="chart" id="calChart"></div></div></div>
       <div class="card"><div class="card-h"><h2>By day</h2></div><div class="table-wrap" style="border:0;border-radius:0"><table class="data"><thead><tr><th class="l">Date</th><th>Games</th><th>Favorites won</th></tr></thead><tbody>${B.perDay.slice(0, 10).map(d => `<tr><td class="l">${shortDate(d.date)}</td><td>${d.games}</td><td>${d.favoritesWon}</td></tr>`).join('')}</tbody></table></div></div>
     </div>` : ''}
+    ${B?.moneyline?.calibration ? calibrationCard(B) : ''}
     ${B?.moneyline?.byTier ? `<div class="card" style="margin-top:16px"><div class="card-h"><h2>Moneyline lean · hit rate by strength</h2><span class="sub">How often the favorite won at each lean strength, vs the model’s own number</span></div>
       <div class="table-wrap" style="border:0;border-radius:0"><table class="data"><thead><tr><th class="l">Lean</th><th>Games</th><th>Model said</th><th>Favorite won</th></tr></thead><tbody>
       ${B.moneyline.byTier.map(t => `<tr><td class="l"><span class="mlb ${t.tier}">${esc(ML_BADGE[t.tier][1])}</span></td><td>${t.n}</td><td>${pct(t.predicted)}</td><td>${pct(t.won)}</td></tr>`).join('')}
