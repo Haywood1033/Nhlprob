@@ -462,7 +462,10 @@ td.click:hover .pname { text-decoration: underline; }
 .price-in { width: 72px; height: 28px; background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 5px; padding: 0 6px; font-size: 12px; }
 .drawer-b > * { min-width: 0; }
 .drawer-b table.data { table-layout: fixed; }
-.drawer-b table.data td, .drawer-b table.data th { white-space: normal; overflow-wrap: anywhere; }
+.drawer-b table.data td, .drawer-b table.data th { white-space: normal; overflow-wrap: break-word; }
+/* Inside the panel, headers don't float over rows, and names stay on one line. */
+.drawer-b table.data thead th { position: static; white-space: nowrap; }
+.drawer-b table.data td.nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #scQ { padding-left: 10px; }
 .kv2 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .kv2 > div { background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; }
@@ -927,15 +930,18 @@ function distSvg(dist, line) {
 function openGame(id) {
   const g = gameById(id); if (!g || g.unavailable) return;
   const T = (k, f) => `<td>${f(g.away)}</td><td class="l muted" style="text-align:center">${k}</td><td>${f(g.home)}</td>`;
-  const top = side => g.players.filter(p => p.team === g[side].abbrev).slice(0, 5).map(p => `<tr><td class="l click" data-player="${p.id}" data-game="${esc(g.id)}"><span class="pname">${esc(p.name)}</span></td><td>${pct(p.anytime, 0)}</td><td>${p.shots.mean}</td></tr>`).join('');
+  // One full-width list per team: name on one line, then anytime, first goal, shots.
+  const top = side => `<div><div class="section-t">${esc(g[side].abbrev)} likeliest scorers</div><table class="data"><colgroup><col style="width:42%"><col style="width:22%"><col style="width:17%"><col style="width:19%"></colgroup>
+    <thead><tr><th class="l">Player</th><th>Anytime</th><th>First</th><th>Shots</th></tr></thead><tbody>
+    ${g.players.filter(p => p.team === g[side].abbrev).slice(0, 5).map(p => `<tr><td class="l click nm" data-player="${p.id}" data-game="${esc(g.id)}" title="${esc(p.name)}"><span class="pname">${esc(p.name)}</span>${goalTag(g, p.id)}</td><td>${pct(p.anytime, 0)}</td><td>${pct(p.first, 0)}</td><td>${p.shots.mean}</td></tr>`).join('')}</tbody></table></div>`;
   openDrawer(`<div><h2>${esc(g.away.name)} @ ${esc(g.home.name)}</h2><div class="sub">${esc(puck(g.start))}${g.venue ? ` · ${esc(g.venue)}` : ''}${g.playoff ? ' · Playoffs' : ''}</div></div>`,
     `<div class="kv2"><div><div class="l">${esc(g.away.abbrev)} win</div><div class="v">${pct(g.pAway)}</div><div class="l">fair ${esc(g.fair.away)}</div></div><div><div class="l">${esc(g.home.abbrev)} win</div><div class="v">${pct(g.pHome)}</div><div class="l">fair ${esc(g.fair.home)}</div></div><div><div class="l">Overtime</div><div class="v">${pct(g.overtime, 0)}</div><div class="l">shootout ${pct(g.shootout, 0)}</div></div></div>
     <div><div class="section-t">Goals in the game · model ${g.total.mean}</div>${distSvg(g.total.dist, g.leans.total.line)}<p class="note">Over 5.5 ${pct(g.total.over['5.5'], 0)} · over 6.5 ${pct(g.total.over['6.5'], 0)} · 1st period over 0.5 ${pct(g.firstPeriod.over['0.5'], 0)}</p></div>
-    <div><div class="section-t">Team comparison</div><table class="data"><thead><tr><th>${esc(g.away.abbrev)}</th><th></th><th>${esc(g.home.abbrev)}</th></tr></thead><tbody>
+    <div><div class="section-t">Team comparison</div><table class="data"><colgroup><col style="width:32%"><col style="width:36%"><col style="width:32%"></colgroup><thead><tr><th>${esc(g.away.abbrev)}</th><th></th><th>${esc(g.home.abbrev)}</th></tr></thead><tbody>
       <tr>${T('Record (W-L-OT)', t => rec(t.record))}</tr><tr>${T('Shots for / game', t => t.sfPerGame)}</tr><tr>${T('Shots against / game', t => t.saPerGame)}</tr><tr>${T('Goals for / game', t => t.gfPerGame)}</tr><tr>${T('Goals against / game', t => t.gaPerGame)}</tr><tr>${T('Shots tonight (model)', t => t.expectedShots)}</tr>
       <tr>${T('Starter', t => { const G = g.goalies[t === g.home ? 'home' : 'away']; return G ? `${esc(G.name)} ${(G.svPct * 100).toFixed(1)}%` : '—'; })}</tr>
     </tbody></table></div>
-    <div class="two" style="grid-template-columns:1fr 1fr"><div><div class="section-t">${esc(g.away.abbrev)} likeliest scorers</div><table class="data"><tbody>${top('away')}</tbody></table></div><div><div class="section-t">${esc(g.home.abbrev)} likeliest scorers</div><table class="data"><tbody>${top('home')}</tbody></table></div></div>
+    ${top('away')}${top('home')}
     <p class="note">${esc(g.lineupSource)}.</p>`);
 }
 
