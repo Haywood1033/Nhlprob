@@ -15,7 +15,7 @@ module.exports = async (req, res) => {
       const { payload: p } = await buildSlate();
       return send(res, 200, { date: p.date, games: p.games.length, pregame: p.games.filter(g => g.state === 'pre').length, snapshot: p.snapshot });
     }
-    if (!db.hasDb) return send(res, 400, { error: `No database connected — set ${db.DB_VARS[0]} (or ${db.DB_VARS[1]}). History sync needs Postgres.` });
+    if (!db.hasDb) return send(res, 400, { error: db.notConnected('history sync has nowhere to save'), seen: db.seenDbVars() });
     const result = await sync({ deadline: Date.now() + 45000 });
     const grading = await gradeAll({ deadline: Date.now() + 8000 }).catch(err => ({ error: err.message }));
     send(res, 200, { ...result, grading });
