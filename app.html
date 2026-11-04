@@ -633,6 +633,12 @@ function leanHits(g) {
 // favorite's chance sits from 50% (hockey-sized steps: 62%+, 55%+, under 55%).
 const ML_BADGE = { strong: ['strong', '⚡ Strong lean'], lean: ['lean', 'Lean'], tossup: ['tossup', 'Toss-up'] };
 function mlBadge(g) { const t = g.leans?.moneyline?.tier; if (!t) return ''; const [c, l] = ML_BADGE[t]; return `<span class="mlb ${c}" data-tip="${esc(`${g.leans.moneyline.team} ${pct(g.leans.moneyline.prob)} to win (fair ${g.leans.moneyline.fair})<br>Strong lean 62%+ · Lean 55–62% · Toss-up under 55%`)}">${l}${t === 'tossup' ? '' : ` · ${esc(g.leans.moneyline.team)}`}</span>`; }
+// Started games show their saved pre-game projection; say so (or say nothing was saved).
+function frozenNote(g) {
+  if (g.state === 'pre') return '';
+  if (g.frozen) return `<span class="muted" data-tip="${esc(`Leans and chances as projected before puck drop (saved ${new Date(g.frozen.savedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' })} ET). Only the score, goals and status update.`)}">· pre-game numbers</span>`;
+  return '<span class="muted" data-tip="No pre-game projection was saved for this game (no database at puck drop), so these numbers were recalculated after it started and may differ from what showed before.">· recalculated</span>';
+}
 function gameCard(g) {
   if (g.unavailable) return `<div class="card game"><div class="game-h">${esc(matchup(g))}</div><div class="card-b note">${esc(g.unavailable)}</div></div>`;
   const L = g.leans, H = leanHits(g), showScore = g.state !== 'pre';
@@ -643,7 +649,7 @@ function gameCard(g) {
   const G = k => g.goalies[k];
   const gtxt = k => (G(k) ? `<b>${esc(G(k).name)}</b> ${(G(k).svPct * 100).toFixed(1)}%${G(k).projection?.confirmed ? '' : G(k).projection?.manual ? ' <span class="muted">set</span>' : ' <span class="muted">proj.</span>'}` : '—');
   return `<div class="card game" data-game="${esc(g.id)}">
-    <div class="game-h">${stateChip(g)}<span class="spacer"></span>${mlBadge(g)}<span>Model total ${g.total.mean}</span></div>
+    <div class="game-h">${stateChip(g)}${frozenNote(g)}<span class="spacer"></span>${mlBadge(g)}<span>Model total ${g.total.mean}</span></div>
     ${row(g.away, g.pAway, 'away')}${row(g.home, g.pHome, 'home')}
     <div class="wbar"><i style="width:${g.pAway * 100}%;background:${SB}"></i><i style="width:${g.pHome * 100}%;background:${SA}"></i></div>
     <div class="leans">
@@ -774,6 +780,7 @@ function goalieCard(G, g, home) {
     ${g.state === 'pre' ? starterPicker(G, g, home) : ''}
     <div class="rng">${rangeSvg(s, Math.max(40, Math.ceil((s.p90 + 4) / 10) * 10))}<p class="note">80% of simulated games: ${s.p10}–${s.p90} saves · median ${s.p50} · ${s.shotsAgainst} shots against expected (${esc(opp.abbrev)} take ${opp.sfPerGame}/game)</p></div>
     <div class="lines">${s.lines.map(l => `<div class="${near === l.line ? 'near' : ''}" data-tip="${esc(`Over ${l.line}: ${pct(l.over)} (fair ${fair(l.over)})<br>Under: ${pct(1 - l.over)} (fair ${fair(1 - l.over)})`)}">O ${l.line}<b>${pct(l.over, 0)}</b></div>`).join('')}</div>
+    ${G.pregameStarter ? `<div class="gl"><span>Pre-game projection had <b>${esc(G.pregameStarter)}</b> starting; these saves numbers are recalculated for the actual starter.</span></div>` : ''}
     <div class="gl"><span>Save % <b>${(G.svPct * 100).toFixed(1)}</b> model · ${G.season.svPct ? `<b>${(G.season.svPct * 100).toFixed(1)}</b> season` : 'no starts yet'}</span><span>${avg ? `Season <b>${avg.toFixed(1)}</b> saves/start` : ''}</span></div>
     ${lean ? `<div class="gl"><span>Lean vs his season average: <b>${lean.side === 'over' ? 'Over' : 'Under'} ${lean.line}</b> ${pct(lean.p, 0)}</span><span>${priced ? `Your line ${priced.side === 'over' ? 'O' : 'U'} ${priced.line} ${esc(priced.raw)}` : ''}</span></div>` : ''}
   </div>`;
@@ -851,7 +858,8 @@ async function priceSlip() {
 function renderSgp() {
   const el = $('#panel-sgp');
   if (!S.data) { el.innerHTML = '<div class="skel" style="height:420px"></div>'; return; }
-  const games = ready().filter(g => g.state !== 'post');
+  // Only games that haven't started: a live game's legs would be priced on pre-game numbers.
+  const games = ready().filter(g => g.state === 'pre');
   if (!S.slipGame || !gameById(S.slipGame)) S.slipGame = games[0]?.id || '';
   const g = gameById(S.slipGame), opts = marketOptions(g);
   const R = S.slipRes, gamesInSlip = new Set(S.slip.map(l => l.game)).size;
@@ -968,7 +976,7 @@ function openPlayer(id, gid) {
   const raw = p.season.shots ? p.season.goals / p.season.shots : null;
   const tonight = goalsBy(g, p.id);
   openDrawer(`<div><h2>${esc(p.name)}${goalTag(g, p.id)}</h2><div class="sub">${esc(p.team)} · ${p.pos === 'D' ? 'Defense' : 'Forward'} · vs ${esc(p.opp)} · ${esc(puck(g.start))}${g.state === 'in' ? ' · live' : g.state === 'post' ? ' · final' : ''}</div></div>`,
-    `${tonight.length ? `<div class="callout" style="margin:0;border-left-color:var(--pos)">Scored tonight: ${tonight.map(x => `${goalTime(x)}${x.emptyNet ? ' (empty net)' : ''}`).join(', ')}. The chances below are his pre-game numbers.</div>` : ''}
+    `${tonight.length ? `<div class="callout" style="margin:0;border-left-color:var(--pos)">Scored tonight: ${tonight.map(x => `${goalTime(x)}${x.emptyNet ? ' (empty net)' : ''}`).join(', ')}. The chances below are his pre-game numbers.</div>` : ''}${p.pregame === false ? '<div class="callout" style="margin:0">Not in the pre-game lineup projection (a late addition), so these numbers were calculated after puck drop.</div>' : ''}
     <div><div class="section-t">Signals · firing ${p.count} of 8 ${tierChip(p.badge)}</div><div class="sig-list">${[...p.signals.filter(x => x.on), ...p.signals.filter(x => !x.on)].map(x => `<div class="sig-row ${x.on ? '' : 'off'}"><span>${x.icon}</span><span><b>${esc(x.label)}</b>${x.on ? '' : ' · not firing'} <span class="d">${esc(x.detail)}</span></span></div>`).join('')}</div></div>
     <div class="kv2"><div><div class="l">Anytime goal</div><div class="v">${pct(p.anytime)}</div><div class="l">fair ${esc(p.fair.anytime)}</div></div><div><div class="l">First goal</div><div class="v">${pct(p.first)}</div><div class="l">fair ${fair(p.first)}</div></div><div><div class="l">2+ goals</div><div class="v">${pct(p.twoPlus)}</div><div class="l">fair ${fair(p.twoPlus)}</div></div></div>
     <div><div class="section-t">Shots on goal · ${p.shots.mean} expected</div><div class="kv2">${['1.5', '2.5', '3.5'].map(l => `<div><div class="l">Over ${l}</div><div class="v">${pct(p.shots.over[l], 0)}</div><div class="l">fair ${fair(p.shots.over[l])}</div></div>`).join('')}</div></div>
@@ -1003,7 +1011,7 @@ function openGame(id) {
       <tr>${T('Starter', t => { const G = g.goalies[t === g.home ? 'home' : 'away']; return G ? `${esc(G.name)} ${(G.svPct * 100).toFixed(1)}%` : '—'; })}</tr>
     </tbody></table></div>
     ${top('away')}${top('home')}
-    <p class="note">${esc(g.lineupSource)}.</p>`);
+    <p class="note">${esc(g.lineupSource)}.${g.state !== 'pre' ? (g.frozen ? ' Chances and leans are the pre-game projection, frozen at puck drop.' : ' No pre-game projection was saved for this game, so these numbers were recalculated after it started.') : ''}</p>`);
 }
 
 // ── Live ────────────────────────────────────────────────────────────────────────────────

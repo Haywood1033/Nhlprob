@@ -167,6 +167,24 @@ test('calibration: fit recovers a known stretch; re-weighted games stay consiste
   assert.ok(summarizePlayer(g1, 0).anytime > summarizePlayer(g3, 0).anytime);
 });
 
+test('freeze: a started game shows its pre-game snapshot, including older, smaller snapshots', () => {
+  const { freezeToSnapshot } = require('../lib/slate');
+  const view = () => ({ id: 'g', state: 'in', home: { abbrev: 'HOM', expectedShots: 31 }, away: { abbrev: 'AWY', expectedShots: 29 }, pHome: 0.7, pAway: 0.3, total: { mean: 6.9, over: { 5.5: 0.7, 6.5: 0.55 } }, puckLine: { homeMinus: 0.4, awayMinus: 0.1 }, firstTeam: { home: 0.6, away: 0.4, none: 0 },
+    players: [{ id: 1, anytime: 0.5, first: 0.1, twoPlus: 0.1, shots: { mean: 3, over: {} }, fair: {} }, { id: 2, anytime: 0.3, first: 0.05, twoPlus: 0.05, shots: { mean: 2, over: {} }, fair: {} }],
+    goalies: { home: { id: 9, saves: { mean: 30, p10: 20, p90: 40 } }, away: { id: 8, saves: { mean: 25, p10: 15, p90: 35 } } } });
+  // Older snapshot shape: core numbers only.
+  const old = { pHome: 0.58, total: { mean: 6.1, over: { 5.5: 0.55, 6.5: 0.42 } }, puckLine: { homeMinus: 0.3, awayMinus: 0.15 }, firstTeam: { home: 0.55, away: 0.45, none: 0 },
+    players: [{ id: 1, anytime: 0.4, first: 0.09, shots: 2.8 }], goalies: { home: { id: 9, mean: 28, p10: 18, p90: 38 }, away: { id: 7, name: 'Other G', mean: 24, p10: 14, p90: 34 } } };
+  const v = freezeToSnapshot(view(), old, '2026-11-03T22:00:00Z');
+  assert.equal(v.pHome, 0.58); assert.ok(Math.abs(v.pAway - 0.42) < 1e-12);
+  assert.equal(v.leans.moneyline.tier, 'lean'); assert.equal(v.leans.total.line, 5.5);
+  assert.equal(v.players[0].anytime, 0.4); assert.equal(v.players[0].shots.mean, 2.8);
+  assert.equal(v.players.find(p => p.id === 2).pregame, false, 'a late addition is flagged, not frozen');
+  assert.equal(v.goalies.home.saves.mean, 28);
+  assert.equal(v.goalies.away.pregameStarter, 'Other G', 'a different starter than projected is noted');
+  assert.equal(v.frozen.full, false);
+});
+
 test('book parsing: players, goalies, teams, totals, skipped lines', async () => {
   const games = [{ id: 'g1', home: { abbrev: 'TOR', name: 'Toronto Maple Leafs', short: 'Maple Leafs' }, away: { abbrev: 'MTL', name: 'Montréal Canadiens', short: 'Canadiens' },
     players: [{ id: 1, name: 'Auston Matthews' }, { id: 2, name: 'Nick Suzuki' }], goalies: { home: { id: 9, name: 'Joseph Woll' }, away: { id: 8, name: 'Sam Montembeault' } } }];
