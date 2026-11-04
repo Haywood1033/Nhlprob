@@ -623,16 +623,29 @@ function gameCard(g) {
     </div>
     <div class="gl"><span>${gtxt('away')}</span><span>${gtxt('home')}</span></div></div>`;
 }
+// Live status of the day's pick, from the game's goals (updates with live polling).
+function pickStatus(b, g) {
+  if (!g) return '';
+  const mine = (g.live?.goals || []).filter(x => x.playerId === b.playerId);
+  const when = x => `P${x.period > 3 ? 'OT' : x.period} ${Math.floor(x.time)}:${String(Math.round((x.time % 1) * 60)).padStart(2, '0')}`;
+  if (mine.length) return `<span class="tag pos">Scored${mine.length > 1 ? ` ×${mine.length}` : ''} · ${esc(mine.map(when).join(', '))}</span>`;
+  if (g.state === 'post') return '<span class="tag neg">Final · no goal</span>';
+  if (g.state === 'in') return `<span class="tag info">In progress · no goal yet${g.live?.period ? ` · P${g.live.period}` : ''}</span>`;
+  return `<span class="tag">Starts ${esc(puck(g.start))}</span>`;
+}
 function bestHtml() {
   const b = S.data.best;
-  if (!b) return `<div class="card state" style="margin-bottom:22px"><h3>No goalscorer play</h3><p>${S.data.games.length ? 'Every game has started. Pick tomorrow’s date for the next slate.' : 'No games on this date.'}</p></div>`;
+  if (!b) return `<div class="card state" style="margin-bottom:22px"><h3>No goalscorer play</h3><p>${S.data.games.length ? 'No goalscorer play could be built for this slate.' : 'No games on this date.'}</p></div>`;
   const g = gameById(b.gameId), p = g?.players.find(x => x.id === b.playerId);
+  const R = S.data.bestRemaining;
   return `<div class="card best">
-    <div><div class="k">Today’s best goalscorer play</div>
+    <div><div class="k">Today’s best goalscorer play${b.locked ? ' · <span class="muted" data-tip="Picked from the full slate before the first puck drop and kept for the day, so it doesn’t move to a later game as earlier ones start.">locked at first puck drop</span>' : ''}</div>
       <div class="who" data-player="${b.playerId}" data-game="${esc(b.gameId)}">${esc(b.name)}</div>
       <div class="ctx">${esc(b.team)} vs ${esc(b.opp)} · ${esc(puck(g?.start))}${p ? ` · ${p.pos === 'D' ? 'Defense' : 'Forward'}, ${p.toi} min a night` : ''}</div>
       <div class="nums"><div><div class="v">${pct(b.anytime)}</div><div class="l">Anytime goal · fair ${esc(b.fair)}</div></div><div><div class="v">${pct(b.first)}</div><div class="l">First goal · fair ${fair(b.first)}</div></div>${p ? `<div><div class="v">${p.shots.mean}</div><div class="l">Shots expected</div></div>` : ''}</div>
-      <p class="note" style="margin-top:12px">The highest anytime chance on the slate, not a value call: paste prices on Best plays to rank by value.</p></div>
+      <div style="margin-top:12px">${pickStatus(b, g)}</div>
+      ${R ? `<p class="note" style="margin-top:10px">Best still to start: <a href="#" data-player="${R.playerId}" data-game="${esc(R.gameId)}">${esc(R.name)}</a> (${esc(R.team)} vs ${esc(R.opp)}, ${esc(puck(gameById(R.gameId)?.start))}) ${pct(R.anytime)}</p>` : ''}
+      <p class="note" style="margin-top:8px">The highest anytime chance on the slate, not a value call: paste prices on Best plays to rank by value.</p></div>
     <div><div class="section-t">Why</div><ul>${b.reasons.map(r => `<li>${esc(r)}</li>`).join('')}</ul>${p ? `<div class="section-t" style="margin-top:14px">Last 10 games · bar height = shots, green = scored, gray = no goal</div>${spark(p.last10)}` : ''}</div></div>`;
 }
 function renderToday() {
