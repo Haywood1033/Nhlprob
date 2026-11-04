@@ -22,6 +22,7 @@
   --surface-3: #1c2541;
   --line: #232d47;
   --line-2: #33405f;
+  --bar-off: #5d626e; /* neutral gray for "no goal" bars: no blue cast, so green reads alone */
   --ink: #e9edf5;
   --ink-2: #b0b9cc;
   --ink-3: #8690a8;
@@ -434,7 +435,8 @@ details.more[open] summary::before { transform: rotate(90deg); }
 .gl { display: flex; justify-content: space-between; gap: 10px; padding: 9px 14px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink-3); }
 .gl b { color: var(--ink-2); font-weight: 600; }
 .spark { display: inline-flex; gap: 2px; align-items: flex-end; height: 18px; vertical-align: middle; }
-.spark i { width: 5px; background: var(--surface-3); border-radius: 1px; }
+/* Last-10 strips: neutral gray bars, green only where he scored, so the one color means one thing. */
+.spark i { width: 5px; background: var(--bar-off); border-radius: 1px; }
 .spark i.g { background: var(--s3); }
 td.click, .click { cursor: pointer; }
 td.click:hover .pname { text-decoration: underline; }
@@ -575,7 +577,7 @@ async function api(path) { const res = await fetch(withDate(path)); let b = null
 async function apiPost(path, payload) { const res = await fetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...payload, date: S.data?.date || S.date || undefined, starters: picksParam() || undefined }) }); let b = null; try { b = await res.json(); } catch {} if (!res.ok) throw new Error(b?.error || `${res.status} ${res.statusText}`); return b; }
 const stateHtml = (kind, title, text, detail) => `<div class="card state ${kind === 'err' ? 'err' : ''}"><h3>${esc(title)}</h3><p>${text}</p>${detail ? `<pre>${esc(detail)}</pre>` : ''}</div>`;
 const store = { get: k => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
-// Last-10 strip: bar height = shots, aqua = scored.
+// Last-10 strip: bar height = shots, green = scored, gray = no goal.
 function spark(rows) { const r = rows.slice(0, 10).reverse(); const m = Math.max(4, ...r.map(x => x.shots)); return `<span class="spark" data-tip="${esc(r.map(x => `${shortDate(x.date)} ${x.opp}: ${x.goals} G, ${x.shots} SOG`).join('<br>'))}">${r.map(x => `<i class="${x.goals ? 'g' : ''}" style="height:${3 + (x.shots / m) * 15}px"></i>`).join('')}</span>`; }
 function stateChip(g) {
   if (g.state === 'in') return `<span class="chip live"><span class="dot"></span>${g.live?.intermission ? 'Intermission' : `P${g.live?.period || ''} ${esc(g.live?.clock || '')}`}</span>`;
@@ -631,7 +633,7 @@ function bestHtml() {
       <div class="ctx">${esc(b.team)} vs ${esc(b.opp)} · ${esc(puck(g?.start))}${p ? ` · ${p.pos === 'D' ? 'Defense' : 'Forward'}, ${p.toi} min a night` : ''}</div>
       <div class="nums"><div><div class="v">${pct(b.anytime)}</div><div class="l">Anytime goal · fair ${esc(b.fair)}</div></div><div><div class="v">${pct(b.first)}</div><div class="l">First goal · fair ${fair(b.first)}</div></div>${p ? `<div><div class="v">${p.shots.mean}</div><div class="l">Shots expected</div></div>` : ''}</div>
       <p class="note" style="margin-top:12px">The highest anytime chance on the slate, not a value call: paste prices on Best plays to rank by value.</p></div>
-    <div><div class="section-t">Why</div><ul>${b.reasons.map(r => `<li>${esc(r)}</li>`).join('')}</ul>${p ? `<div class="section-t" style="margin-top:14px">Last 10 games · bar = shots, aqua = scored</div>${spark(p.last10)}` : ''}</div></div>`;
+    <div><div class="section-t">Why</div><ul>${b.reasons.map(r => `<li>${esc(r)}</li>`).join('')}</ul>${p ? `<div class="section-t" style="margin-top:14px">Last 10 games · bar height = shots, green = scored, gray = no goal</div>${spark(p.last10)}` : ''}</div></div>`;
 }
 function renderToday() {
   const el = $('#panel-today');
@@ -872,7 +874,7 @@ function closeDrawer() { $('#drawer').classList.remove('open'); $('#scrim').clas
 function barsSvg(rows, key, mark, label) {
   const r = rows.slice(0, 10).reverse(); if (!r.length) return '<p class="note">No games yet.</p>';
   const w = 420, h = 120, mb = 22, mt = 14, bw = (w - 16) / r.length, max = Math.max(4, ...r.map(x => x[key]));
-  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" role="img" aria-label="${esc(label)}">${r.map((x, i) => { const bh = ((h - mt - mb) * x[key]) / max, x0 = 8 + i * bw + bw * 0.15; return `<rect x="${x0}" y="${h - mb - bh}" width="${bw * 0.7}" height="${Math.max(1, bh)}" rx="2" fill="${mark(x) ? 'var(--s3)' : 'var(--s1)'}" opacity="${mark(x) ? 1 : 0.75}"/><text x="${x0 + bw * 0.35}" y="${h - mb - bh - 4}" text-anchor="middle" style="fill:var(--ink)">${x[key]}</text><text x="${x0 + bw * 0.35}" y="${h - 6}" text-anchor="middle">${esc(x.opp || '')}</text>`; }).join('')}</svg>`;
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" role="img" aria-label="${esc(label)}">${r.map((x, i) => { const bh = ((h - mt - mb) * x[key]) / max, x0 = 8 + i * bw + bw * 0.15; return `<rect x="${x0}" y="${h - mb - bh}" width="${bw * 0.7}" height="${Math.max(1, bh)}" rx="2" fill="${mark(x) ? 'var(--s3)' : 'var(--bar-off)'}"/><text x="${x0 + bw * 0.35}" y="${h - mb - bh - 4}" text-anchor="middle" style="fill:var(--ink)">${x[key]}</text><text x="${x0 + bw * 0.35}" y="${h - 6}" text-anchor="middle">${esc(x.opp || '')}</text>`; }).join('')}</svg>`;
 }
 function openPlayer(id, gid) {
   const g = gameById(gid), p = g?.players.find(x => x.id === Number(id)); if (!p) return;
@@ -890,7 +892,7 @@ function openPlayer(id, gid) {
       <tr><td class="l">Opponent shots allowed</td><td>${(p.team === g.home.abbrev ? g.away : g.home).saPerGame}/game</td></tr>
     </tbody></table></div>
     <div><div class="section-t">Season</div><div class="kv2"><div><div class="l">Games</div><div class="v">${p.season.gp}</div></div><div><div class="l">Goals</div><div class="v">${p.season.goals}</div></div><div><div class="l">Shots/game</div><div class="v">${p.season.gp ? (p.season.shots / p.season.gp).toFixed(1) : '—'}</div></div></div></div>
-    <div><div class="section-t">Last 10 · shots (aqua = scored)</div>${barsSvg(p.last10, 'shots', x => x.goals > 0, 'Shots, last 10')}</div>`);
+    <div><div class="section-t">Last 10 · shots per game (green = scored, gray = no goal)</div>${barsSvg(p.last10, 'shots', x => x.goals > 0, 'Shots, last 10')}</div>`);
 }
 function distSvg(dist, line) {
   const w = 420, h = 130, mb = 22, mt = 16, bw = (w - 16) / dist.length, max = Math.max(...dist);
