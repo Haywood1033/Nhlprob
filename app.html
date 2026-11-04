@@ -684,7 +684,7 @@ function bestHtml() {
   const g = gameById(b.gameId), p = g?.players.find(x => x.id === b.playerId);
   const R = S.data.bestRemaining;
   return `<div class="card best">
-    <div><div class="k">Today’s best goalscorer play${b.locked ? ' · <span class="muted" data-tip="Picked from the full slate before the first puck drop and kept for the day, so it doesn’t move to a later game as earlier ones start.">locked at first puck drop</span>' : ''}</div>
+    <div><div class="k">Today’s best goalscorer play${b.locked ? (b.lockedLate ? ` · <span class="muted" data-tip="No pick was saved before the first puck drop, so it was locked on the first load after games started (${esc(new Date(b.lockedLate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }))} ET), choosing only from games that hadn’t started.">locked late, from games not yet started</span>` : ' · <span class="muted" data-tip="Picked from the full slate before the first puck drop and kept for the day, so it doesn’t move to a later game as earlier ones start.">locked at first puck drop</span>') : ''}</div>
       <div class="who" data-player="${b.playerId}" data-game="${esc(b.gameId)}">${esc(b.name)}</div>
       ${b.signals?.length ? `<div style="margin-top:6px;display:flex;gap:8px;align-items:center">${tierChip(b.badge)} ${sigIcons(b)} <span class="note">Firing ${b.count} of 8</span></div>` : ''}
       <div class="ctx">${esc(b.team)} vs ${esc(b.opp)} · ${esc(puck(g?.start))}${p ? ` · ${p.pos === 'D' ? 'Defense' : 'Forward'}, ${p.toi} min a night` : ''}</div>
