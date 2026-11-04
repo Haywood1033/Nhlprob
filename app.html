@@ -553,7 +553,7 @@ const S = {
   scorerMode: qs.get('market') || 'anytime', scorerGame: '', scorerPos: '', scorerQ: '', scorerScored: false, scorerTagged: false, scorerSort: 'chance',
   book: '', plays: null, playsErr: null, playsLoading: false, playsKey: null,
   slip: [], slipRes: null, slipErr: null, slipGame: '', slipMarket: '',
-  backtest: null, btLoading: false, btErr: null, grades: null,
+  backtest: null, btLoading: false, btErr: null, btDays: 20, grades: null,
 };
 
 // ── Helpers ──────────────────────────────────────────────────────────────────────────────
@@ -894,15 +894,15 @@ function drawCalibration(el, bins) {
     ${bins.map((b, i) => `<g data-i="${i}"><circle cx="${x(Math.min(top, b.predicted))}" cy="${y(Math.min(top, b.actual))}" r="12" fill="transparent"/><circle cx="${x(Math.min(top, b.predicted))}" cy="${y(Math.min(top, b.actual))}" r="${Math.min(9, 3 + Math.sqrt(b.n) / 6)}" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/></g>`).join('')}</svg>`;
   wireTips(el, 'g[data-i]', g => { const b = bins[+g.dataset.i]; return `<div class="t">Model ${pct(b.lo, 0)}–${pct(b.hi, 0)}</div><div class="r">Avg predicted <b>${pct(b.predicted)}</b></div><div class="r">Actually scored <b>${pct(b.actual)}</b></div><div class="r">Player-games <b>${b.n.toLocaleString()}</b></div>`; });
 }
-async function runBacktestNow() { S.btLoading = true; S.btErr = null; renderAccuracy(); try { S.backtest = await api('/api/backtest?days=20'); } catch (err) { S.btErr = err.message; } S.btLoading = false; renderAccuracy(); }
+async function runBacktestNow() { S.btLoading = true; S.btErr = null; renderAccuracy(); try { S.backtest = await api(`/api/backtest?days=${S.btDays}`); } catch (err) { S.btErr = err.message; } S.btLoading = false; renderAccuracy(); }
 async function loadGrades() { try { S.grades = await api('/api/grades'); } catch { S.grades = { games: [], note: 'Grades unavailable.' }; } renderAccuracy(); }
 function renderAccuracy() {
   const el = $('#panel-accuracy'), B = S.backtest, G = S.grades;
   const better = (m, b, lowerBetter = true) => `<span class="${(lowerBetter ? m < b : m > b) ? 'edge-pos' : 'edge-neg'}">${(lowerBetter ? m < b : m > b) ? 'better' : 'worse'}</span>`;
   el.innerHTML = `
-    <div class="section-head"><h2>Backtest</h2><span class="note">Each game day predicted only from earlier games, the way the live app predicts it, then scored.</span><span style="flex:1"></span><button class="btn ${B ? '' : 'primary'}" id="runBt" ${S.btLoading ? 'disabled' : ''}>${ICON.play} ${S.btLoading ? 'Running…' : B ? 'Re-run' : 'Run backtest'}</button></div>
+    <div class="section-head"><h2>Backtest</h2><span class="note">Each game day predicted only from earlier games, the way the live app predicts it, then scored.</span><span style="flex:1"></span><div class="seg" id="btDays" title="Game days to replay">${[20, 40, 60].map(n => `<button data-v="${n}" aria-pressed="${S.btDays === n}">${n} days</button>`).join('')}</div><button class="btn ${B ? '' : 'primary'}" id="runBt" ${S.btLoading ? 'disabled' : ''}>${ICON.play} ${S.btLoading ? 'Running…' : B ? 'Re-run' : 'Run backtest'}</button></div>
     ${S.btErr ? stateHtml('err', 'Backtest failed', 'The backtest endpoint returned an error.', S.btErr) : ''}
-    ${!B && !S.btErr ? '<div class="card state"><h3>Not run yet</h3><p>Replays the last 20 game days (about 10–20 seconds).</p></div>' : ''}
+    ${!B && !S.btErr ? '<div class="card state"><h3>Not run yet</h3><p>Replays recent game days: 20 takes about 15–30 seconds, 60 up to a minute. More days means steadier numbers.</p></div>' : ''}
     ${B ? `<div class="tiles">
       <div class="card tile"><div class="lbl">Anytime goal · log loss</div><div class="val">${B.anytime.logLoss.model.toFixed(3)}</div><div class="note">Raw goals-per-game ${B.anytime.logLoss.naive.toFixed(3)} · ${better(B.anytime.logLoss.model, B.anytime.logLoss.naive)} · ${B.anytime.n.toLocaleString()} player-games</div></div>
       <div class="card tile"><div class="lbl">Moneyline · log loss</div><div class="val">${B.moneyline.logLoss.model.toFixed(3)}</div><div class="note">Home-rate baseline ${B.moneyline.logLoss.base.toFixed(3)} · ${better(B.moneyline.logLoss.model, B.moneyline.logLoss.base)} · favourites won ${pct(B.moneyline.accuracy, 0)}</div></div>
@@ -1031,6 +1031,7 @@ document.addEventListener('click', e => {
   const pl = t.closest('[data-player]'); if (pl) return openPlayer(pl.dataset.player, pl.dataset.game);
   const gm = t.closest('.game[data-game]'); if (gm) return openGame(gm.dataset.game);
   if (t.closest('#runBt')) return runBacktestNow();
+  const bd = t.closest('#btDays button'); if (bd) { S.btDays = Number(bd.dataset.v); return renderAccuracy(); }
   if (t.closest('#bookApply')) { S.book = $('#bookText').value; store.set('nhlprob-book', S.book); return loadPlays(true); }
   if (t.closest('#bookClear')) { S.book = ''; store.set('nhlprob-book', ''); return loadPlays(true); }
   const pos = t.closest('#scPos button'); if (pos) { S.scorerPos = pos.dataset.v; return renderScorers(); }
