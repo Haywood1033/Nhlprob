@@ -21,10 +21,11 @@ test('best goalscorer play is locked to the whole slate once a game starts', asy
   const { body } = await call('slate');
   assert.ok(body.games.some(g => g.state === 'in'), 'fixture: one game live');
   const all = body.games.flatMap(g => g.players.map(p => ({ p, g })));
-  const top = all.reduce((a, b) => (b.p.anytime > a.p.anytime ? b : a));
+  const rank = { Elite: 3, 'All-Star': 2, Value: 1 }, better = (a, b) => ((rank[b.p.badge] || 0) - (rank[a.p.badge] || 0) || b.p.anytime - a.p.anytime) > 0;
+  const top = all.reduce((a, b) => (better(a, b) ? b : a));
   assert.equal(body.best.playerId, top.p.id, 'chosen from every game, started ones included');
   assert.equal(body.best.locked, true);
-  const pre = all.filter(x => x.g.state === 'pre'), topPre = pre.reduce((a, b) => (b.p.anytime > a.p.anytime ? b : a));
+  const pre = all.filter(x => x.g.state === 'pre'), topPre = pre.reduce((a, b) => (better(a, b) ? b : a));
   if (topPre.p.id !== top.p.id) assert.equal(body.bestRemaining.playerId, topPre.p.id, 'best still to start reported separately');
   else assert.equal(body.bestRemaining, null);
   // The live game's goals carry scorer ids, which is what the card's live status reads.

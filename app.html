@@ -467,6 +467,18 @@ td.click:hover .pname { text-decoration: underline; }
 .drawer-b table.data thead th { position: static; white-space: nowrap; }
 .drawer-b table.data td.nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #scQ { padding-left: 10px; }
+/* Signal tags: Elite / All-Star / Value, and the eight signal icons (dim = not firing). */
+.tier { display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 4px; font-size: 11.5px; font-weight: 700; border: 1px solid; white-space: nowrap; }
+.tier.elite { color: var(--accent); border-color: rgba(45, 212, 191, 0.4); background: var(--accent-wash); }
+.tier.allstar { color: var(--info); border-color: rgba(96, 165, 250, 0.4); background: var(--info-wash); }
+.tier.value { color: var(--ink-2); border-color: var(--line-2); background: var(--surface-2); }
+.sigs { display: inline-flex; gap: 1px; font-size: 13px; line-height: 1; white-space: nowrap; }
+.sigs i { font-style: normal; opacity: 0.22; filter: grayscale(1); }
+.sigs i.on { opacity: 1; filter: none; }
+.sig-list { display: grid; gap: 6px; }
+.sig-row { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: baseline; font-size: 13px; }
+.sig-row .d { color: var(--ink-3); font-size: 12px; }
+.sig-row.off { opacity: 0.55; }
 .kv2 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .kv2 > div { background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; }
 .kv2 .l { font-size: 12px; color: var(--ink-3); }
@@ -529,7 +541,7 @@ const qs = new URLSearchParams(location.search);
 const S = {
   date: qs.get('date') || '', tab: qs.get('tab') || 'today',
   data: null, err: null, loading: false,
-  scorerMode: qs.get('market') || 'anytime', scorerGame: '', scorerPos: '', scorerQ: '', scorerScored: false,
+  scorerMode: qs.get('market') || 'anytime', scorerGame: '', scorerPos: '', scorerQ: '', scorerScored: false, scorerTagged: false, scorerSort: 'chance',
   book: '', plays: null, playsErr: null, playsLoading: false, playsKey: null,
   slip: [], slipRes: null, slipErr: null, slipGame: '', slipMarket: '',
   backtest: null, btLoading: false, btErr: null, grades: null,
@@ -627,6 +639,10 @@ function gameCard(g) {
     ${g.live?.goals?.length ? `<div class="gl" style="display:block;color:var(--ink-2)"><span class="muted">Goals</span> ${g.live.goals.map(x => `${esc((n => { const w = n.split(' '); return w.length > 1 ? `${w[0][0]}. ${w.slice(1).join(' ')}` : n; })(g.players.find(p => p.id === x.playerId)?.name || x.name || ''))} <span class="muted">${esc(x.team)} ${goalTime(x)}${x.emptyNet ? ' EN' : ''}</span>`).join(' · ')}</div>` : ''}
     <div class="gl"><span>${gtxt('away')}</span><span>${gtxt('home')}</span></div></div>`;
 }
+// Signal tags (lib/signals): the tag chip and the eight icons with a tooltip of what's firing.
+const tierChip = b => (b ? `<span class="tier ${b === 'Elite' ? 'elite' : b === 'All-Star' ? 'allstar' : 'value'}">${esc(b)}</span>` : '');
+const sigIcons = p => (p.signals ? `<span class="sigs" data-tip="${esc(`<div class='t'>Firing ${p.count} of 8</div>` + p.signals.map(x => `<div class='r'>${x.on ? '✓' : '·'} ${x.label}: ${x.detail}</div>`).join(''))}">${p.signals.map(x => `<i class="${x.on ? 'on' : ''}">${x.icon}</i>`).join('')}</span>` : '');
+const TIER_RANK = { Elite: 3, 'All-Star': 2, Value: 1 };
 // Tonight's goals, from each game's live goal list (scores feed; refreshed every 30s while games are on).
 const goalTime = x => `${x.period > 3 ? 'OT' : `P${x.period}`} ${Math.floor(x.time)}:${String(Math.round((x.time % 1) * 60)).padStart(2, '0')}`;
 const goalsBy = (g, playerId) => (g?.live?.goals || []).filter(x => x.playerId === Number(playerId));
@@ -654,11 +670,12 @@ function bestHtml() {
   return `<div class="card best">
     <div><div class="k">Today’s best goalscorer play${b.locked ? ' · <span class="muted" data-tip="Picked from the full slate before the first puck drop and kept for the day, so it doesn’t move to a later game as earlier ones start.">locked at first puck drop</span>' : ''}</div>
       <div class="who" data-player="${b.playerId}" data-game="${esc(b.gameId)}">${esc(b.name)}</div>
+      ${b.signals?.length ? `<div style="margin-top:6px;display:flex;gap:8px;align-items:center">${tierChip(b.badge)} ${sigIcons(b)} <span class="note">Firing ${b.count} of 8</span></div>` : ''}
       <div class="ctx">${esc(b.team)} vs ${esc(b.opp)} · ${esc(puck(g?.start))}${p ? ` · ${p.pos === 'D' ? 'Defense' : 'Forward'}, ${p.toi} min a night` : ''}</div>
       <div class="nums"><div><div class="v">${pct(b.anytime)}</div><div class="l">Anytime goal · fair ${esc(b.fair)}</div></div><div><div class="v">${pct(b.first)}</div><div class="l">First goal · fair ${fair(b.first)}</div></div>${p ? `<div><div class="v">${p.shots.mean}</div><div class="l">Shots expected</div></div>` : ''}</div>
       <div style="margin-top:12px">${pickStatus(b, g)}</div>
       ${R ? `<p class="note" style="margin-top:10px">Best still to start: <a href="#" data-player="${R.playerId}" data-game="${esc(R.gameId)}">${esc(R.name)}</a> (${esc(R.team)} vs ${esc(R.opp)}, ${esc(puck(gameById(R.gameId)?.start))}) ${pct(R.anytime)}</p>` : ''}
-      <p class="note" style="margin-top:8px">The highest anytime chance on the slate, not a value call: paste prices on Best plays to rank by value.</p></div>
+      <p class="note" style="margin-top:8px">The strongest tag on the slate (Elite, then All-Star, then Value), then the highest anytime chance. A conviction pick, not a value call: paste prices on Best plays to rank by value.</p></div>
     <div><div class="section-t">Why</div><ul>${b.reasons.map(r => `<li>${esc(r)}</li>`).join('')}</ul>${p ? `<div class="section-t" style="margin-top:14px">Last 10 games · bar height = shots, green = scored, gray = no goal</div>${spark(p.last10)}` : ''}</div></div>`;
 }
 function renderToday() {
@@ -678,7 +695,7 @@ function renderScorers() {
   if (!S.data) { el.innerHTML = '<div class="skel" style="height:420px"></div>'; return; }
   const [label, val, fo] = SCORER_MODES[S.scorerMode];
   const q = S.scorerQ.trim().toLowerCase();
-  const rows = allPlayers().filter(p => (!S.scorerScored || goalsBy(p.game, p.id).length) && (!S.scorerGame || p.game.id === S.scorerGame) && (!S.scorerPos || (S.scorerPos === 'D' ? p.pos === 'D' : p.pos !== 'D')) && (!q || p.name.toLowerCase().includes(q))).sort((a, b) => val(b) - val(a)).slice(0, 150);
+  const rows = allPlayers().filter(p => (!S.scorerTagged || p.badge) && (!S.scorerScored || goalsBy(p.game, p.id).length) && (!S.scorerGame || p.game.id === S.scorerGame) && (!S.scorerPos || (S.scorerPos === 'D' ? p.pos === 'D' : p.pos !== 'D')) && (!q || p.name.toLowerCase().includes(q))).sort((a, b) => (S.scorerSort === 'tag' ? (TIER_RANK[b.badge] || 0) - (TIER_RANK[a.badge] || 0) || b.count - a.count : 0) || val(b) - val(a)).slice(0, 150);
   const priced = new Map((S.plays?.book?.rows || []).filter(r => ['goal', 'first', 'goal2'].includes(r.market)).map(r => [`${r.market}|${r.player}`, r]));
   const bookKey = { anytime: 'goal', first: 'first', two: 'goal2' }[S.scorerMode];
   const firstNote = S.scorerMode === 'first' ? `<div class="callout">First goalscorer counts the first goal of the game, overtime included (shootouts don’t count). In each game the chances add up to 100% with the small chance of no goal at all. ${ready().filter(g => g.state === 'pre').map(g => `${g.leans.firstToScore.team} score first ${pct(g.leans.firstToScore.prob, 0)}`).slice(0, 6).join(' · ')}</div>` : '';
@@ -687,12 +704,14 @@ function renderScorers() {
       <label class="sr-only" for="scMode">Market</label><select class="select" id="scMode">${Object.entries(SCORER_MODES).map(([k, [l]]) => `<option value="${k}" ${k === S.scorerMode ? 'selected' : ''}>${l}</option>`).join('')}</select>
       <label class="sr-only" for="scGame">Game</label><select class="select" id="scGame"><option value="">All games</option>${ready().map(g => `<option value="${esc(g.id)}" ${g.id === S.scorerGame ? 'selected' : ''}>${esc(matchup(g))}</option>`).join('')}</select>
       <div class="seg" id="scPos">${[['', 'All'], ['F', 'Forwards'], ['D', 'Defense']].map(([v, l]) => `<button data-v="${v}" aria-pressed="${S.scorerPos === v}">${l}</button>`).join('')}</div>
+      <div class="seg" id="scSort">${[['chance', 'By chance'], ['tag', 'By tag']].map(([v, l]) => `<button data-v="${v}" aria-pressed="${S.scorerSort === v}">${l}</button>`).join('')}</div>
+      <div class="seg"><button id="scTagged" aria-pressed="${S.scorerTagged}">Tagged only</button></div>
       ${ready().some(g => g.live?.goals?.length) ? `<div class="seg"><button id="scScored" aria-pressed="${S.scorerScored}">Scored tonight</button></div>` : ''}
       <div class="search"><input class="select" style="width:100%" id="scQ" placeholder="Search players" value="${esc(S.scorerQ)}"></div>
     </div>
     ${firstNote}
-    <div class="table-wrap"><table class="data"><thead><tr><th class="l">Player</th><th class="l">Game</th><th>${esc(label)}</th><th>Fair</th>${bookKey && priced.size ? '<th>Book</th><th>EV</th>' : ''}<th>Shots exp.</th><th>Shooting %</th><th>TOI</th><th>Season</th><th class="l">Last 10</th></tr></thead><tbody>
-      ${rows.map(p => { const v = val(p), r = bookKey ? priced.get(`${bookKey}|${p.id}`) : null, ev = r ? v * r.dec - 1 : null; return `<tr><td class="l click" data-player="${p.id}" data-game="${esc(p.game.id)}"><span class="pname">${esc(p.name)}</span>${goalTag(p.game, p.id)}<div class="psub">${esc(p.team)} · ${p.pos === 'D' ? 'D' : p.pos}</div></td><td class="l muted">${esc(matchup(p.game))}${p.game.state === 'in' ? ' · live' : p.game.state === 'post' ? ' · final' : ''}</td><td class="sorted">${pct(v)}</td><td class="dim">${esc(fo(p))}</td>${bookKey && priced.size ? `<td>${r ? esc(r.raw) : '—'}</td><td class="${ev > 0 ? 'edge-pos' : ''}">${ev === null ? '—' : signed(ev, 2)}</td>` : ''}<td>${p.shots.mean}</td><td>${(p.shPct * 100).toFixed(1)}%</td><td>${p.toi}</td><td class="dim">${p.season.goals} G · ${p.season.gp} GP</td><td class="l">${spark(p.last10)}</td></tr>`; }).join('') || '<tr><td colspan="10" class="l muted">No players match.</td></tr>'}
+    <div class="table-wrap"><table class="data"><thead><tr><th class="l">Player</th><th class="l">Signals</th><th class="l">Game</th><th>${esc(label)}</th><th>Fair</th>${bookKey && priced.size ? '<th>Book</th><th>EV</th>' : ''}<th>Shots exp.</th><th>Shooting %</th><th>TOI</th><th>Season</th><th class="l">Last 10</th></tr></thead><tbody>
+      ${rows.map(p => { const v = val(p), r = bookKey ? priced.get(`${bookKey}|${p.id}`) : null, ev = r ? v * r.dec - 1 : null; return `<tr><td class="l click" data-player="${p.id}" data-game="${esc(p.game.id)}"><span class="pname">${esc(p.name)}</span>${goalTag(p.game, p.id)}<div class="psub">${esc(p.team)} · ${p.pos === 'D' ? 'D' : p.pos}</div></td><td class="l">${tierChip(p.badge)} ${sigIcons(p)}</td><td class="l muted">${esc(matchup(p.game))}${p.game.state === 'in' ? ' · live' : p.game.state === 'post' ? ' · final' : ''}</td><td class="sorted">${pct(v)}</td><td class="dim">${esc(fo(p))}</td>${bookKey && priced.size ? `<td>${r ? esc(r.raw) : '—'}</td><td class="${ev > 0 ? 'edge-pos' : ''}">${ev === null ? '—' : signed(ev, 2)}</td>` : ''}<td>${p.shots.mean}</td><td>${(p.shPct * 100).toFixed(1)}%</td><td>${p.toi}</td><td class="dim">${p.season.goals} G · ${p.season.gp} GP</td><td class="l">${spark(p.last10)}</td></tr>`; }).join('') || '<tr><td colspan="11" class="l muted">No players match.</td></tr>'}
     </tbody></table></div>
     <p class="note foot">Each skater’s shots come from his shots per 60 × ice time, set against the opponent’s shots allowed. Each shot scores at his shooting % (regressed hard: finishing is mostly noise over a few weeks), scaled by the opposing goalie. Shooting % is regulation shots with a goalie in net; empty-net and overtime goals are modelled on their own.</p>`;
 }
@@ -764,7 +783,7 @@ async function loadPlays(force = false) {
 const modeTag = m => (m === 'value' ? '<span class="tag pos">Value · vs your prices</span>' : '<span class="tag">Model ranking</span>');
 const evText = ev => `${ev >= 0 ? '+' : '−'}$${Math.abs(ev).toFixed(2)}`;
 function playCard(x, i) {
-  return `<div class="card play"><div><div class="play-h"><span class="play-rank">${i + 1}</span><div><div class="play-name">${esc(x.title)}${x.player && ['goal', 'goal2', 'first'].includes(x.market) ? goalTag(gameById(x.game), x.player) : ''}</div><div class="play-sub">${esc(x.sub)}</div></div>
+  return `<div class="card play"><div><div class="play-h"><span class="play-rank">${i + 1}</span><div><div class="play-name">${esc(x.title)}${x.badge ? ` ${tierChip(x.badge)}` : ''}${x.player && ['goal', 'goal2', 'first'].includes(x.market) ? goalTag(gameById(x.game), x.player) : ''}</div><div class="play-sub">${esc(x.sub)}</div></div>
     <div class="play-prob"><div class="big">${pct(x.prob)}</div><div class="small">fair ${esc(x.fairOdds)}</div></div></div>
     ${x.book ? `<div class="bookline"><span class="tag pos">Book ${esc(x.book.raw)} · EV ${evText(x.book.ev)} per $1</span></div>` : ''}</div>
     <ul>${x.reasons.map(r => `<li>${esc(r)}</li>`).join('')}</ul></div>`;
@@ -882,6 +901,11 @@ function renderAccuracy() {
       <div class="card"><div class="card-h"><h2>Anytime goal calibration</h2><span class="sub">When the model says x%, how often he scored</span></div><div class="card-b"><div class="chart" id="calChart"></div></div></div>
       <div class="card"><div class="card-h"><h2>By day</h2></div><div class="table-wrap" style="border:0;border-radius:0"><table class="data"><thead><tr><th class="l">Date</th><th>Games</th><th>Favourites won</th></tr></thead><tbody>${B.perDay.slice(0, 10).map(d => `<tr><td class="l">${shortDate(d.date)}</td><td>${d.games}</td><td>${d.favouritesWon}</td></tr>`).join('')}</tbody></table></div></div>
     </div>` : ''}
+    ${B?.tags ? `<div class="card" style="margin-top:16px"><div class="card-h"><h2>Do the tags add anything?</h2><span class="sub">Anytime goal: how tagged players actually scored vs what the model said for the same players</span></div>
+      <div class="table-wrap" style="border:0;border-radius:0"><table class="data"><thead><tr><th class="l">Tag</th><th>Player-games</th><th>Model said</th><th>Scored</th><th>Difference</th></tr></thead><tbody>
+      ${B.tags.map(t => `<tr><td class="l">${t.badge === 'No tag' ? 'No tag' : tierChip(t.badge)}</td><td>${t.n.toLocaleString()}</td><td>${pct(t.predicted)}</td><td>${pct(t.actual)}</td><td class="${t.actual !== null && t.predicted !== null ? (t.actual > t.predicted ? 'edge-pos' : 'edge-neg') : ''}">${t.actual !== null && t.predicted !== null ? signed((t.actual - t.predicted) * 100, 1) + ' pts' : '—'}</td></tr>`).join('')}
+      ${B.bySignals.map(t => `<tr><td class="l muted">${t.signals} signal${t.signals === '1' ? '' : 's'} firing</td><td>${t.n.toLocaleString()}</td><td>${pct(t.predicted)}</td><td>${pct(t.actual)}</td><td class="${t.actual !== null && t.predicted !== null ? (t.actual > t.predicted ? 'edge-pos' : 'edge-neg') : ''}">${t.actual !== null && t.predicted !== null ? signed((t.actual - t.predicted) * 100, 1) + ' pts' : '—'}</td></tr>`).join('')}
+      </tbody></table></div><div class="card-b note">Tagged players scoring more often is expected, since tags go to high-chance players. A tag adds information only if its players beat the model’s own number. Small groups (under a few hundred) swing a lot.</div></div>` : ''}
     <div class="section-head"><h2>Live record</h2><span class="note">The last projection before each puck drop, graded after the game.</span></div>
     ${G ? storageNote(G.storage) : ''}
     ${!G ? '<div class="skel" style="height:120px"></div>' : G.totals ? `<div class="tiles" style="margin-bottom:12px">
@@ -909,6 +933,7 @@ function openPlayer(id, gid) {
   const tonight = goalsBy(g, p.id);
   openDrawer(`<div><h2>${esc(p.name)}${goalTag(g, p.id)}</h2><div class="sub">${esc(p.team)} · ${p.pos === 'D' ? 'Defense' : 'Forward'} · vs ${esc(p.opp)} · ${esc(puck(g.start))}${g.state === 'in' ? ' · live' : g.state === 'post' ? ' · final' : ''}</div></div>`,
     `${tonight.length ? `<div class="callout" style="margin:0;border-left-color:var(--pos)">Scored tonight: ${tonight.map(x => `${goalTime(x)}${x.emptyNet ? ' (empty net)' : ''}`).join(', ')}. The chances below are his pre-game numbers.</div>` : ''}
+    <div><div class="section-t">Signals · firing ${p.count} of 8 ${tierChip(p.badge)}</div><div class="sig-list">${[...p.signals.filter(x => x.on), ...p.signals.filter(x => !x.on)].map(x => `<div class="sig-row ${x.on ? '' : 'off'}"><span>${x.icon}</span><span><b>${esc(x.label)}</b>${x.on ? '' : ' · not firing'} <span class="d">${esc(x.detail)}</span></span></div>`).join('')}</div></div>
     <div class="kv2"><div><div class="l">Anytime goal</div><div class="v">${pct(p.anytime)}</div><div class="l">fair ${esc(p.fair.anytime)}</div></div><div><div class="l">First goal</div><div class="v">${pct(p.first)}</div><div class="l">fair ${fair(p.first)}</div></div><div><div class="l">2+ goals</div><div class="v">${pct(p.twoPlus)}</div><div class="l">fair ${fair(p.twoPlus)}</div></div></div>
     <div><div class="section-t">Shots on goal · ${p.shots.mean} expected</div><div class="kv2">${['1.5', '2.5', '3.5'].map(l => `<div><div class="l">Over ${l}</div><div class="v">${pct(p.shots.over[l], 0)}</div><div class="l">fair ${fair(p.shots.over[l])}</div></div>`).join('')}</div></div>
     <div><div class="section-t">How the number is built</div><table class="data"><tbody>
@@ -989,6 +1014,8 @@ document.addEventListener('click', e => {
   if (t.closest('#bookClear')) { S.book = ''; store.set('nhlprob-book', ''); return loadPlays(true); }
   const pos = t.closest('#scPos button'); if (pos) { S.scorerPos = pos.dataset.v; return renderScorers(); }
   if (t.closest('#scScored')) { S.scorerScored = !S.scorerScored; return renderScorers(); }
+  if (t.closest('#scTagged')) { S.scorerTagged = !S.scorerTagged; return renderScorers(); }
+  const so = t.closest('#scSort button'); if (so) { S.scorerSort = so.dataset.v; return renderScorers(); }
   if (t.closest('#slAdd')) { const g = gameById(S.slipGame), o = marketOptions(g)[Number($('#slMarket').value)]; if (o) { S.slip.push({ game: g.id, ...o[0] }); priceSlip(); } return; }
   const rm = t.closest('[data-rm]'); if (rm) { S.slip.splice(Number(rm.dataset.rm), 1); return priceSlip(); }
 });

@@ -34,7 +34,14 @@ test('slate: every game simulated, probabilities consistent, best play', async (
   }
   const avg = body.games.reduce((s, g) => s + g.total.mean, 0) / body.games.length;
   assert.ok(Math.abs(avg - body.league.goalsPerGame) < 0.5, `slate total ${avg} vs league ${body.league.goalsPerGame}`);
-  assert.ok(body.best && body.best.anytime === Math.max(...body.games.flatMap(g => g.players.map(p => p.anytime))));
+  // Every skater carries eight signals; the day's pick is the strongest tag, then the highest chance.
+  const rank = { Elite: 3, 'All-Star': 2, Value: 1 };
+  const everyone = body.games.flatMap(g => g.players);
+  assert.ok(everyone.every(p => p.signals.length === 8 && p.count === p.signals.filter(s => s.on).length));
+  assert.ok(everyone.every(p => !p.badge || (p.count >= 4 && p.anytime >= 0.15)));
+  const top = everyone.sort((a, b) => (rank[b.badge] || 0) - (rank[a.badge] || 0) || b.anytime - a.anytime)[0];
+  assert.equal(body.best.playerId, top.id);
+  assert.equal(body.best.badge, top.badge);
   assert.equal(body.snapshot.saved, 0);
   // Records come from the standings (W-L-OT), matching the season's finished games.
   const { standingsAt } = require('./fixtures');
@@ -92,6 +99,7 @@ test('backtest beats simple baselines; health, status, grades, sync', async () =
   assert.ok(bt.sog.mae.model < bt.sog.mae.naive, 'shots beat season average');
   assert.ok(bt.saves.mae.model < bt.saves.mae.naive, 'saves beat season saves per start');
   assert.ok(bt.first.logLoss.model < bt.first.logLoss.uniform, 'first goal beats an even split');
+  assert.equal(bt.tags.reduce((s, t) => s + t.n, 0), bt.anytime.n, 'every scored player-game lands in one tag group');
   const h = await call('health');
   assert.equal(h.code, 200, JSON.stringify(h.body.checks.filter(c => !c.ok)));
   assert.equal(h.body.checks.length, 6);

@@ -112,6 +112,24 @@ test('markets: correlated inside a game, independent across games', () => {
   assert.ok(priceTicket(book, [{ game: 'g1', market: 'goal', player: 999 }]).error);
 });
 
+test('signals: each one fires on its own data; tags need the count and a real chance', () => {
+  const { signalsFor } = require('../lib/signals');
+  const lg = { svPct: 0.905, sogPerTeam: 30, goalsPerGame: 6.1, shPct: { F: 0.11, D: 0.05 } };
+  const p = { pos: 'C', expShots: 3.4, toi: 20, shPct: 0.15, raw: { shots: 200 }, season: { gp: 20, shots: 60 }, last10: Array.from({ length: 10 }, (_, i) => ({ goals: i < 3 ? 1 : 0, shots: 4 })), anytime: 0.4 };
+  const hot = { lg, oppSaPerGame: 32, oppGoalieSv: 0.898, gameTotal: 6.7, oppB2b: true };
+  const all = signalsFor(p, hot);
+  assert.equal(all.count, 8); assert.equal(all.badge, 'Elite');
+  const cold = signalsFor({ ...p, expShots: 1.2, toi: 12, shPct: 0.1, last10: p.last10.map(x => ({ ...x, goals: 0, shots: 3 })) }, { lg, oppSaPerGame: 29, oppGoalieSv: 0.915, gameTotal: 5.9, oppB2b: false });
+  assert.equal(cold.count, 0); assert.equal(cold.badge, null);
+  // A finisher needs the sample: 15% on 30 shots doesn't count.
+  assert.equal(signalsFor({ ...p, raw: { shots: 30 } }, hot).signals.find(s => s.key === 'finisher').on, false);
+  // Six signals but a 10% chance: no tag.
+  assert.equal(signalsFor({ ...p, anytime: 0.1 }, hot).badge, null);
+  // Defensemen have their own volume and minutes bars.
+  const d = signalsFor({ ...p, pos: 'D', expShots: 2.7, toi: 23.5 }, hot).signals;
+  assert.ok(d.find(s => s.key === 'volume').on && d.find(s => s.key === 'minutes').on);
+});
+
 test('book parsing: players, goalies, teams, totals, skipped lines', async () => {
   const games = [{ id: 'g1', home: { abbrev: 'TOR', name: 'Toronto Maple Leafs', short: 'Maple Leafs' }, away: { abbrev: 'MTL', name: 'Montréal Canadiens', short: 'Canadiens' },
     players: [{ id: 1, name: 'Auston Matthews' }, { id: 2, name: 'Nick Suzuki' }], goalies: { home: { id: 9, name: 'Joseph Woll' }, away: { id: 8, name: 'Sam Montembeault' } } }];

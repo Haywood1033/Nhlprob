@@ -44,6 +44,19 @@ One history row per completed game; two seasons when a database is connected.
      then a shootout. In the playoffs, sudden-death periods instead.
    - Every market and same-game parlay counts from the same runs.
 
+## Goalscorer signals and tags
+
+- **Eight signals per skater (lib/signals.js):** shot volume, top-line minutes, finisher
+  (regressed shooting % ≥ 1.2× position, 60+ shots), hot form, soft goalie, leaky defense,
+  high-event game, tired opponent.
+- **Tags:** Elite 6+, All-Star 5, Value 4. Each tag also needs a 20% / 20% / 15% anytime chance.
+- **Today's best play:** strongest tag first, then the highest chance.
+- **Backtest check:** reports each tag's actual scoring rate against the model's prediction
+  for the same players.
+  - On the synthetic league, tags don't beat their own predictions: most signals are already
+    model inputs, and the synthetic world has no fatigue or streaks.
+  - The real record decides whether they add anything.
+
 ## Synthetic backtest (20 days, 134 games)
 
 | | Model | Baseline |
