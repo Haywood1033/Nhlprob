@@ -43,7 +43,7 @@ test('slate: every game simulated, probabilities consistent, best play', async (
   assert.equal(body.best.playerId, top.id);
   assert.equal(body.best.badge, top.badge);
   assert.equal(body.snapshot.saved, 0);
-  // Logos: the feed's dark logo, else the NHL asset path; moneyline lean strength by the favourite's chance.
+  // Logos: the feed's dark logo, else the NHL asset path; moneyline lean strength by the favorite's chance.
   for (const g of body.games) for (const t of [g.home, g.away]) assert.ok(t.logo.startsWith('data:image/svg+xml') || t.logo === `https://assets.nhle.com/logos/nhl/svg/${t.abbrev}_dark.svg`);
   for (const g of body.games) { const e = Math.abs(g.pHome - 0.5); assert.equal(g.leans.moneyline.tier, e >= 0.12 ? 'strong' : e >= 0.05 ? 'lean' : 'tossup'); }
   // Records come from the standings (W-L-OT), matching the season's finished games.
