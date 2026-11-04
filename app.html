@@ -526,7 +526,7 @@ const qs = new URLSearchParams(location.search);
 const S = {
   date: qs.get('date') || '', tab: qs.get('tab') || 'today',
   data: null, err: null, loading: false,
-  scorerMode: qs.get('market') || 'anytime', scorerGame: '', scorerPos: '', scorerQ: '',
+  scorerMode: qs.get('market') || 'anytime', scorerGame: '', scorerPos: '', scorerQ: '', scorerScored: false,
   book: '', plays: null, playsErr: null, playsLoading: false, playsKey: null,
   slip: [], slipRes: null, slipErr: null, slipGame: '', slipMarket: '',
   backtest: null, btLoading: false, btErr: null, grades: null,
@@ -621,13 +621,23 @@ function gameCard(g) {
       ${leanChip('Puck line', `${L.puckLine.team} −1.5`, L.puckLine.prob, H.pl)}
       ${leanChip('First to score', `${L.firstToScore.team} first`, L.firstToScore.prob, H.first)}
     </div>
+    ${g.live?.goals?.length ? `<div class="gl" style="display:block;color:var(--ink-2)"><span class="muted">Goals</span> ${g.live.goals.map(x => `${esc((n => { const w = n.split(' '); return w.length > 1 ? `${w[0][0]}. ${w.slice(1).join(' ')}` : n; })(g.players.find(p => p.id === x.playerId)?.name || x.name || ''))} <span class="muted">${esc(x.team)} ${goalTime(x)}${x.emptyNet ? ' EN' : ''}</span>`).join(' · ')}</div>` : ''}
     <div class="gl"><span>${gtxt('away')}</span><span>${gtxt('home')}</span></div></div>`;
+}
+// Tonight's goals, from each game's live goal list (scores feed; refreshed every 30s while games are on).
+const goalTime = x => `${x.period > 3 ? 'OT' : `P${x.period}`} ${Math.floor(x.time)}:${String(Math.round((x.time % 1) * 60)).padStart(2, '0')}`;
+const goalsBy = (g, playerId) => (g?.live?.goals || []).filter(x => x.playerId === Number(playerId));
+// Green "Goal" tag for a player who has scored tonight (×2 etc.), with when.
+function goalTag(g, playerId) {
+  const mine = goalsBy(g, playerId);
+  if (!mine.length) return '';
+  const first = g.live.goals[0]?.playerId === Number(playerId);
+  return ` <span class="tag pos" data-tip="${esc(mine.map(goalTime).join('<br>') + (first ? '<br>First goal of the game' : ''))}">Goal${mine.length > 1 ? ` ×${mine.length}` : ''}${first ? ' · first' : ''}</span>`;
 }
 // Live status of the day's pick, from the game's goals (updates with live polling).
 function pickStatus(b, g) {
   if (!g) return '';
-  const mine = (g.live?.goals || []).filter(x => x.playerId === b.playerId);
-  const when = x => `P${x.period > 3 ? 'OT' : x.period} ${Math.floor(x.time)}:${String(Math.round((x.time % 1) * 60)).padStart(2, '0')}`;
+  const mine = goalsBy(g, b.playerId), when = goalTime;
   if (mine.length) return `<span class="tag pos">Scored${mine.length > 1 ? ` ×${mine.length}` : ''} · ${esc(mine.map(when).join(', '))}</span>`;
   if (g.state === 'post') return '<span class="tag neg">Final · no goal</span>';
   if (g.state === 'in') return `<span class="tag info">In progress · no goal yet${g.live?.period ? ` · P${g.live.period}` : ''}</span>`;
@@ -665,7 +675,7 @@ function renderScorers() {
   if (!S.data) { el.innerHTML = '<div class="skel" style="height:420px"></div>'; return; }
   const [label, val, fo] = SCORER_MODES[S.scorerMode];
   const q = S.scorerQ.trim().toLowerCase();
-  const rows = allPlayers().filter(p => (!S.scorerGame || p.game.id === S.scorerGame) && (!S.scorerPos || (S.scorerPos === 'D' ? p.pos === 'D' : p.pos !== 'D')) && (!q || p.name.toLowerCase().includes(q))).sort((a, b) => val(b) - val(a)).slice(0, 150);
+  const rows = allPlayers().filter(p => (!S.scorerScored || goalsBy(p.game, p.id).length) && (!S.scorerGame || p.game.id === S.scorerGame) && (!S.scorerPos || (S.scorerPos === 'D' ? p.pos === 'D' : p.pos !== 'D')) && (!q || p.name.toLowerCase().includes(q))).sort((a, b) => val(b) - val(a)).slice(0, 150);
   const priced = new Map((S.plays?.book?.rows || []).filter(r => ['goal', 'first', 'goal2'].includes(r.market)).map(r => [`${r.market}|${r.player}`, r]));
   const bookKey = { anytime: 'goal', first: 'first', two: 'goal2' }[S.scorerMode];
   const firstNote = S.scorerMode === 'first' ? `<div class="callout">First goalscorer counts the first goal of the game, overtime included (shootouts don’t count). In each game the chances add up to 100% with the small chance of no goal at all. ${ready().filter(g => g.state === 'pre').map(g => `${g.leans.firstToScore.team} score first ${pct(g.leans.firstToScore.prob, 0)}`).slice(0, 6).join(' · ')}</div>` : '';
@@ -674,11 +684,12 @@ function renderScorers() {
       <label class="sr-only" for="scMode">Market</label><select class="select" id="scMode">${Object.entries(SCORER_MODES).map(([k, [l]]) => `<option value="${k}" ${k === S.scorerMode ? 'selected' : ''}>${l}</option>`).join('')}</select>
       <label class="sr-only" for="scGame">Game</label><select class="select" id="scGame"><option value="">All games</option>${ready().map(g => `<option value="${esc(g.id)}" ${g.id === S.scorerGame ? 'selected' : ''}>${esc(matchup(g))}</option>`).join('')}</select>
       <div class="seg" id="scPos">${[['', 'All'], ['F', 'Forwards'], ['D', 'Defense']].map(([v, l]) => `<button data-v="${v}" aria-pressed="${S.scorerPos === v}">${l}</button>`).join('')}</div>
+      ${ready().some(g => g.live?.goals?.length) ? `<div class="seg"><button id="scScored" aria-pressed="${S.scorerScored}">Scored tonight</button></div>` : ''}
       <div class="search"><input class="select" style="width:100%" id="scQ" placeholder="Search players" value="${esc(S.scorerQ)}"></div>
     </div>
     ${firstNote}
     <div class="table-wrap"><table class="data"><thead><tr><th class="l">Player</th><th class="l">Game</th><th>${esc(label)}</th><th>Fair</th>${bookKey && priced.size ? '<th>Book</th><th>EV</th>' : ''}<th>Shots exp.</th><th>Shooting %</th><th>TOI</th><th>Season</th><th class="l">Last 10</th></tr></thead><tbody>
-      ${rows.map(p => { const v = val(p), r = bookKey ? priced.get(`${bookKey}|${p.id}`) : null, ev = r ? v * r.dec - 1 : null; return `<tr><td class="l click" data-player="${p.id}" data-game="${esc(p.game.id)}"><span class="pname">${esc(p.name)}</span><div class="psub">${esc(p.team)} · ${p.pos === 'D' ? 'D' : p.pos}</div></td><td class="l muted">${esc(matchup(p.game))}${p.game.state !== 'pre' ? ' · started' : ''}</td><td class="sorted">${pct(v)}</td><td class="dim">${esc(fo(p))}</td>${bookKey && priced.size ? `<td>${r ? esc(r.raw) : '—'}</td><td class="${ev > 0 ? 'edge-pos' : ''}">${ev === null ? '—' : signed(ev, 2)}</td>` : ''}<td>${p.shots.mean}</td><td>${(p.shPct * 100).toFixed(1)}%</td><td>${p.toi}</td><td class="dim">${p.season.goals} G · ${p.season.gp} GP</td><td class="l">${spark(p.last10)}</td></tr>`; }).join('') || '<tr><td colspan="10" class="l muted">No players match.</td></tr>'}
+      ${rows.map(p => { const v = val(p), r = bookKey ? priced.get(`${bookKey}|${p.id}`) : null, ev = r ? v * r.dec - 1 : null; return `<tr><td class="l click" data-player="${p.id}" data-game="${esc(p.game.id)}"><span class="pname">${esc(p.name)}</span>${goalTag(p.game, p.id)}<div class="psub">${esc(p.team)} · ${p.pos === 'D' ? 'D' : p.pos}</div></td><td class="l muted">${esc(matchup(p.game))}${p.game.state === 'in' ? ' · live' : p.game.state === 'post' ? ' · final' : ''}</td><td class="sorted">${pct(v)}</td><td class="dim">${esc(fo(p))}</td>${bookKey && priced.size ? `<td>${r ? esc(r.raw) : '—'}</td><td class="${ev > 0 ? 'edge-pos' : ''}">${ev === null ? '—' : signed(ev, 2)}</td>` : ''}<td>${p.shots.mean}</td><td>${(p.shPct * 100).toFixed(1)}%</td><td>${p.toi}</td><td class="dim">${p.season.goals} G · ${p.season.gp} GP</td><td class="l">${spark(p.last10)}</td></tr>`; }).join('') || '<tr><td colspan="10" class="l muted">No players match.</td></tr>'}
     </tbody></table></div>
     <p class="note foot">Each skater’s shots come from his shots per 60 × ice time, set against the opponent’s shots allowed. Each shot scores at his shooting % (regressed hard: finishing is mostly noise over a few weeks), scaled by the opposing goalie. Shooting % is regulation shots with a goalie in net; empty-net and overtime goals are modelled on their own.</p>`;
 }
@@ -750,7 +761,7 @@ async function loadPlays(force = false) {
 const modeTag = m => (m === 'value' ? '<span class="tag pos">Value · vs your prices</span>' : '<span class="tag">Model ranking</span>');
 const evText = ev => `${ev >= 0 ? '+' : '−'}$${Math.abs(ev).toFixed(2)}`;
 function playCard(x, i) {
-  return `<div class="card play"><div><div class="play-h"><span class="play-rank">${i + 1}</span><div><div class="play-name">${esc(x.title)}</div><div class="play-sub">${esc(x.sub)}</div></div>
+  return `<div class="card play"><div><div class="play-h"><span class="play-rank">${i + 1}</span><div><div class="play-name">${esc(x.title)}${x.player && ['goal', 'goal2', 'first'].includes(x.market) ? goalTag(gameById(x.game), x.player) : ''}</div><div class="play-sub">${esc(x.sub)}</div></div>
     <div class="play-prob"><div class="big">${pct(x.prob)}</div><div class="small">fair ${esc(x.fairOdds)}</div></div></div>
     ${x.book ? `<div class="bookline"><span class="tag pos">Book ${esc(x.book.raw)} · EV ${evText(x.book.ev)} per $1</span></div>` : ''}</div>
     <ul>${x.reasons.map(r => `<li>${esc(r)}</li>`).join('')}</ul></div>`;
@@ -892,8 +903,10 @@ function barsSvg(rows, key, mark, label) {
 function openPlayer(id, gid) {
   const g = gameById(gid), p = g?.players.find(x => x.id === Number(id)); if (!p) return;
   const raw = p.season.shots ? p.season.goals / p.season.shots : null;
-  openDrawer(`<div><h2>${esc(p.name)}</h2><div class="sub">${esc(p.team)} · ${p.pos === 'D' ? 'Defense' : 'Forward'} · vs ${esc(p.opp)} · ${esc(puck(g.start))}</div></div>`,
-    `<div class="kv2"><div><div class="l">Anytime goal</div><div class="v">${pct(p.anytime)}</div><div class="l">fair ${esc(p.fair.anytime)}</div></div><div><div class="l">First goal</div><div class="v">${pct(p.first)}</div><div class="l">fair ${fair(p.first)}</div></div><div><div class="l">2+ goals</div><div class="v">${pct(p.twoPlus)}</div><div class="l">fair ${fair(p.twoPlus)}</div></div></div>
+  const tonight = goalsBy(g, p.id);
+  openDrawer(`<div><h2>${esc(p.name)}${goalTag(g, p.id)}</h2><div class="sub">${esc(p.team)} · ${p.pos === 'D' ? 'Defense' : 'Forward'} · vs ${esc(p.opp)} · ${esc(puck(g.start))}${g.state === 'in' ? ' · live' : g.state === 'post' ? ' · final' : ''}</div></div>`,
+    `${tonight.length ? `<div class="callout" style="margin:0;border-left-color:var(--pos)">Scored tonight: ${tonight.map(x => `${goalTime(x)}${x.emptyNet ? ' (empty net)' : ''}`).join(', ')}. The chances below are his pre-game numbers.</div>` : ''}
+    <div class="kv2"><div><div class="l">Anytime goal</div><div class="v">${pct(p.anytime)}</div><div class="l">fair ${esc(p.fair.anytime)}</div></div><div><div class="l">First goal</div><div class="v">${pct(p.first)}</div><div class="l">fair ${fair(p.first)}</div></div><div><div class="l">2+ goals</div><div class="v">${pct(p.twoPlus)}</div><div class="l">fair ${fair(p.twoPlus)}</div></div></div>
     <div><div class="section-t">Shots on goal · ${p.shots.mean} expected</div><div class="kv2">${['1.5', '2.5', '3.5'].map(l => `<div><div class="l">Over ${l}</div><div class="v">${pct(p.shots.over[l], 0)}</div><div class="l">fair ${fair(p.shots.over[l])}</div></div>`).join('')}</div></div>
     <div><div class="section-t">How the number is built</div><table class="data"><tbody>
       <tr><td class="l">Ice time (recent weighting)</td><td>${p.toi} min</td></tr>
@@ -932,10 +945,20 @@ async function pollLive() {
   try {
     const { games } = await api('/api/live');
     for (const lg of games) { const g = gameById(lg.id); if (!g) continue; g.state = lg.state; g.home.score = lg.home.score; g.away.score = lg.away.score; g.live = { ...(g.live || {}), period: lg.period, clock: lg.clock, intermission: lg.intermission, goals: lg.goals }; }
-    if (S.tab === 'today') renderToday(); renderHero();
+    if (['today', 'scorers', 'plays'].includes(S.tab)) RENDER[S.tab](); renderHero();
   } catch { /* keep last */ }
 }
-function setLive() { clearInterval(liveTimer); liveTimer = null; if (S.data?.games.some(g => g.state === 'in')) liveTimer = setInterval(pollLive, 30000); }
+// Poll while the day isn't over: from five minutes before the first puck drop until every game is
+// final, so a page opened in the afternoon starts flagging goals on its own.
+function setLive() {
+  clearInterval(liveTimer); liveTimer = null;
+  const games = S.data?.games || [];
+  if (!games.some(g => g.state !== 'post')) return;
+  const firstStart = Math.min(...games.map(g => Date.parse(g.start) || Infinity));
+  const tick = () => { const open = (S.data?.games || []).some(g => g.state !== 'post'); if (!open) { clearInterval(liveTimer); liveTimer = null; return; } if (Date.now() >= firstStart - 5 * 60000) pollLive(); };
+  liveTimer = setInterval(tick, 30000);
+  if (games.some(g => g.state === 'in')) pollLive();
+}
 
 // ── Wiring ──────────────────────────────────────────────────────────────────────────────
 const RENDER = { today: renderToday, scorers: renderScorers, saves: renderSaves, plays: renderPlays, sgp: renderSgp, accuracy: renderAccuracy };
@@ -959,6 +982,7 @@ document.addEventListener('click', e => {
   if (t.closest('#bookApply')) { S.book = $('#bookText').value; store.set('nhlprob-book', S.book); return loadPlays(true); }
   if (t.closest('#bookClear')) { S.book = ''; store.set('nhlprob-book', ''); return loadPlays(true); }
   const pos = t.closest('#scPos button'); if (pos) { S.scorerPos = pos.dataset.v; return renderScorers(); }
+  if (t.closest('#scScored')) { S.scorerScored = !S.scorerScored; return renderScorers(); }
   if (t.closest('#slAdd')) { const g = gameById(S.slipGame), o = marketOptions(g)[Number($('#slMarket').value)]; if (o) { S.slip.push({ game: g.id, ...o[0] }); priceSlip(); } return; }
   const rm = t.closest('[data-rm]'); if (rm) { S.slip.splice(Number(rm.dataset.rm), 1); return priceSlip(); }
 });
