@@ -96,7 +96,9 @@ function makeWorld({ now, live = false } = {}) {
   return { teams, byAbbrev, days, today, hurt };
 }
 
-const tName = t => ({ id: t.id, abbrev: t.abbrev, placeName: { default: t.place }, commonName: { default: t.nick } });
+// Even-numbered teams carry a (data-URI) darkLogo like the real feed; odd ones fall back to the NHL asset path.
+const logoSvg = t => `data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><circle cx='20' cy='20' r='18' fill='hsl(${t.id * 37 % 360},60%,45%)'/><text x='20' y='25' font-size='12' text-anchor='middle' fill='white' font-family='sans-serif'>${t.abbrev}</text></svg>`)}`;
+const tName = t => ({ id: t.id, abbrev: t.abbrev, placeName: { default: t.place }, commonName: { default: t.nick }, ...(t.id % 2 === 0 ? { darkLogo: logoSvg(t) } : {}) });
 function scheduleJson(g) { return { id: Number(g.id), season: g.season, gameType: 2, startTimeUTC: g.start, gameState: g.state, venue: { default: `${g.home.place} Arena` }, awayTeam: tName(g.away), homeTeam: tName(g.home) }; }
 function scoreJson(g) {
   const r = g.res, base = scheduleJson(g);

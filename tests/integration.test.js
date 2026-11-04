@@ -43,6 +43,9 @@ test('slate: every game simulated, probabilities consistent, best play', async (
   assert.equal(body.best.playerId, top.id);
   assert.equal(body.best.badge, top.badge);
   assert.equal(body.snapshot.saved, 0);
+  // Logos: the feed's dark logo, else the NHL asset path; moneyline lean strength by the favourite's chance.
+  for (const g of body.games) for (const t of [g.home, g.away]) assert.ok(t.logo.startsWith('data:image/svg+xml') || t.logo === `https://assets.nhle.com/logos/nhl/svg/${t.abbrev}_dark.svg`);
+  for (const g of body.games) { const e = Math.abs(g.pHome - 0.5); assert.equal(g.leans.moneyline.tier, e >= 0.12 ? 'strong' : e >= 0.05 ? 'lean' : 'tossup'); }
   // Records come from the standings (W-L-OT), matching the season's finished games.
   const { standingsAt } = require('./fixtures');
   const official = new Map(standingsAt(world, world.today).map(r => [r.teamAbbrev.default, r]));
@@ -100,6 +103,7 @@ test('backtest beats simple baselines; health, status, grades, sync', async () =
   assert.ok(bt.saves.mae.model < bt.saves.mae.naive, 'saves beat season saves per start');
   assert.ok(bt.first.logLoss.model < bt.first.logLoss.uniform, 'first goal beats an even split');
   assert.equal(bt.tags.reduce((s, t) => s + t.n, 0), bt.anytime.n, 'every scored player-game lands in one tag group');
+  assert.equal(bt.moneyline.byTier.reduce((s, t) => s + t.n, 0), bt.games, 'every game lands in one lean strength');
   const h = await call('health');
   assert.equal(h.code, 200, JSON.stringify(h.body.checks.filter(c => !c.ok)));
   assert.equal(h.body.checks.length, 6);
