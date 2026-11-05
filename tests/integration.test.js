@@ -165,3 +165,18 @@ test('best plays: saves plays only on a starter we can trust', () => {
   assert.equal(starterReliable({ projection: { starts: 6, of: 12, b2b: false } }), false, 'a timeshare');
   assert.equal(starterReliable({ projection: { starts: 10, of: 12, b2b: true } }), false, 'back-to-back: could be the backup');
 });
+
+test('best plays lock: saved before puck drop, served unchanged after, late lock if nothing saved', async () => {
+  const { lockSharp } = require('../lib/plays');
+  const mem = new Map(), io = { canSave: true, load: async d => mem.get(d) || null, save: async (d, v) => (mem.set(d, { ...v, savedAt: 'T' }), true) };
+  const lists = n => ({ sharp: [{ player: n, bookPrice: { raw: '+200' } }], best: [{ player: n }], risks: [], record: { r: n }, latestDays: 60 });
+  const pre = [{ state: 'pre' }, { state: 'pre' }], started = [{ state: 'in' }, { state: 'pre' }];
+  assert.equal((await lockSharp('d1', pre, lists(1), io)).lock.state, 'open');
+  assert.equal(mem.get('d1').sharp[0].bookPrice, undefined, 'a locked play keeps no pasted price');
+  const after = await lockSharp('d1', started, lists(2), io);
+  assert.equal(after.lock.state, 'locked'); assert.equal(after.sharp[0].player, 1, 'the pre-game list, not a rebuilt one');
+  assert.deepEqual(after.record, { r: 2 }, 'the backtest record stays current');
+  const late = await lockSharp('d2', started, lists(3), io);
+  assert.equal(late.lock.state, 'late'); assert.equal((await lockSharp('d2', started, lists(4), io)).sharp[0].player, 3, 'late lock holds');
+  assert.equal((await lockSharp('d3', started, lists(5), { ...io, canSave: false, load: async () => null })).lock.state, 'off');
+});

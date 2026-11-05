@@ -865,13 +865,22 @@ function listRecord(r, what) {
       : `${where}: hit ${pct(x.hit, 0)} at the season-average line, model said ${pct(x.model, 0)} (${x.n.toLocaleString()} plays)`);
   return r.latest ? esc(one(r.latest, `Record, last backtest (${r.latest.days} days)`)) : '';
 }
+// When a play's game is: puck-drop time before it starts, then live / final once it's under way.
+const gameWhen = g => (!g ? '' : g.state === 'in' ? '<span class="tag pos" style="height:18px">Live</span>' : g.state === 'post' ? '<span class="tag" style="height:18px">Final</span>' : esc(puck(g.start)));
+function lockNote(sh) {
+  const L = sh.lock || {};
+  if (L.state === 'locked') return '<span class="tag pos" data-tip="Saved before the first puck drop and kept for the day: plays don’t drop off as their games start, and later games can’t reshuffle them.">🔒 Locked at first puck drop</span>';
+  if (L.state === 'late') return '<span class="tag warn" data-tip="Nothing was saved before the first puck drop, so the lists locked on the first load after games started, from games not yet started.">🔒 Locked late, from games not yet started</span>';
+  if (L.state === 'open') return '<span class="tag" data-tip="Updates until the first puck drop (lineups, starters), then locks for the day.">Locks at first puck drop</span>';
+  return '<span class="tag warn" data-tip="Locking needs the database (or uses the shared starters): without it, plays drop off as their games start.">Not locked</span>';
+}
 const openAttrs = x => (x.player ? `data-player="${x.player}" data-game="${esc(x.game)}"` : `data-open-game="${esc(x.game)}"`);
 function areaChips(x) { return Object.entries(x.areas || {}).map(([k, v]) => `<span class="tag ${v ? 'pos' : ''}" style="${v ? '' : 'opacity:.55'}">${v ? '✓' : '·'} ${AREA_LABEL[k]}</span>`).join(''); }
 function sharpCard(x) {
   const g = gameById(x.game);
   return `<div class="card sharp-card click" ${openAttrs(x)}>
     <div class="sc-top"><div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">${tierChip(x.tier)}<span class="note">Firing ${x.count} of 8</span>${x.player && g ? goalTag(g, x.player) : ''}</div>
-      <div class="sc-name">${teamLogo(x.team, 22)}${esc(x.name)}</div><div class="play-sub">${esc(x.team)} vs ${esc(x.opp)} · ${esc(puck(g?.start))}</div></div>
+      <div class="sc-name">${teamLogo(x.team, 22)}${esc(x.name)}</div><div class="play-sub">${esc(x.team)} vs ${esc(x.opp)} · ${gameWhen(g)}</div></div>
       <div class="play-prob"><div class="big">${pct(x.prob)}</div><div class="small">anytime · fair ${esc(x.fair)}</div></div></div>
     <div class="sc-areas">${areaChips(x)}</div>
     <div class="sc-sigs">${x.signals.map(s => `<span data-tip="${esc(s.detail)}">${s.icon} ${esc(s.label)}</span>`).join('')}</div>
@@ -883,12 +892,12 @@ function bestRow(x, i) {
   const value = x.kind === 'goal' ? pct(x.prob) : `${x.side === 'over' ? 'O' : 'U'} ${x.line}`;
   const meta = x.kind === 'goal' ? `${x.count} signals · season rate ${pct(x.base, 0)}` : `${pct(x.prob, 0)} to hit · season avg ${x.avg.toFixed(1)}`;
   return `<div class="bp-row click" ${openAttrs(x)}><span class="play-rank">${i + 1}</span><span class="bp-kind k-${x.kind}">${KIND_LABEL[x.kind]}</span>
-    <div class="bp-info"><div class="pname">${teamLogo(x.team, 18)}${esc(x.name)}${x.player && x.kind === 'goal' && g ? goalTag(g, x.player) : ''}</div><div class="psub">${esc(x.team)} vs ${esc(x.opp)} · ${esc(puck(g?.start))} · ${esc(meta)}</div></div>
+    <div class="bp-info"><div class="pname">${teamLogo(x.team, 18)}${esc(x.name)}${x.player && x.kind === 'goal' && g ? goalTag(g, x.player) : ''}</div><div class="psub">${esc(x.team)} vs ${esc(x.opp)} · ${gameWhen(g)} · ${esc(meta)}</div></div>
     <div class="bp-val">${esc(value)}</div><div class="bp-tier">${tierChip(x.tier)}</div></div>`;
 }
 function riskCard(x) {
   const g = gameById(x.game), flags = x.flags.slice(0, 3);
-  return `<div class="card risk-card click" ${openAttrs(x)}><div class="sc-top"><div><div class="sc-name" style="font-size:15px">${teamLogo(x.team, 20)}${esc(x.name)}</div><div class="play-sub">${esc(x.team)} vs ${esc(x.opp)} · ${esc(puck(g?.start))}${x.tier ? ` · ${esc(x.tier)} tag` : ''}</div></div>
+  return `<div class="card risk-card click" ${openAttrs(x)}><div class="sc-top"><div><div class="sc-name" style="font-size:15px">${teamLogo(x.team, 20)}${esc(x.name)}${x.player && g ? goalTag(g, x.player) : ''}</div><div class="play-sub">${esc(x.team)} vs ${esc(x.opp)} · ${gameWhen(g)}${x.tier ? ` · ${esc(x.tier)} tag` : ''}</div></div>
     <div class="play-prob"><div class="big" style="font-size:17px">${pct(x.prob)}</div><div class="small">season rate ${pct(x.base, 0)}</div></div></div>
     <ul>${flags.map(f => `<li>${esc(f.text)}</li>`).join('')}${x.whyDown[0] ? `<li>${esc(x.whyDown[0])}</li>` : ''}</ul></div>`;
 }
@@ -897,8 +906,8 @@ function sharpHtml(P) {
   const f = S.bpFilter || 'all', board = sh.best.filter(x => f === 'all' || x.kind === f);
   const counts = { all: sh.best.length, goal: sh.best.filter(x => x.kind === 'goal').length, saves: sh.best.filter(x => x.kind === 'saves').length, sog: sh.best.filter(x => x.kind === 'sog').length };
   return `
-    <div class="section-head" style="margin-top:0"><h2>🎯 Sharp plays</h2><span class="note">${esc(sh.criteria)}</span></div>
-    <div class="card slate-read"><div class="k">Tonight’s slate read</div><p>${esc(sh.slateRead)}</p></div>
+    <div class="section-head" style="margin-top:0"><h2>🎯 Sharp plays</h2><span class="note">${esc(sh.criteria)}</span><span style="flex:1"></span>${lockNote(sh)}</div>
+    <div class="card slate-read"><div class="k">${sh.lock?.state === 'locked' || sh.lock?.state === 'late' ? 'Pre-game slate read' : 'Tonight’s slate read'}</div><p>${esc(sh.slateRead)}</p></div>
     <div class="sharp-grid">${sh.sharp.map(sharpCard).join('') || `<div class="card state"><h3>No plays meet the sharp threshold tonight</h3><p>${esc(sh.criteria)}. Most nights have one or two; some have none, and that’s the point. The All-Star board below still has tonight’s strongest plays.</p></div>`}</div>
     <p class="note rec-line">${listRecord(sh.record.sharp, 'scorers')}</p>
     <div class="section-head"><h2>Best plays board</h2><span class="note">Every All-Star and Elite play tonight: tag first, then signals, then chance. Click a row for the full breakdown.</span></div>
