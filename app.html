@@ -633,7 +633,7 @@ const picksKey = () => `nhlprob-starters-${S.data?.date || S.date || 'today'}`;
 const localPicks = () => { try { return JSON.parse(store.get(picksKey()) || '{}'); } catch { return {}; } };
 const picksParam = () => Object.entries(localPicks()).map(([t, id]) => `${t}:${id}`).join(',');
 const withDate = p => { const q = [S.date ? `date=${S.date}` : '', picksParam() ? `starters=${encodeURIComponent(picksParam())}` : ''].filter(Boolean).join('&'); return q ? `${p}${p.includes('?') ? '&' : '?'}${q}` : p; };
-async function api(path) { const res = await fetch(withDate(path)); let b = null; try { b = await res.json(); } catch {} if (!res.ok) throw new Error(b?.error || `${res.status} ${res.statusText}`); return b; }
+async function api(path, { fresh = false } = {}) { const u = withDate(path); const res = await fetch(fresh ? `${u}${u.includes('?') ? '&' : '?'}fresh=${Date.now()}` : u, fresh ? { cache: 'no-store' } : undefined); let b = null; try { b = await res.json(); } catch {} if (!res.ok) throw new Error(b?.error || `${res.status} ${res.statusText}`); return b; }
 async function apiPost(path, payload) { const res = await fetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...payload, date: S.data?.date || S.date || undefined, starters: picksParam() || undefined }) }); let b = null; try { b = await res.json(); } catch {} if (!res.ok) throw new Error(b?.error || `${res.status} ${res.statusText}`); return b; }
 const stateHtml = (kind, title, text, detail) => `<div class="card state ${kind === 'err' ? 'err' : ''}"><h3>${esc(title)}</h3><p>${text}</p>${detail ? `<pre>${esc(detail)}</pre>` : ''}</div>`;
 const store = { get: k => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
@@ -1189,7 +1189,8 @@ $('#refresh').addEventListener('click', () => load(true));
 
 async function load(force = false) {
   $('#refresh').classList.add('spin');
-  try { S.data = await api('/api/slate'); S.err = null; if (!S.date) $('#dateInput').value = S.data.date; } catch (err) { S.err = err.message; }
+  // force: skip the CDN's copy (a starter pick just changed the slate).
+  try { S.data = await api('/api/slate', { fresh: force }); S.err = null; if (!S.date) $('#dateInput').value = S.data.date; } catch (err) { S.err = err.message; }
   $('#refresh').classList.remove('spin');
   if (force) { S.plays = null; S.playsKey = null; }
   renderAll(); setLive();
