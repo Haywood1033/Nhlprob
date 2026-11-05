@@ -95,6 +95,53 @@ test('plays: model mode without prices, value mode with them; SGP pricing', asyn
   assert.equal((await call('sgp', { body: { legs: [{ game: 'nope', market: 'ml', side: 'home' }] } })).code, 400);
 });
 
+test('best plays: only rule qualifiers, capped per night, each with an insight and a record', async () => {
+  const SH = require('../lib/sharp');
+  const m = (await call('plays', { body: { book: '' } })).body;
+  const items = m.sharp.groups.flatMap(g => g.items);
+  assert.ok(items.length > 0, 'the synthetic slate has qualifiers');
+  const count = r => items.filter(x => x.rule === r).length;
+  assert.ok(count('edge') <= 3 && count('fade') <= 3 && count('sogUnder') <= 3 && count('sogOver') <= 2);
+  for (const x of items) {
+    assert.ok(x.insight && x.why.length && x.record.set, `${x.title} explains itself`);
+    if (x.rule === 'edge') assert.ok(x.prob >= 0.2 && x.prob / x.base >= 1.25);
+    if (x.rule === 'fade') assert.ok(x.base >= 0.28 && x.prob / x.base <= 0.85);
+    if (x.rule === 'savesOver') assert.ok(x.prob >= 0.57);
+    if (x.rule === 'sogUnder') assert.ok(x.prob >= 0.68 && x.side === 'under');
+  }
+  // A star whose chance is simply high but in line with his season rate is not a play.
+  const slate = (await call('slate')).body;
+  const star = slate.games.flatMap(g => g.players).filter(p => p.season.gp >= 10 && p.badge !== 'Elite').sort((a, b) => b.anytime - a.anytime)[0];
+  if (star && star.anytime / SH.seasonRate(star) < 1.25) assert.ok(!items.some(x => x.player === star.id && x.rule === 'edge'));
+  // A pasted price for a qualifier shows up on its card.
+  const q = items.find(x => x.market === 'goal' && x.rule !== 'fade');
+  if (q) {
+    const name = slate.games.flatMap(g => g.players).find(p => p.id === q.player).name;
+    const v = (await call('plays', { body: { book: `${name}, anytime, +900` } })).body;
+    const vq = v.sharp.groups.flatMap(g => g.items).find(x => x.player === q.player && x.rule === q.rule);
+    assert.ok(vq.book && vq.ev > 0 && vq.why[0].startsWith('Your price +900'));
+  }
+});
+
+test('best plays rules: season rate, thresholds and nightly caps', () => {
+  const SH = require('../lib/sharp');
+  const fwd = { pos: 'C', season: { gp: 20, goals: 4, shots: 50 } };
+  const rate = SH.seasonRate(fwd); // (4 + 8×0.21) / 28 goals a game
+  assert.ok(Math.abs(rate - (1 - Math.exp(-(4 + 8 * 0.21) / 28))) < 1e-9);
+  assert.equal(SH.scorerRule(fwd, rate * 1.3).rule, 'edge');
+  assert.equal(SH.scorerRule(fwd, rate * 1.1), null, 'not far enough above his season rate');
+  assert.equal(SH.scorerRule({ ...fwd, season: { gp: 5, goals: 0, shots: 10 } }, 0.3), null, 'too few games');
+  assert.equal(SH.scorerRule({ ...fwd, badge: 'Elite' }, rate).rule, 'elite');
+  const star = { pos: 'R', season: { gp: 20, goals: 14, shots: 80 } };
+  assert.equal(SH.fadeRule(star, SH.seasonRate(star) * 0.8).rule, 'fade');
+  assert.equal(SH.fadeRule(star, SH.seasonRate(star) * 0.95), null);
+  assert.deepEqual(SH.savesRule(0.6), { rule: 'savesOver', side: 'over', prob: 0.6 });
+  assert.equal(SH.savesRule(0.4), null);
+  assert.equal(SH.sogRule(0.25).rule, 'sogUnder');
+  const night = [0.15, 0.1, 0.13, 0.11, 0.14, 0.12].map((base, i) => ({ rule: 'edge', prob: 0.3, base, i }));
+  assert.deepEqual(SH.capNight(night).map(x => x.base), [0.1, 0.11, 0.12], 'top 3 edges by points over the season rate');
+});
+
 test('backtest beats simple baselines; health, status, grades, sync', async () => {
   const bt = (await call('backtest', { query: { days: '15' } })).body;
   assert.ok(bt.games > 50);
