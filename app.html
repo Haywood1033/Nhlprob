@@ -856,7 +856,7 @@ function listRecord(r, what) {
     ? `${where}: scored ${pct(x.hit, 0)} vs ${pct(x.model, 0)} the model said and ${pct(x.base, 0)} from season rates (${x.n.toLocaleString()} plays)`
     : what === 'risks' ? `${where}: scored ${pct(x.hit, 0)} vs ${pct(x.base, 0)} from their season rates (${x.n.toLocaleString()} players)`
       : `${where}: hit ${pct(x.hit, 0)} at the season-average line, model said ${pct(x.model, 0)} (${x.n.toLocaleString()} plays)`);
-  return [one(r.set, 'Record when set'), r.latest ? one(r.latest, `Last backtest (${r.latest.days} days)`) : ''].filter(Boolean).map(esc).join(' · ');
+  return r.latest ? esc(one(r.latest, `Record, last backtest (${r.latest.days} days)`)) : '';
 }
 const openAttrs = x => (x.player ? `data-player="${x.player}" data-game="${esc(x.game)}"` : `data-open-game="${esc(x.game)}"`);
 function areaChips(x) { return Object.entries(x.areas || {}).map(([k, v]) => `<span class="tag ${v ? 'pos' : ''}" style="${v ? '' : 'opacity:.55'}">${v ? '✓' : '·'} ${AREA_LABEL[k]}</span>`).join(''); }
@@ -897,7 +897,7 @@ function sharpHtml(P) {
     <div class="section-head"><h2>Best plays board</h2><span class="note">Every All-Star and Elite play tonight: tag first, then signals, then chance. Click a row for the full breakdown.</span></div>
     <div class="toolbar"><div class="seg" id="bpFilter">${[['all', 'All'], ['goal', 'Goalscorers'], ['saves', 'Goalie saves'], ['sog', 'Shots on goal']].map(([v, l]) => `<button data-v="${v}" aria-pressed="${f === v}">${l} <span class="muted">${counts[v]}</span></button>`).join('')}</div></div>
     <div class="card bp-list">${board.map(bestRow).join('') || '<p class="note" style="padding:14px 16px">No All-Star or Elite plays in this market tonight.</p>'}</div>
-    <p class="note rec-line">${[listRecord(sh.record.scorers, 'scorers'), listRecord(sh.record.saves, 'props').replace('Record when set', 'Saves'), listRecord(sh.record.sog, 'props').replace('Record when set', 'Shots')].filter(Boolean).join('<br>')}</p>
+    <p class="note rec-line">${[listRecord(sh.record.scorers, 'scorers'), listRecord(sh.record.saves, 'props').replace('Record,', 'Saves,'), listRecord(sh.record.sog, 'props').replace('Record,', 'Shots,')].filter(Boolean).join('<br>')}</p>
     <p class="note">Goalscorer tags come from the eight signals (see the Goalscorers tab). Saves and shots are tagged by how strongly the model leans against a line at the player’s own season average, which is close to where books hang theirs: Elite is the strongest lean.</p>
     <div class="section-head"><h2>Risks &amp; fades</h2><span class="note">Near misses with a red flag, and big names the model is well below tonight</span></div>
     <div class="plays">${sh.risks.map(riskCard).join('') || '<p class="note">No red flags on tonight’s strong plays.</p>'}</div>
@@ -919,7 +919,7 @@ function renderPlays() {
     <div class="section-head"><h2>Same-game parlays</h2><span class="tag">Correlated in the simulation</span></div>
     <div class="callout">Two- and three-leg tickets inside one game, built from that game’s leans and ranked by how much the legs help each other. Build your own on the SGP builder tab.</div>
     <div class="tickets">${P.sgp.map(sgpCard).join('') || '<div class="card state"><p>No same-game ticket clears the bar.</p></div>'}</div>
-    <p class="note foot">Only games that haven’t started are included. Records come from backtests that predict each game only from earlier games (${esc(P.sharp?.setWindow || '')}${P.sharp?.latestDays ? `, plus the latest ${P.sharp.latestDays}-day run` : ''}).</p>`;
+    <p class="note foot">Only games that haven’t started are included. ${P.sharp?.latestDays ? `Records come from the latest ${P.sharp.latestDays}-day backtest on your stored games, each predicted only from earlier games.` : 'No record yet: run a backtest on the Accuracy tab (database connected) to grade these lists on your real games.'} Saves plays need a confirmed starter, one you set on the Goalie saves tab, or a clear number one (65%+ of recent starts, not a back-to-back).</p>`;
 }
 
 // ── SGP builder ─────────────────────────────────────────────────────────────────────────

@@ -111,7 +111,7 @@ test('best plays: sharp plays converge, the board is All-Star+, risks carry a re
   assert.ok(sh.best.some(x => x.kind === 'goal') && sh.best.some(x => x.kind !== 'goal'), 'board mixes goalscorers with saves / shots');
   for (const x of sh.best) assert.ok(x.player || x.kind === 'saves', 'every row can open a panel');
   for (const x of sh.risks) assert.ok(x.flags.length && (x.prob / x.base <= 0.9), `${x.name} has the red flag`);
-  assert.ok(sh.record.sharp.set.n > 0);
+  assert.equal(sh.record.sharp.latest, null, 'no database, no backtest record: nothing made up');
   // Today's play of the day is a Sharp play whenever one exists.
   if (sh.sharp.length) assert.equal(slate.best.sharp, true);
 });
@@ -155,4 +155,13 @@ test('backtest beats simple baselines; health, status, grades, sync', async () =
   assert.equal((await call('sync')).code, 400);
   const sn = (await call('sync', { query: { snapshot: '1' } })).body;
   assert.equal(sn.pregame, world.days.get(world.today).length);
+});
+
+test('best plays: saves plays only on a starter we can trust', () => {
+  const { starterReliable } = require('../lib/sharp');
+  assert.equal(starterReliable({ projection: { confirmed: true } }), true);
+  assert.equal(starterReliable({ projection: { manual: true } }), true);
+  assert.equal(starterReliable({ projection: { starts: 9, of: 12, b2b: false } }), true, 'clear number one');
+  assert.equal(starterReliable({ projection: { starts: 6, of: 12, b2b: false } }), false, 'a timeshare');
+  assert.equal(starterReliable({ projection: { starts: 10, of: 12, b2b: true } }), false, 'back-to-back: could be the backup');
 });
