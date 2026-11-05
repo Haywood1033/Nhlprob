@@ -256,6 +256,8 @@ table.data { width: 100%; border-collapse: separate; border-spacing: 0; font-siz
 .play li { margin-bottom: 3px; }
 /* Best plays: Sharp play cards, the slate read, the All-Star board and Risks & fades. */
 .click { cursor: pointer; }
+.tlogo { display: inline-block; vertical-align: -0.2em; margin-right: 6px; object-fit: contain; }
+.who .tlogo { vertical-align: -0.15em; margin-right: 8px; }
 .slate-read { padding: 14px 16px; margin-bottom: 14px; }
 .slate-read .k { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 6px; }
 .slate-read p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--ink); }
@@ -601,6 +603,11 @@ const ICON = { close: '<svg width="16" height="16" viewBox="0 0 24 24" fill="non
 const SA = 'var(--s1)', SB = 'var(--s2)';
 const rec = r => (r ? `${r.w}-${r.l}-${r.otl ?? 0}` : '—');
 const gameById = id => S.data?.games.find(g => g.id === String(id));
+// A team's logo by abbreviation (from tonight's slate), shown next to flagged players.
+function teamLogo(abbrev, size = 20) {
+  const t = (S.data?.games || []).flatMap(g => [g.home, g.away]).find(x => x.abbrev === abbrev);
+  return t?.logo ? `<img class="tlogo" src="${esc(t.logo)}" alt="${esc(abbrev)}" width="${size}" height="${size}" loading="lazy" onerror="this.remove()">` : '';
+}
 const ready = () => (S.data?.games || []).filter(g => !g.unavailable);
 const allPlayers = () => ready().flatMap(g => g.players.map(p => ({ ...p, game: g })));
 const matchup = g => `${g.away.abbrev} @ ${g.home.abbrev}`;
@@ -720,7 +727,7 @@ function bestHtml() {
   const R = S.data.bestRemaining;
   return `<div class="card best">
     <div><div class="k">Today’s best goalscorer play${b.locked ? (b.lockedLate ? ` · <span class="muted" data-tip="No pick was saved before the first puck drop, so it was locked on the first load after games started (${esc(new Date(b.lockedLate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }))} ET), choosing only from games that hadn’t started.">locked late, from games not yet started</span>` : ' · <span class="muted" data-tip="Picked from the full slate before the first puck drop and kept for the day, so it doesn’t move to a later game as earlier ones start.">locked at first puck drop</span>') : ''}</div>
-      <div class="who" data-player="${b.playerId}" data-game="${esc(b.gameId)}">${esc(b.name)}</div>
+      <div class="who" data-player="${b.playerId}" data-game="${esc(b.gameId)}">${teamLogo(b.team, 30)}${esc(b.name)}</div>
       ${b.signals?.length ? `<div style="margin-top:6px;display:flex;gap:8px;align-items:center">${b.sharp ? '<span class="tag pos">🎯 Sharp play</span>' : ''}${tierChip(b.badge)} ${sigIcons(b)} <span class="note">Firing ${b.count} of 8</span></div>` : ''}
       <div class="ctx">${esc(b.team)} vs ${esc(b.opp)} · ${esc(puck(g?.start))}${p ? ` · ${p.pos === 'D' ? 'Defense' : 'Forward'}, ${p.toi} min a night` : ''}</div>
       <div class="nums"><div><div class="v">${pct(b.anytime)}</div><div class="l">Anytime goal · fair ${esc(b.fair)}</div></div><div><div class="v">${pct(b.first)}</div><div class="l">First goal · fair ${fair(b.first)}</div></div>${p ? `<div><div class="v">${p.shots.mean}</div><div class="l">Shots expected</div></div>` : ''}</div>
@@ -762,7 +769,7 @@ function renderScorers() {
     </div>
     ${firstNote}
     <div class="table-wrap"><table class="data"><thead><tr><th class="l">Player</th><th class="l">Signals</th><th class="l">Game</th><th>${esc(label)}</th><th>Fair</th>${bookKey && priced.size ? '<th>Book</th><th>EV</th>' : ''}<th>Shots exp.</th><th>Shooting %</th><th>TOI</th><th>Season</th><th class="l">Last 10</th></tr></thead><tbody>
-      ${rows.map(p => { const v = val(p), r = bookKey ? priced.get(`${bookKey}|${p.id}`) : null, ev = r ? v * r.dec - 1 : null; return `<tr><td class="l click" data-player="${p.id}" data-game="${esc(p.game.id)}"><span class="pname">${esc(p.name)}</span>${goalTag(p.game, p.id)}<div class="psub">${esc(p.team)} · ${p.pos === 'D' ? 'D' : p.pos}</div></td><td class="l">${tierChip(p.badge)} ${sigIcons(p)}</td><td class="l muted">${esc(matchup(p.game))}${p.game.state === 'in' ? ' · live' : p.game.state === 'post' ? ' · final' : ''}</td><td class="sorted">${pct(v)}</td><td class="dim">${esc(fo(p))}</td>${bookKey && priced.size ? `<td>${r ? esc(r.raw) : '—'}</td><td class="${ev > 0 ? 'edge-pos' : ''}">${ev === null ? '—' : signed(ev, 2)}</td>` : ''}<td>${p.shots.mean}</td><td>${(p.shPct * 100).toFixed(1)}%</td><td>${p.toi}</td><td class="dim">${p.season.goals} G · ${p.season.gp} GP</td><td class="l">${spark(p.last10)}</td></tr>`; }).join('') || '<tr><td colspan="11" class="l muted">No players match.</td></tr>'}
+      ${rows.map(p => { const v = val(p), r = bookKey ? priced.get(`${bookKey}|${p.id}`) : null, ev = r ? v * r.dec - 1 : null; return `<tr><td class="l click" data-player="${p.id}" data-game="${esc(p.game.id)}"><span class="pname">${p.badge ? teamLogo(p.team, 16) : ''}${esc(p.name)}</span>${goalTag(p.game, p.id)}<div class="psub">${esc(p.team)} · ${p.pos === 'D' ? 'D' : p.pos}</div></td><td class="l">${tierChip(p.badge)} ${sigIcons(p)}</td><td class="l muted">${esc(matchup(p.game))}${p.game.state === 'in' ? ' · live' : p.game.state === 'post' ? ' · final' : ''}</td><td class="sorted">${pct(v)}</td><td class="dim">${esc(fo(p))}</td>${bookKey && priced.size ? `<td>${r ? esc(r.raw) : '—'}</td><td class="${ev > 0 ? 'edge-pos' : ''}">${ev === null ? '—' : signed(ev, 2)}</td>` : ''}<td>${p.shots.mean}</td><td>${(p.shPct * 100).toFixed(1)}%</td><td>${p.toi}</td><td class="dim">${p.season.goals} G · ${p.season.gp} GP</td><td class="l">${spark(p.last10)}</td></tr>`; }).join('') || '<tr><td colspan="11" class="l muted">No players match.</td></tr>'}
     </tbody></table></div>
     <p class="note foot">Each skater’s shots come from his shots per 60 × ice time, set against the opponent’s shots allowed. Each shot scores at his shooting % (regressed hard: finishing is mostly noise over a few weeks), scaled by the opposing goalie. Shooting % is regulation shots with a goalie in net; empty-net and overtime goals are modelled on their own.</p>`;
 }
@@ -864,7 +871,7 @@ function sharpCard(x) {
   const g = gameById(x.game);
   return `<div class="card sharp-card click" ${openAttrs(x)}>
     <div class="sc-top"><div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">${tierChip(x.tier)}<span class="note">Firing ${x.count} of 8</span>${x.player && g ? goalTag(g, x.player) : ''}</div>
-      <div class="sc-name">${esc(x.name)}</div><div class="play-sub">${esc(x.team)} vs ${esc(x.opp)} · ${esc(puck(g?.start))}</div></div>
+      <div class="sc-name">${teamLogo(x.team, 22)}${esc(x.name)}</div><div class="play-sub">${esc(x.team)} vs ${esc(x.opp)} · ${esc(puck(g?.start))}</div></div>
       <div class="play-prob"><div class="big">${pct(x.prob)}</div><div class="small">anytime · fair ${esc(x.fair)}</div></div></div>
     <div class="sc-areas">${areaChips(x)}</div>
     <div class="sc-sigs">${x.signals.map(s => `<span data-tip="${esc(s.detail)}">${s.icon} ${esc(s.label)}</span>`).join('')}</div>
@@ -876,12 +883,12 @@ function bestRow(x, i) {
   const value = x.kind === 'goal' ? pct(x.prob) : `${x.side === 'over' ? 'O' : 'U'} ${x.line}`;
   const meta = x.kind === 'goal' ? `${x.count} signals · season rate ${pct(x.base, 0)}` : `${pct(x.prob, 0)} to hit · season avg ${x.avg.toFixed(1)}`;
   return `<div class="bp-row click" ${openAttrs(x)}><span class="play-rank">${i + 1}</span><span class="bp-kind k-${x.kind}">${KIND_LABEL[x.kind]}</span>
-    <div class="bp-info"><div class="pname">${esc(x.name)}${x.player && x.kind === 'goal' && g ? goalTag(g, x.player) : ''}</div><div class="psub">${esc(x.team)} vs ${esc(x.opp)} · ${esc(puck(g?.start))} · ${esc(meta)}</div></div>
+    <div class="bp-info"><div class="pname">${teamLogo(x.team, 18)}${esc(x.name)}${x.player && x.kind === 'goal' && g ? goalTag(g, x.player) : ''}</div><div class="psub">${esc(x.team)} vs ${esc(x.opp)} · ${esc(puck(g?.start))} · ${esc(meta)}</div></div>
     <div class="bp-val">${esc(value)}</div><div class="bp-tier">${tierChip(x.tier)}</div></div>`;
 }
 function riskCard(x) {
   const g = gameById(x.game), flags = x.flags.slice(0, 3);
-  return `<div class="card risk-card click" ${openAttrs(x)}><div class="sc-top"><div><div class="sc-name" style="font-size:15px">${esc(x.name)}</div><div class="play-sub">${esc(x.team)} vs ${esc(x.opp)} · ${esc(puck(g?.start))}${x.tier ? ` · ${esc(x.tier)} tag` : ''}</div></div>
+  return `<div class="card risk-card click" ${openAttrs(x)}><div class="sc-top"><div><div class="sc-name" style="font-size:15px">${teamLogo(x.team, 20)}${esc(x.name)}</div><div class="play-sub">${esc(x.team)} vs ${esc(x.opp)} · ${esc(puck(g?.start))}${x.tier ? ` · ${esc(x.tier)} tag` : ''}</div></div>
     <div class="play-prob"><div class="big" style="font-size:17px">${pct(x.prob)}</div><div class="small">season rate ${pct(x.base, 0)}</div></div></div>
     <ul>${flags.map(f => `<li>${esc(f.text)}</li>`).join('')}${x.whyDown[0] ? `<li>${esc(x.whyDown[0])}</li>` : ''}</ul></div>`;
 }
@@ -1093,7 +1100,7 @@ function openGame(id) {
   // One full-width list per team: name on one line, then anytime, first goal, shots.
   const top = side => `<div><div class="section-t">${esc(g[side].abbrev)} likeliest scorers</div><table class="data"><colgroup><col style="width:42%"><col style="width:22%"><col style="width:17%"><col style="width:19%"></colgroup>
     <thead><tr><th class="l">Player</th><th>Anytime</th><th>First</th><th>Shots</th></tr></thead><tbody>
-    ${g.players.filter(p => p.team === g[side].abbrev).slice(0, 5).map(p => `<tr><td class="l click nm" data-player="${p.id}" data-game="${esc(g.id)}" title="${esc(p.name)}"><span class="pname">${esc(p.name)}</span>${goalTag(g, p.id)}</td><td>${pct(p.anytime, 0)}</td><td>${pct(p.first, 0)}</td><td>${p.shots.mean}</td></tr>`).join('')}</tbody></table></div>`;
+    ${g.players.filter(p => p.team === g[side].abbrev).slice(0, 5).map(p => `<tr><td class="l click nm" data-player="${p.id}" data-game="${esc(g.id)}" title="${esc(p.name)}"><span class="pname">${p.badge ? teamLogo(p.team, 16) : ''}${esc(p.name)}</span>${goalTag(g, p.id)}</td><td>${pct(p.anytime, 0)}</td><td>${pct(p.first, 0)}</td><td>${p.shots.mean}</td></tr>`).join('')}</tbody></table></div>`;
   openDrawer(`<div><h2>${esc(g.away.name)} @ ${esc(g.home.name)}</h2><div class="sub">${esc(puck(g.start))}${g.venue ? ` · ${esc(g.venue)}` : ''}${g.playoff ? ' · Playoffs' : ''}</div></div>`,
     `<div class="kv2"><div><div class="l">${esc(g.away.abbrev)} win</div><div class="v">${pct(g.pAway)}</div><div class="l">fair ${esc(g.fair.away)}</div></div><div><div class="l">${esc(g.home.abbrev)} win</div><div class="v">${pct(g.pHome)}</div><div class="l">fair ${esc(g.fair.home)}</div></div><div><div class="l">Overtime</div><div class="v">${pct(g.overtime, 0)}</div><div class="l">shootout ${pct(g.shootout, 0)}</div></div></div>
     <div><div class="section-t">Goals in the game · model ${g.total.mean}</div>${distSvg(g.total.dist, g.leans.total.line)}<p class="note">Over 5.5 ${pct(g.total.over['5.5'], 0)} · over 6.5 ${pct(g.total.over['6.5'], 0)} · 1st period over 0.5 ${pct(g.firstPeriod.over['0.5'], 0)}</p></div>
