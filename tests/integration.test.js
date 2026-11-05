@@ -30,7 +30,7 @@ test('slate: every game simulated, probabilities consistent, best play', async (
     assert.ok(g.goalies.home && g.goalies.away);
     const first = g.players.reduce((s, p) => s + p.first, 0) + g.firstTeam.none;
     assert.ok(Math.abs(first - 1) < 1e-9);
-    assert.ok(['over', 'under'].includes(g.leans.total.side) && [5.5, 6.5].includes(g.leans.total.line));
+    assert.ok([null, 'over', 'under'].includes(g.leans.total.side) && [5.5, 6.5].includes(g.leans.total.line));
   }
   const avg = body.games.reduce((s, g) => s + g.total.mean, 0) / body.games.length;
   assert.ok(Math.abs(avg - body.league.goalsPerGame) < 0.5, `slate total ${avg} vs league ${body.league.goalsPerGame}`);

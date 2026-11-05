@@ -199,3 +199,14 @@ test('book parsing: players, goalies, teams, totals, skipped lines', async () =>
   assert.deepEqual([rows[7].market, rows[7].team], ['tt', 'home']);
   assert.equal(skipped.length, 2);
 });
+
+test('total leans: only past the line’s base rate, otherwise no lean', () => {
+  const { totalLean } = require('../lib/lean');
+  // Tonight-style coin flips: under 6.5 at 55%, under 5.5 at 50% → no lean, line nearest the model.
+  assert.deepEqual(totalLean({ 5.5: 0.57, 6.5: 0.45 }, 6.15), { line: 6.5, side: null, prob: null });
+  assert.deepEqual(totalLean({ 5.5: 0.5, 6.5: 0.44 }, 5.6), { line: 5.5, side: null, prob: null });
+  // A real under: 61% under 6.5.
+  const u = totalLean({ 5.5: 0.5, 6.5: 0.39 }, 5.8); assert.equal(u.side, 'under'); assert.equal(u.line, 6.5); assert.ok(Math.abs(u.prob - 0.61) < 1e-9);
+  // A high-event game: over 5.5 at 66% (0.08 past its bar) beats over 6.5 at 56% (0.01 past its bar).
+  const o = totalLean({ 5.5: 0.66, 6.5: 0.56 }, 7.0); assert.equal(o.side, 'over'); assert.equal(o.line, 5.5, 'the clearer margin wins');
+});

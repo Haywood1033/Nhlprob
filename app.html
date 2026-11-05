@@ -466,6 +466,8 @@ details.more[open] summary::before { transform: rotate(90deg); }
 .lean { display: inline-flex; gap: 6px; align-items: baseline; padding: 4px 8px; border-radius: 6px; background: var(--surface-2); border: 1px solid var(--line); font-size: 12px; }
 .lean b { font-weight: 600; color: var(--ink); }
 .lean span { color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.lean.none { border-style: dashed; background: transparent; }
+.lean.none b { color: var(--ink-3); font-weight: 500; }
 .lean.hit { border-color: rgba(74, 222, 128, 0.35); }
 .lean.miss { border-color: rgba(248, 113, 113, 0.35); }
 .gl { display: flex; justify-content: space-between; gap: 10px; padding: 9px 14px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink-3); }
@@ -654,7 +656,7 @@ function leanHits(g) {
   const r = g.result, L = g.leans, homeWon = r.home > r.away, total = r.home + r.away;
   const favHome = L.moneyline.side === 'home', diff = favHome ? r.home - r.away : r.away - r.home;
   const firstTeam = g.live?.goals?.[0]?.team;
-  return { ml: (L.moneyline.side === 'home') === homeWon, total: L.total.side === 'over' ? total > L.total.line : total < L.total.line, pl: diff >= 2, first: firstTeam ? firstTeam === L.firstToScore.team : undefined };
+  return { ml: (L.moneyline.side === 'home') === homeWon, total: !L.total.side ? undefined : L.total.side === 'over' ? total > L.total.line : total < L.total.line, pl: diff >= 2, first: firstTeam ? firstTeam === L.firstToScore.team : undefined };
 }
 // Moneyline lean strength, like nflprob's: Strong lean / Lean / Toss-up by how far the
 // favorite's chance sits from 50% (hockey-sized steps: 62%+, 55%+, under 55%).
@@ -681,7 +683,7 @@ function gameCard(g) {
     <div class="wbar"><i style="width:${g.pAway * 100}%;background:${SB}"></i><i style="width:${g.pHome * 100}%;background:${SA}"></i></div>
     <div class="leans">
       ${leanChip('Moneyline', `${L.moneyline.team} ML ${L.moneyline.fair}`, L.moneyline.prob, H.ml)}
-      ${leanChip(`Total ${L.total.line}`, `${L.total.side === 'over' ? 'Over' : 'Under'} ${L.total.line}`, L.total.prob, H.total)}
+      ${L.total.side ? leanChip(`Total ${L.total.line}`, `${L.total.side === 'over' ? 'Over' : 'Under'} ${L.total.line}`, L.total.prob, H.total) : `<span class="lean none" data-tip="${esc(`No total lean: over 5.5 ${pct(g.total.over['5.5'], 0)} · over 6.5 ${pct(g.total.over['6.5'], 0)}<br>A total leans only when the model beats that line’s usual hit rate: under 6.5 or over 5.5 at 58%+, over 6.5 or under 5.5 at 55%+`)}"><b>No total lean</b></span>`}
       ${leanChip('Puck line', `${L.puckLine.team} −1.5`, L.puckLine.prob, H.pl)}
       ${leanChip('First to score', `${L.firstToScore.team} first`, L.firstToScore.prob, H.first)}
     </div>
