@@ -180,3 +180,16 @@ test('best plays lock: saved before puck drop, served unchanged after, late lock
   assert.equal(late.lock.state, 'late'); assert.equal((await lockSharp('d2', started, lists(4), io)).sharp[0].player, 3, 'late lock holds');
   assert.equal((await lockSharp('d3', started, lists(5), { ...io, canSave: false, load: async () => null })).lock.state, 'off');
 });
+
+test('started games use the box-score lineup: a player who missed the last game is added', async () => {
+  const { loadHistory } = require('../lib/store'), RT = require('../lib/ratings');
+  const prep = RT.prepare((await loadHistory({ before: world.today })).games), lg = RT.leagueAt(prep, world.today);
+  const team = [...prep.teams.keys()][0], last = RT.teamAt(prep, team, world.today, lg).last;
+  // Someone with history who wasn't in that last game (the "missed last game, plays tonight" case).
+  const extra = [...prep.skaters.keys()].find(id => !last.skaters.includes(id));
+  const lineup = [...last.skaters.slice(1), extra];
+  const proj = RT.sideFor(prep, team, 'X', world.today, lg), conf = RT.sideFor(prep, team, 'X', world.today, lg, { lineup });
+  assert.ok(!proj.skaters.some(p => p.id === extra), 'not in the projection');
+  assert.ok(conf.skaters.some(p => p.id === extra), 'added from the box score');
+  assert.ok(!conf.skaters.some(p => p.id === last.skaters[0]), 'a scratch drops out');
+});
