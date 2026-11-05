@@ -254,10 +254,33 @@ table.data { width: 100%; border-collapse: separate; border-spacing: 0; font-siz
 .play-prob .small { font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
 .play ul { margin: 0; padding: 0 16px 14px 54px; color: var(--ink-2); font-size: 12.5px; line-height: 1.55; }
 .play li { margin-bottom: 3px; }
-.play.sharp ul { padding-left: 34px; }
-.play.sharp .insight { margin: 0; padding: 0 16px 10px; font-size: 13.5px; line-height: 1.55; color: var(--ink-1, var(--ink)); }
-.play.sharp.fade { border-color: rgba(248, 113, 113, 0.25); }
-.rule-rec { margin: 0 16px 14px; padding-top: 8px; border-top: 1px solid var(--line); font-size: 11.5px; color: var(--ink-3); line-height: 1.5; }
+/* Best plays: Sharp play cards, the slate read, the All-Star board and Risks & fades. */
+.click { cursor: pointer; }
+.slate-read { padding: 14px 16px; margin-bottom: 14px; }
+.slate-read .k { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 6px; }
+.slate-read p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--ink); }
+.sharp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 12px; }
+.sharp-card { padding: 14px 16px; border-color: rgba(45, 212, 191, 0.35); transition: border-color .15s; }
+.sharp-card:hover, .risk-card:hover, .bp-row:hover { border-color: var(--accent); }
+.sc-top { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.sc-name { font-size: 17px; font-weight: 700; margin-top: 6px; }
+.sc-areas { display: flex; gap: 6px; margin: 12px 0 8px; flex-wrap: wrap; }
+.sc-sigs { display: flex; gap: 4px 12px; flex-wrap: wrap; font-size: 12px; color: var(--ink-2); }
+.sharp-card ul, .risk-card ul { margin: 10px 0 0; padding-left: 18px; color: var(--ink-2); font-size: 12.5px; line-height: 1.55; }
+.sc-foot { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+.rec-line { margin: 8px 0 0; font-size: 11.5px; color: var(--ink-3); line-height: 1.6; }
+.bp-list { padding: 4px 0; }
+.bp-row { display: grid; grid-template-columns: 26px 54px 1fr auto 74px; gap: 10px; align-items: center; padding: 9px 14px; border-top: 1px solid var(--line); border-left: 2px solid transparent; }
+.bp-row:first-child { border-top: 0; }
+.bp-kind { font-size: 10px; font-weight: 700; letter-spacing: .05em; text-align: center; border-radius: 4px; padding: 3px 0; border: 1px solid var(--line-2); color: var(--ink-2); }
+.bp-kind.k-goal { color: var(--accent); border-color: rgba(45, 212, 191, 0.4); }
+.bp-kind.k-saves { color: var(--info); border-color: rgba(96, 165, 250, 0.4); }
+.bp-kind.k-sog { color: var(--warn); border-color: rgba(251, 191, 36, 0.4); }
+.bp-info { min-width: 0; } .bp-info .psub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bp-val { font-weight: 700; font-variant-numeric: tabular-nums; font-size: 15px; text-align: right; }
+.bp-tier { text-align: right; }
+.risk-card { padding: 14px 16px; border-color: rgba(248, 113, 113, 0.25); }
+@media (max-width: 640px) { .bp-row { grid-template-columns: 22px 46px 1fr auto; } .bp-tier { display: none; } #bpFilter { max-width: 100%; overflow-x: auto; } #bpFilter button { flex-shrink: 0; } }
 .play .bookline { margin: 0 16px 10px 54px; font-size: 12px; }
 .tickets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 @media (max-width: 900px) { .tickets { grid-template-columns: 1fr; } }
@@ -555,7 +578,7 @@ const S = {
   date: qs.get('date') || '', tab: qs.get('tab') || 'today',
   data: null, err: null, loading: false,
   scorerMode: qs.get('market') || 'anytime', scorerGame: '', scorerPos: '', scorerQ: '', scorerScored: false, scorerTagged: false, scorerSort: 'chance',
-  book: '', plays: null, playsErr: null, playsLoading: false, playsKey: null,
+  book: '', bpFilter: 'all', plays: null, playsErr: null, playsLoading: false, playsKey: null,
   slip: [], slipRes: null, slipErr: null, slipGame: '', slipMarket: '',
   backtest: null, btLoading: false, btErr: null, btDays: 20, grades: null,
 };
@@ -696,12 +719,12 @@ function bestHtml() {
   return `<div class="card best">
     <div><div class="k">Today’s best goalscorer play${b.locked ? (b.lockedLate ? ` · <span class="muted" data-tip="No pick was saved before the first puck drop, so it was locked on the first load after games started (${esc(new Date(b.lockedLate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }))} ET), choosing only from games that hadn’t started.">locked late, from games not yet started</span>` : ' · <span class="muted" data-tip="Picked from the full slate before the first puck drop and kept for the day, so it doesn’t move to a later game as earlier ones start.">locked at first puck drop</span>') : ''}</div>
       <div class="who" data-player="${b.playerId}" data-game="${esc(b.gameId)}">${esc(b.name)}</div>
-      ${b.signals?.length ? `<div style="margin-top:6px;display:flex;gap:8px;align-items:center">${tierChip(b.badge)} ${sigIcons(b)} <span class="note">Firing ${b.count} of 8</span></div>` : ''}
+      ${b.signals?.length ? `<div style="margin-top:6px;display:flex;gap:8px;align-items:center">${b.sharp ? '<span class="tag pos">🎯 Sharp play</span>' : ''}${tierChip(b.badge)} ${sigIcons(b)} <span class="note">Firing ${b.count} of 8</span></div>` : ''}
       <div class="ctx">${esc(b.team)} vs ${esc(b.opp)} · ${esc(puck(g?.start))}${p ? ` · ${p.pos === 'D' ? 'Defense' : 'Forward'}, ${p.toi} min a night` : ''}</div>
       <div class="nums"><div><div class="v">${pct(b.anytime)}</div><div class="l">Anytime goal · fair ${esc(b.fair)}</div></div><div><div class="v">${pct(b.first)}</div><div class="l">First goal · fair ${fair(b.first)}</div></div>${p ? `<div><div class="v">${p.shots.mean}</div><div class="l">Shots expected</div></div>` : ''}</div>
       <div style="margin-top:12px">${pickStatus(b, g)}</div>
       ${R ? `<p class="note" style="margin-top:10px">Best still to start: <a href="#" data-player="${R.playerId}" data-game="${esc(R.gameId)}">${esc(R.name)}</a> (${esc(R.team)} vs ${esc(R.opp)}, ${esc(puck(gameById(R.gameId)?.start))}) ${pct(R.anytime)}</p>` : ''}
-      <p class="note" style="margin-top:8px">The strongest tag on the slate (Elite, then All-Star, then Value), then the highest anytime chance. A conviction pick, not a value call: paste prices on Best plays to rank by value.</p></div>
+      <p class="note" style="margin-top:8px">${b.sharp ? 'A Sharp play: an All-Star or Elite tag with workload, matchup and form all firing. The top of the Best plays tab.' : 'No Sharp play tonight, so this is the strongest tag on the slate (Elite, then All-Star, then Value), then signals, then the anytime chance.'}</p></div>
     <div><div class="section-t">Why</div><ul>${b.reasons.map(r => `<li>${esc(r)}</li>`).join('')}</ul>${p ? `<div class="section-t" style="margin-top:14px">Last 10 games · bar height = shots, green = scored, gray = no goal</div>${spark(p.last10)}` : ''}</div></div>`;
 }
 function renderToday() {
@@ -821,58 +844,80 @@ function sgpCard(t) {
     <div class="alts">Legs move together: ${pct(t.joint, 1)} together vs ${pct(t.independent, 1)} if they were unrelated (×${t.lift.toFixed(2)}).${t.ev !== null && t.ev !== undefined ? ` Book ${t.bookDecimal.toFixed(2)}x · EV ${evText(t.ev)} per $1.` : ''}</div></div>`;
 }
 const SECTION_TITLES = { anytime: 'Anytime goalscorers', first: 'First goalscorers', sog: 'Shots on goal', saves: 'Goalie saves', sides: 'Moneylines', totals: 'Totals' };
-// Best plays (lib/sharp): how a rule has done, from when it was set and from the latest backtest.
-function ruleRecord(rule, r) {
+// Best plays (lib/sharp): Sharp plays → slate read → the All-Star / Elite board → Risks & fades.
+// Every row opens the player (or, for saves, the game) so a pick flows into the rest of the app.
+const KIND_LABEL = { goal: 'GOAL', saves: 'SAVES', sog: 'SOG' };
+const AREA_LABEL = { workload: 'Workload', matchup: 'Matchup', form: 'Form' };
+function listRecord(r, what) {
   if (!r) return '';
-  const one = (x, where) => {
-    if (!x || !x.n) return '';
-    if (rule === 'fade') return `${where}: they scored ${pct(x.scored ?? 1 - x.hit, 0)} vs ${pct(x.base, 0)} from their season rates (${x.n.toLocaleString()} picks)`;
-    if (x.base != null && rule === 'edge') return `${where}: scored ${pct(x.hit, 0)} vs ${pct(x.base, 0)} from their season rates (${x.n.toLocaleString()} picks)`;
-    return `${where}: hit ${pct(x.hit, 0)}, model said ${pct(x.model, 0)} (${x.n.toLocaleString()} picks)`;
-  };
-  const lines = [one(r.set, 'When set'), r.latest ? one(r.latest, `Last backtest, ${r.latest.days} days`) : ''].filter(Boolean);
-  return lines.length ? `<div class="rule-rec">${lines.map(esc).join('<br>')}</div>` : '';
+  const one = (x, where) => (!x || !x.n ? '' : what === 'scorers'
+    ? `${where}: scored ${pct(x.hit, 0)} vs ${pct(x.model, 0)} the model said and ${pct(x.base, 0)} from season rates (${x.n.toLocaleString()} plays)`
+    : what === 'risks' ? `${where}: scored ${pct(x.hit, 0)} vs ${pct(x.base, 0)} from their season rates (${x.n.toLocaleString()} players)`
+      : `${where}: hit ${pct(x.hit, 0)} at the season-average line, model said ${pct(x.model, 0)} (${x.n.toLocaleString()} plays)`);
+  return [one(r.set, 'Record when set'), r.latest ? one(r.latest, `Last backtest (${r.latest.days} days)`) : ''].filter(Boolean).map(esc).join(' · ');
 }
+const openAttrs = x => (x.player ? `data-player="${x.player}" data-game="${esc(x.game)}"` : `data-open-game="${esc(x.game)}"`);
+function areaChips(x) { return Object.entries(x.areas || {}).map(([k, v]) => `<span class="tag ${v ? 'pos' : ''}" style="${v ? '' : 'opacity:.55'}">${v ? '✓' : '·'} ${AREA_LABEL[k]}</span>`).join(''); }
 function sharpCard(x) {
-  const fade = x.rule === 'fade', g = gameById(x.game);
-  return `<div class="card play sharp${fade ? ' fade' : ''}"><div><div class="play-h" style="grid-template-columns:1fr auto"><div>
-      <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><span class="tag ${fade ? 'neg' : x.rule === 'elite' ? 'pos' : 'info'}">${esc(x.ruleLabel)}</span>${x.badge && !fade && x.rule !== 'elite' ? tierChip(x.badge) : ''}</div>
-      <div class="play-name"${x.player ? ` data-player="${x.player}" data-game="${esc(x.game)}" style="cursor:pointer"` : ''}>${esc(x.title)}${x.player && x.market === 'goal' && g ? goalTag(g, x.player) : ''}</div><div class="play-sub">${esc(x.sub)}${g ? ` · ${esc(puck(g.start))}` : ''}</div></div>
-    <div class="play-prob"><div class="big">${pct(x.prob)}</div><div class="small">${fade ? `season rate ${pct(x.base, 0)}` : `fair ${esc(x.fairOdds)}`}</div></div></div>
-    <p class="insight">${esc(x.insight)}</p></div>
-    <div><ul>${x.why.map(r => `<li>${esc(r)}</li>`).join('')}</ul>${ruleRecord(x.rule, x.record)}</div></div>`;
+  const g = gameById(x.game);
+  return `<div class="card sharp-card click" ${openAttrs(x)}>
+    <div class="sc-top"><div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">${tierChip(x.tier)}<span class="note">Firing ${x.count} of 8</span>${x.player && g ? goalTag(g, x.player) : ''}</div>
+      <div class="sc-name">${esc(x.name)}</div><div class="play-sub">${esc(x.team)} vs ${esc(x.opp)} · ${esc(puck(g?.start))}</div></div>
+      <div class="play-prob"><div class="big">${pct(x.prob)}</div><div class="small">anytime · fair ${esc(x.fair)}</div></div></div>
+    <div class="sc-areas">${areaChips(x)}</div>
+    <div class="sc-sigs">${x.signals.map(s => `<span data-tip="${esc(s.detail)}">${s.icon} ${esc(s.label)}</span>`).join('')}</div>
+    ${x.why.length ? `<ul>${x.why.slice(0, 3).map(r => `<li>${esc(r)}</li>`).join('')}</ul>` : ''}
+    <div class="sc-foot"><span class="note">Last 10 · green = scored</span>${spark(x.last10)}<span class="note" style="margin-left:auto">Season rate ${pct(x.base, 0)}${x.bookPrice ? ` · your ${esc(x.bookPrice.raw)}` : ''}</span></div></div>`;
+}
+function bestRow(x, i) {
+  const g = gameById(x.game);
+  const value = x.kind === 'goal' ? pct(x.prob) : `${x.side === 'over' ? 'O' : 'U'} ${x.line}`;
+  const meta = x.kind === 'goal' ? `${x.count} signals · season rate ${pct(x.base, 0)}` : `${pct(x.prob, 0)} to hit · season avg ${x.avg.toFixed(1)}`;
+  return `<div class="bp-row click" ${openAttrs(x)}><span class="play-rank">${i + 1}</span><span class="bp-kind k-${x.kind}">${KIND_LABEL[x.kind]}</span>
+    <div class="bp-info"><div class="pname">${esc(x.name)}${x.player && x.kind === 'goal' && g ? goalTag(g, x.player) : ''}</div><div class="psub">${esc(x.team)} vs ${esc(x.opp)} · ${esc(puck(g?.start))} · ${esc(meta)}</div></div>
+    <div class="bp-val">${esc(value)}</div><div class="bp-tier">${tierChip(x.tier)}</div></div>`;
+}
+function riskCard(x) {
+  const g = gameById(x.game), flags = x.flags.slice(0, 3);
+  return `<div class="card risk-card click" ${openAttrs(x)}><div class="sc-top"><div><div class="sc-name" style="font-size:15px">${esc(x.name)}</div><div class="play-sub">${esc(x.team)} vs ${esc(x.opp)} · ${esc(puck(g?.start))}${x.tier ? ` · ${esc(x.tier)} tag` : ''}</div></div>
+    <div class="play-prob"><div class="big" style="font-size:17px">${pct(x.prob)}</div><div class="small">season rate ${pct(x.base, 0)}</div></div></div>
+    <ul>${flags.map(f => `<li>${esc(f.text)}</li>`).join('')}${x.whyDown[0] ? `<li>${esc(x.whyDown[0])}</li>` : ''}</ul></div>`;
 }
 function sharpHtml(P) {
   const sh = P.sharp; if (!sh) return '';
-  const total = sh.groups.filter(g => g.key !== 'fades').reduce((s, g) => s + g.items.length, 0);
-  const rules = Object.entries(sh.rules).map(([k, r]) => `<tr><td class="l">${esc(r.label)}</td><td class="l muted">${esc(r.what)}</td></tr>`).join('');
-  return `<div class="callout">Best plays are spots where the model disagrees with the number a book’s line is built from (the player’s own season rate) by enough that the gap has held up when backtested. Likely outcomes alone don’t make the list: a star’s usual 35% to score is already in his price. ${total ? `<b>${total} play${total === 1 ? '' : 's'} qualify tonight.</b>` : '<b>Nothing qualifies tonight</b>, which is an answer in itself.'}</div>
-    ${sh.groups.map(g => `<div class="section-head"><h2>${esc(g.title)}</h2><span class="note">${esc(g.note)}</span></div>
-      <div class="plays">${g.items.map(sharpCard).join('') || `<p class="note">No ${g.key === 'fades' ? 'fades' : 'plays'} clear the bar tonight.</p>`}</div>`).join('')}
-    <details class="card more" style="margin-top:18px"><summary>The rules and where their records come from</summary><div class="table-wrap" style="border:0;border-radius:0"><table class="data"><tbody>${rules}</tbody></table></div>
-      <div class="card-b note">Each rule was set on ${esc(sh.setWindow)}, predicting every game only from earlier games, and had to hold in both halves of that window. The backtest on the Accuracy tab grades these exact rules again${sh.latestRecord ? `; the latest run (${sh.latestRecord.days} days) is shown on each card` : ' (run one with the database connected to see a fresh record on each card)'}. Shot and saves lines here are a stand-in at the player’s season average. Paste the real line to check the price.</div></details>`;
+  const f = S.bpFilter || 'all', board = sh.best.filter(x => f === 'all' || x.kind === f);
+  const counts = { all: sh.best.length, goal: sh.best.filter(x => x.kind === 'goal').length, saves: sh.best.filter(x => x.kind === 'saves').length, sog: sh.best.filter(x => x.kind === 'sog').length };
+  return `
+    <div class="section-head" style="margin-top:0"><h2>🎯 Sharp plays</h2><span class="note">${esc(sh.criteria)}</span></div>
+    <div class="card slate-read"><div class="k">Tonight’s slate read</div><p>${esc(sh.slateRead)}</p></div>
+    <div class="sharp-grid">${sh.sharp.map(sharpCard).join('') || `<div class="card state"><h3>No plays meet the sharp threshold tonight</h3><p>${esc(sh.criteria)}. Most nights have one or two; some have none, and that’s the point. The All-Star board below still has tonight’s strongest plays.</p></div>`}</div>
+    <p class="note rec-line">${listRecord(sh.record.sharp, 'scorers')}</p>
+    <div class="section-head"><h2>Best plays board</h2><span class="note">Every All-Star and Elite play tonight: tag first, then signals, then chance. Click a row for the full breakdown.</span></div>
+    <div class="toolbar"><div class="seg" id="bpFilter">${[['all', 'All'], ['goal', 'Goalscorers'], ['saves', 'Goalie saves'], ['sog', 'Shots on goal']].map(([v, l]) => `<button data-v="${v}" aria-pressed="${f === v}">${l} <span class="muted">${counts[v]}</span></button>`).join('')}</div></div>
+    <div class="card bp-list">${board.map(bestRow).join('') || '<p class="note" style="padding:14px 16px">No All-Star or Elite plays in this market tonight.</p>'}</div>
+    <p class="note rec-line">${[listRecord(sh.record.scorers, 'scorers'), listRecord(sh.record.saves, 'props').replace('Record when set', 'Saves'), listRecord(sh.record.sog, 'props').replace('Record when set', 'Shots')].filter(Boolean).join('<br>')}</p>
+    <p class="note">Goalscorer tags come from the eight signals (see the Goalscorers tab). Saves and shots are tagged by how strongly the model leans against a line at the player’s own season average, which is close to where books hang theirs: Elite is the strongest lean.</p>
+    <div class="section-head"><h2>Risks &amp; fades</h2><span class="note">Near misses with a red flag, and big names the model is well below tonight</span></div>
+    <div class="plays">${sh.risks.map(riskCard).join('') || '<p class="note">No red flags on tonight’s strong plays.</p>'}</div>
+    <p class="note rec-line">${listRecord(sh.record.risks, 'risks')}</p>`;
 }
 function renderPlays() {
   const el = $('#panel-plays');
   if (!S.data) { el.innerHTML = '<div class="skel" style="height:420px"></div>'; return; }
   const P = S.plays;
-  const bookBox = `<div class="card" style="margin:22px 0 20px"><div class="card-h"><h2>Have prices? Paste them</h2><span class="sub">One per line: name, market, odds. Every market is then ranked by value against them.</span></div><div class="card-b">
-    <textarea class="paste" id="bookText" placeholder="Auston Matthews, anytime, +120&#10;Auston Matthews, first, +900&#10;Auston Matthews, sog o3.5, -130&#10;Joseph Woll, saves o27.5, -115&#10;TOR, ml, -150&#10;TOR, pl -1.5, +170&#10;TOR @ MTL, over 6.5, -110&#10;TOR, tt o3.5, +105">${esc(S.book)}</textarea>
+  const bookBox = `<details class="card more" style="margin-top:22px" ${S.book ? 'open' : ''}><summary>Optional: paste book prices to compare</summary><div class="card-b">
+    <textarea class="paste" id="bookText" placeholder="Auston Matthews, anytime, +120&#10;Auston Matthews, sog o3.5, -130&#10;Joseph Woll, saves o27.5, -115&#10;TOR, ml, -150&#10;TOR @ MTL, over 6.5, -110">${esc(S.book)}</textarea>
     <div class="toolbar" style="margin:10px 0 0"><button class="btn primary" id="bookApply">Price these</button><button class="btn ghost" id="bookClear">Clear</button>${P?.book ? `<span class="note">${P.book.matched} matched${P.book.skipped.length ? ` · ${P.book.skipped.length} skipped` : ''}</span>` : ''}</div>
-    ${P?.book?.skipped.length ? `<ul class="note" style="margin:8px 0 0 18px">${P.book.skipped.slice(0, 8).map(s => `<li>${esc(s.line)}: ${esc(s.why)}</li>`).join('')}</ul>` : ''}</div></div>`;
-  if (!P) { el.innerHTML = (S.playsErr ? stateHtml('err', 'Couldn’t build the best plays', 'The plays endpoint returned an error.', S.playsErr) : '<div class="skel" style="height:320px"></div>') + bookBox; return; }
-  // Value rankings exist only against real prices: ranked by the model alone they'd just list the likeliest outcomes.
+    ${P?.book?.skipped.length ? `<ul class="note" style="margin:8px 0 0 18px">${P.book.skipped.slice(0, 8).map(s => `<li>${esc(s.line)}: ${esc(s.why)}</li>`).join('')}</ul>` : ''}</div></details>`;
+  if (!P) { el.innerHTML = S.playsErr ? stateHtml('err', 'Couldn’t build the best plays', 'The plays endpoint returned an error.', S.playsErr) : '<div class="skel" style="height:320px"></div>'; return; }
   const valueSections = Object.entries(SECTION_TITLES).map(([k, t]) => [k, t, P.sections[k]]).filter(([, , s]) => s.mode === 'value');
-  el.innerHTML = `
-    <div class="card mode-banner">${P.priced ? `<span class="tag pos">${P.priced} prices loaded</span><span class="note">Plays show expected profit against your prices, and every priced market is ranked by value below.</span>` : '<span class="tag">No book prices</span><span class="note">Plays carry the fair price they’re worth. Paste your book’s prices below to see expected profit.</span>'}<span style="flex:1"></span><span class="note">${S.playsLoading ? 'Updating…' : `Built ${new Date(P.generatedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`}</span></div>
-    ${sharpHtml(P)}
+  el.innerHTML = `${sharpHtml(P)}
     ${bookBox}
-    ${valueSections.length ? `<div class="section-head"><h2>Value against your prices</h2><span class="tag pos">${pct(P.minEv, 0)}+ expected profit per $1</span></div>` : ''}
-    ${valueSections.map(([, t, s]) => `<div class="section-head"><h3>${t}</h3></div><div class="callout">${esc(s.summary)}</div><div class="plays">${s.items.map(playCard).join('') || '<p class="note">Nothing clears the bar.</p>'}</div>`).join('')}
+    ${valueSections.length ? `<div class="section-head"><h2>Against your prices</h2><span class="tag pos">${pct(P.minEv, 0)}+ expected profit per $1</span></div>${valueSections.map(([, t, s]) => `<div class="section-head"><h3>${t}</h3></div><div class="callout">${esc(s.summary)}</div><div class="plays">${s.items.map(playCard).join('') || '<p class="note">Nothing clears the bar.</p>'}</div>`).join('')}` : ''}
     <div class="section-head"><h2>Same-game parlays</h2><span class="tag">Correlated in the simulation</span></div>
     <div class="callout">Two- and three-leg tickets inside one game, built from that game’s leans and ranked by how much the legs help each other. Build your own on the SGP builder tab.</div>
     <div class="tickets">${P.sgp.map(sgpCard).join('') || '<div class="card state"><p>No same-game ticket clears the bar.</p></div>'}</div>
-    <p class="note foot">Value plays need ${pct(P.minEv, 0)}+ expected profit per $1 against your price. Only games that haven’t started are included.</p>`;
+    <p class="note foot">Only games that haven’t started are included. Records come from backtests that predict each game only from earlier games (${esc(P.sharp?.setWindow || '')}${P.sharp?.latestDays ? `, plus the latest ${P.sharp.latestDays}-day run` : ''}).</p>`;
 }
 
 // ── SGP builder ─────────────────────────────────────────────────────────────────────────
@@ -984,10 +1029,10 @@ function renderAccuracy() {
       <div class="table-wrap" style="border:0;border-radius:0"><table class="data"><thead><tr><th class="l">Lean</th><th>Games</th><th>Model said</th><th>Favorite won</th></tr></thead><tbody>
       ${B.moneyline.byTier.map(t => `<tr><td class="l"><span class="mlb ${t.tier}">${esc(ML_BADGE[t.tier][1])}</span></td><td>${t.n}</td><td>${pct(t.predicted)}</td><td>${pct(t.won)}</td></tr>`).join('')}
       </tbody></table></div></div>` : ''}
-    ${B?.bestPlays ? `<div class="card" style="margin-top:16px"><div class="card-h"><h2>Best plays · how the rules did</h2><span class="sub">The exact Best plays rules, graded over these ${B.days} days${B.bestPlaysSaved ? ' · saved, now shown on each play' : ''}</span></div>
-      <div class="table-wrap" style="border:0;border-radius:0"><table class="data"><thead><tr><th class="l">Rule</th><th>Picks</th><th>Hit</th><th>Model said</th><th>Baseline</th></tr></thead><tbody>
-      ${Object.entries(B.bestPlays).map(([k, r]) => { const fade = k === 'fade'; return `<tr><td class="l">${esc({ edge: 'Goalscorer edge', elite: 'Elite tag', fade: 'Fade (hit = didn’t score)', savesOver: 'Saves over', savesUnder: 'Saves under', sogUnder: 'Shots under', sogOver: 'Shots over' }[k] || k)}</td><td>${r.n.toLocaleString()}</td><td>${r.n ? pct(r.hit) : '—'}</td><td>${r.n ? pct(fade ? 1 - r.model : r.model) : '—'}</td><td class="muted">${r.n && r.base != null && (k === 'edge' || fade) ? `${pct(fade ? 1 - r.base : r.base)} from season rates` : '—'}</td></tr>`; }).join('')}
-      </tbody></table></div><div class="card-b note">Goalscorer edges and fades are judged against each player’s season scoring rate, the number a book’s price is built from: an edge works when his scoring beats it, a fade when it falls short of it. Saves and shots are graded at a line set at the player’s season average. A 20-day run is a small sample; 60 days is steadier.</div></div>` : ''}
+    ${B?.bestPlays ? `<div class="card" style="margin-top:16px"><div class="card-h"><h2>Best plays · how the lists did</h2><span class="sub">The exact Best plays rules, graded over these ${B.days} days${B.bestPlaysSaved ? ' · saved, now shown on each play' : ''}</span></div>
+      <div class="table-wrap" style="border:0;border-radius:0"><table class="data"><thead><tr><th class="l">List</th><th>Plays</th><th>Hit</th><th>Model said</th><th>Season rate</th></tr></thead><tbody>
+      ${Object.entries(B.bestPlays).map(([k, r]) => `<tr><td class="l">${esc({ sharp: 'Sharp plays (scored)', scorers: 'All-Star+ goalscorers (scored)', saves: 'All-Star+ saves leans', sog: 'All-Star+ shots leans', risks: 'Risks & fades (scored, lower is better)' }[k] || k)}</td><td>${r.n.toLocaleString()}</td><td>${r.n ? pct(r.hit) : '—'}</td><td>${r.n ? pct(r.model) : '—'}</td><td class="muted">${r.n && r.base != null ? pct(r.base) : '—'}</td></tr>`).join('')}
+      </tbody></table></div><div class="card-b note">Goalscorer lists show how often the players scored, against the model and against their own season scoring rates: Sharp plays and the board should beat both, and Risks & fades should fall short of their season rates. Saves and shots leans are graded at a line set at the player’s season average. A 20-day run is a small sample; 60 days is steadier.</div></div>` : ''}
     ${B?.tags ? `<div class="card" style="margin-top:16px"><div class="card-h"><h2>Do the tags add anything?</h2><span class="sub">Anytime goal: how tagged players actually scored vs what the model said for the same players</span></div>
       <div class="table-wrap" style="border:0;border-radius:0"><table class="data"><thead><tr><th class="l">Tag</th><th>Player-games</th><th>Model said</th><th>Scored</th><th>Difference</th></tr></thead><tbody>
       ${B.tags.map(t => `<tr><td class="l">${t.badge === 'No tag' ? 'No tag' : tierChip(t.badge)}</td><td>${t.n.toLocaleString()}</td><td>${pct(t.predicted)}</td><td>${pct(t.actual)}</td><td class="${t.actual !== null && t.predicted !== null ? (t.actual > t.predicted ? 'edge-pos' : 'edge-neg') : ''}">${t.actual !== null && t.predicted !== null ? signed((t.actual - t.predicted) * 100, 1) + ' pts' : '—'}</td></tr>`).join('')}
@@ -1097,6 +1142,8 @@ document.addEventListener('click', e => {
   if (t.closest('#drawerClose') || t === $('#scrim')) return closeDrawer();
   const pl = t.closest('[data-player]'); if (pl) return openPlayer(pl.dataset.player, pl.dataset.game);
   const gm = t.closest('.game[data-game]'); if (gm) return openGame(gm.dataset.game);
+  const og = t.closest('[data-open-game]'); if (og) return openGame(og.dataset.openGame);
+  const bpf = t.closest('#bpFilter button'); if (bpf) { S.bpFilter = bpf.dataset.v; return renderPlays(); }
   if (t.closest('#runBt')) return runBacktestNow();
   const bd = t.closest('#btDays button'); if (bd) { S.btDays = Number(bd.dataset.v); return renderAccuracy(); }
   if (t.closest('#bookApply')) { S.book = $('#bookText').value; store.set('nhlprob-book', S.book); return loadPlays(true); }

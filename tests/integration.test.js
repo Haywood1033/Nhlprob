@@ -95,51 +95,45 @@ test('plays: model mode without prices, value mode with them; SGP pricing', asyn
   assert.equal((await call('sgp', { body: { legs: [{ game: 'nope', market: 'ml', side: 'home' }] } })).code, 400);
 });
 
-test('best plays: only rule qualifiers, capped per night, each with an insight and a record', async () => {
+test('best plays: sharp plays converge, the board is All-Star+, risks carry a red flag', async () => {
   const SH = require('../lib/sharp');
-  const m = (await call('plays', { body: { book: '' } })).body;
-  const items = m.sharp.groups.flatMap(g => g.items);
-  assert.ok(items.length > 0, 'the synthetic slate has qualifiers');
-  const count = r => items.filter(x => x.rule === r).length;
-  assert.ok(count('edge') <= 3 && count('fade') <= 3 && count('sogUnder') <= 3 && count('sogOver') <= 2);
-  for (const x of items) {
-    assert.ok(x.insight && x.why.length && x.record.set, `${x.title} explains itself`);
-    if (x.rule === 'edge') assert.ok(x.prob >= 0.2 && x.prob / x.base >= 1.25);
-    if (x.rule === 'fade') assert.ok(x.base >= 0.28 && x.prob / x.base <= 0.85);
-    if (x.rule === 'savesOver') assert.ok(x.prob >= 0.57);
-    if (x.rule === 'sogUnder') assert.ok(x.prob >= 0.68 && x.side === 'under');
-  }
-  // A star whose chance is simply high but in line with his season rate is not a play.
   const slate = (await call('slate')).body;
-  const star = slate.games.flatMap(g => g.players).filter(p => p.season.gp >= 10 && p.badge !== 'Elite').sort((a, b) => b.anytime - a.anytime)[0];
-  if (star && star.anytime / SH.seasonRate(star) < 1.25) assert.ok(!items.some(x => x.player === star.id && x.rule === 'edge'));
-  // A pasted price for a qualifier shows up on its card.
-  const q = items.find(x => x.market === 'goal' && x.rule !== 'fade');
-  if (q) {
-    const name = slate.games.flatMap(g => g.players).find(p => p.id === q.player).name;
-    const v = (await call('plays', { body: { book: `${name}, anytime, +900` } })).body;
-    const vq = v.sharp.groups.flatMap(g => g.items).find(x => x.player === q.player && x.rule === q.rule);
-    assert.ok(vq.book && vq.ev > 0 && vq.why[0].startsWith('Your price +900'));
+  const byId = new Map(slate.games.flatMap(g => g.players.map(p => [p.id, p])));
+  const m = (await call('plays', { body: { book: '' } })).body, sh = m.sharp;
+  assert.ok(sh.slateRead.length > 20 && sh.criteria);
+  assert.ok(sh.sharp.length <= SH.SHARP_MAX && sh.risks.length <= SH.RISKS_MAX);
+  for (const x of sh.sharp) {
+    assert.ok(SH.tierRank(x.tier) >= 2 && x.prob >= 0.2 && x.areas.workload && x.areas.matchup && x.areas.form, `${x.name} converges`);
+    assert.ok(SH.isSharp(byId.get(x.player), x.prob));
   }
+  for (let i = 1; i < sh.sharp.length; i++) assert.ok(SH.sortPlays(sh.sharp[i - 1], sh.sharp[i]) <= 0, 'Elite → All-Star → signals → chance');
+  assert.ok(sh.best.length > 0 && sh.best.every(x => SH.tierRank(x.tier) >= 2), 'board is All-Star and Elite only');
+  assert.ok(sh.best.some(x => x.kind === 'goal') && sh.best.some(x => x.kind !== 'goal'), 'board mixes goalscorers with saves / shots');
+  for (const x of sh.best) assert.ok(x.player || x.kind === 'saves', 'every row can open a panel');
+  for (const x of sh.risks) assert.ok(x.flags.length && (x.prob / x.base <= 0.9), `${x.name} has the red flag`);
+  assert.ok(sh.record.sharp.set.n > 0);
+  // Today's play of the day is a Sharp play whenever one exists.
+  if (sh.sharp.length) assert.equal(slate.best.sharp, true);
 });
 
-test('best plays rules: season rate, thresholds and nightly caps', () => {
+test('best plays rules: season rate, convergence, prop tiers', () => {
   const SH = require('../lib/sharp');
-  const fwd = { pos: 'C', season: { gp: 20, goals: 4, shots: 50 } };
-  const rate = SH.seasonRate(fwd); // (4 + 8×0.21) / 28 goals a game
-  assert.ok(Math.abs(rate - (1 - Math.exp(-(4 + 8 * 0.21) / 28))) < 1e-9);
-  assert.equal(SH.scorerRule(fwd, rate * 1.3).rule, 'edge');
-  assert.equal(SH.scorerRule(fwd, rate * 1.1), null, 'not far enough above his season rate');
-  assert.equal(SH.scorerRule({ ...fwd, season: { gp: 5, goals: 0, shots: 10 } }, 0.3), null, 'too few games');
-  assert.equal(SH.scorerRule({ ...fwd, badge: 'Elite' }, rate).rule, 'elite');
-  const star = { pos: 'R', season: { gp: 20, goals: 14, shots: 80 } };
-  assert.equal(SH.fadeRule(star, SH.seasonRate(star) * 0.8).rule, 'fade');
-  assert.equal(SH.fadeRule(star, SH.seasonRate(star) * 0.95), null);
-  assert.deepEqual(SH.savesRule(0.6), { rule: 'savesOver', side: 'over', prob: 0.6 });
-  assert.equal(SH.savesRule(0.4), null);
-  assert.equal(SH.sogRule(0.25).rule, 'sogUnder');
-  const night = [0.15, 0.1, 0.13, 0.11, 0.14, 0.12].map((base, i) => ({ rule: 'edge', prob: 0.3, base, i }));
-  assert.deepEqual(SH.capNight(night).map(x => x.base), [0.1, 0.11, 0.12], 'top 3 edges by points over the season rate');
+  const sig = keys => ['volume', 'minutes', 'finisher', 'hot', 'softGoalie', 'leaky', 'highEvent', 'tired'].map(k => ({ key: k, on: keys.includes(k) }));
+  const fwd = { pos: 'C', season: { gp: 20, goals: 6, shots: 60 }, badge: 'All-Star', count: 5, signals: sig(['volume', 'hot', 'softGoalie', 'leaky', 'tired']) };
+  assert.ok(Math.abs(SH.seasonRate(fwd) - (1 - Math.exp(-(6 + 8 * 0.21) / 28))) < 1e-9);
+  assert.equal(SH.isSharp(fwd, 0.3), true);
+  assert.equal(SH.isSharp({ ...fwd, badge: 'Value' }, 0.3), false, 'needs All-Star+');
+  assert.equal(SH.isSharp({ ...fwd, signals: sig(['volume', 'softGoalie', 'leaky', 'tired', 'highEvent']) }, 0.3), false, 'needs form');
+  assert.equal(SH.isSharp(fwd, 0.18), false, 'needs 20%');
+  assert.equal(SH.isSharp({ ...fwd, season: { gp: 6, goals: 3, shots: 20 } }, 0.3), false, 'needs 10 games');
+  const star = { pos: 'R', season: { gp: 20, goals: 14, shots: 80 }, count: 4, signals: sig(['volume', 'minutes', 'hot', 'highEvent']) };
+  assert.equal(SH.isRisk(star, SH.seasonRate(star) * 0.8), true);
+  assert.equal(SH.isRisk(star, SH.seasonRate(star) * 1.05), false);
+  assert.deepEqual(SH.riskFlags(star, SH.seasonRate(star) * 0.8).map(f => f.key), ['belowSeason', 'noMatchup']);
+  assert.deepEqual(SH.propTier('saves', 0.7), { side: 'over', prob: 0.7, tier: 'Elite' });
+  assert.equal(SH.propTier('saves', 0.6).tier, 'Value');
+  assert.equal(SH.propTier('sog', 0.25).side, 'under');
+  assert.equal(SH.propTier('sog', 0.5), null);
 });
 
 test('backtest beats simple baselines; health, status, grades, sync', async () => {
