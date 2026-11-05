@@ -210,3 +210,21 @@ test('total leans: only past the line’s base rate, otherwise no lean', () => {
   // A high-event game: over 5.5 at 66% (0.08 past its bar) beats over 6.5 at 56% (0.01 past its bar).
   const o = totalLean({ 5.5: 0.66, 6.5: 0.56 }, 7.0); assert.equal(o.side, 'over'); assert.equal(o.line, 5.5, 'the clearer margin wins');
 });
+
+test('missed last game: regulars who sat it, not one-offs, not traded players', () => {
+  const RT = require('../lib/ratings');
+  const sk = (id, team, extra = {}) => ({ id, team, name: `P${id}`, pos: 'C', toi: 15, shots: 2, goals: 0, assists: 0, ...extra });
+  const games = [];
+  for (let i = 1; i <= 6; i++) {
+    const s = [sk(2, 'AAA')];                          // plays every game
+    if (i <= 5) s.push(sk(1, 'AAA'));                  // regular, sat the last game
+    if (i === 3) s.push(sk(3, 'AAA'));                 // one-off call-up
+    if (i <= 4) s.push(sk(4, 'AAA')); if (i === 6) s.push(sk(4, 'BBB', { name: 'P4' })); // traded to BBB
+    s.push(sk(9, 'BBB'));
+    games.push({ id: `g${i}`, date: `2026-10-${String(10 + i).padStart(2, '0')}`, home: 'AAA', away: 'BBB', homeSog: 30, awaySog: 30, homeScore: 3, awayScore: 2, outcome: 'REG', gameType: 2, skaters: s, goalies: [], goals: [] });
+  }
+  const prep = RT.prepare(games), lg = RT.leagueAt(prep, '2026-10-20');
+  const m = RT.missedLastGame(prep, 'AAA', '2026-10-20', lg);
+  assert.deepEqual(m.map(p => p.id), [1], 'only the regular who sat the last game');
+  assert.equal(m[0].played, 5); assert.equal(m[0].of, 6); assert.equal(m[0].missed, 1);
+});

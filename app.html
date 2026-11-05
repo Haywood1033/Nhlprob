@@ -256,6 +256,8 @@ table.data { width: 100%; border-collapse: separate; border-spacing: 0; font-siz
 .play li { margin-bottom: 3px; }
 /* Best plays: Sharp play cards, the slate read, the All-Star board and Risks & fades. */
 .click { cursor: pointer; }
+.gl.missed { color: var(--warn); font-size: 12px; }
+.missed-list { margin: 4px 0 0; padding-left: 18px; font-size: 12.5px; line-height: 1.6; }
 .tlogo { display: inline-block; vertical-align: -0.2em; margin-right: 6px; object-fit: contain; }
 .who .tlogo { vertical-align: -0.15em; margin-right: 8px; }
 .slate-read { padding: 14px 16px; margin-bottom: 14px; }
@@ -695,7 +697,23 @@ function gameCard(g) {
       ${leanChip('First to score', `${L.firstToScore.team} first`, L.firstToScore.prob, H.first)}
     </div>
     ${g.live?.goals?.length ? `<div class="gl" style="display:block;color:var(--ink-2)"><span class="muted">Goals</span> ${g.live.goals.map(x => `${esc((n => { const w = n.split(' '); return w.length > 1 ? `${w[0][0]}. ${w.slice(1).join(' ')}` : n; })(g.players.find(p => p.id === x.playerId)?.name || x.name || ''))} <span class="muted">${esc(x.team)} ${goalTime(x)}${x.emptyNet ? ' EN' : ''}</span>`).join(' · ')}</div>` : ''}
+    ${missedNote(g)}
     <div class="gl"><span>${gtxt('away')}</span><span>${gtxt('home')}</span></div></div>`;
+}
+// Regulars who sat each team's last game (lib/ratings missedLastGame): missing from the projected
+// lineup until puck drop. A one-line heads-up on the card; the list is in the game breakdown.
+function missedNote(g) {
+  const M = g.missedLast; if (!M) return '';
+  const all = [...M.away.map(p => ({ ...p, t: g.away.abbrev })), ...M.home.map(p => ({ ...p, t: g.home.abbrev }))];
+  if (!all.length) return '';
+  const names = all.slice(0, 3).map(p => `${esc(p.t)} ${esc((w => w.length > 1 ? `${w[0][0]}. ${w.slice(1).join(' ')}` : w[0])(p.name.split(' ')))}`).join(', ');
+  return `<div class="gl missed" data-tip="${esc('Regulars who sat their team’s last game, so they aren’t in this projection (it uses the last game’s lineup). If one is back tonight he’s added from the box score at puck drop. Details in the game breakdown.')}"><span>⚠ Missed last game: ${names}${all.length > 3 ? ` +${all.length - 3}` : ''}</span></div>`;
+}
+function missedSection(g) {
+  const M = g.missedLast; if (!M || (!M.home.length && !M.away.length)) return '';
+  const list = (side) => M[side].length ? M[side].map(p => `<li><b>${esc(p.name)}</b> <span class="muted">${p.pos === 'D' ? 'D' : 'F'} · played ${p.played} of the last ${p.of} · out ${p.missed === 1 ? 'the last game' : `the last ${p.missed}`} · ${p.toi} min a night · ${p.season.goals} G in ${p.season.gp} GP</span></li>`).join('') : '<li class="muted">None</li>';
+  return `<div><div class="section-t">Missed last game · not in this projection</div><div class="two" style="gap:16px"><div><div class="note" style="font-weight:600">${esc(g.away.abbrev)}</div><ul class="missed-list">${list('away')}</ul></div><div><div class="note" style="font-weight:600">${esc(g.home.abbrev)}</div><ul class="missed-list">${list('home')}</ul></div></div>
+    <p class="note">The projected lineup is each team’s last game, so these regulars aren’t in tonight’s numbers. Some are hurt; if one dresses, he’s added from the box score at puck drop, and his team’s other numbers may shift a little.</p></div>`;
 }
 // Signal tags (lib/signals): the tag chip and the eight icons with a tooltip of what's firing.
 const tierChip = b => (b ? `<span class="tier ${b === 'Elite' ? 'elite' : b === 'All-Star' ? 'allstar' : 'value'}">${esc(b)}</span>` : '');
@@ -1118,6 +1136,7 @@ function openGame(id) {
       <tr>${T('Starter', t => { const G = g.goalies[t === g.home ? 'home' : 'away']; return G ? `${esc(G.name)} ${(G.svPct * 100).toFixed(1)}%` : '—'; })}</tr>
     </tbody></table></div>
     ${top('away')}${top('home')}
+    ${missedSection(g)}
     <p class="note">${esc(g.lineupSource)}.${g.state !== 'pre' ? (g.frozen ? ' Chances and leans are the pre-game projection, frozen at puck drop.' : ' No pre-game projection was saved for this game, so these numbers were recalculated after it started.') : ''}</p>`);
 }
 
