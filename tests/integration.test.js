@@ -193,3 +193,22 @@ test('started games use the box-score lineup: a player who missed the last game 
   assert.ok(conf.skaters.some(p => p.id === extra), 'added from the box score');
   assert.ok(!conf.skaters.some(p => p.id === last.skaters[0]), 'a scratch drops out');
 });
+
+test('market (ESPN lines): read only as flags; the simulation and leans never move', async () => {
+  const { parseOdds, compare } = require('../lib/market');
+  const L = parseOdds({ odds: [{ details: 'TOR -150', overUnder: 6.5, homeTeamOdds: { moneyLine: -150 }, awayTeamOdds: { moneyLine: 130 } }] }, 'TOR', 'MTL');
+  assert.ok(Math.abs(L.pHome - (0.6 / (0.6 + 100 / 230))) < 1e-3, 'vig removed');
+  assert.ok(L.goals.home > L.goals.away && Math.abs(L.goals.home + L.goals.away - 6.5) < 1e-9);
+  const c = compare(L, { pHome: 0.7, goals: { home: 3.6, away: 2.9 }, leanSide: 'home' });
+  assert.equal(c.mlFlag, true); assert.ok(c.goalsGap.home > 0);
+  // On the slate: every game carries the comparison; the day's first game is flagged.
+  const slate = (await call('slate')).body;
+  assert.ok(slate.games.filter(g => !g.unavailable).every(g => g.market && g.market.pHome !== null));
+  const first = slate.games.find(g => g.market?.total === 4.5);
+  assert.ok(first, 'the flipped line arrived');
+  assert.ok(Object.values(first.market.goalsGap).some(x => x >= 0.4), 'market sees fewer goals');
+  // Best plays: a skater in that game carries the market warning.
+  const plays = (await call('plays', { body: { book: '' } })).body;
+  const all = [...plays.sharp.sharp, ...plays.sharp.best, ...plays.sharp.risks].filter(x => x.game === first.id && x.kind === 'goal');
+  for (const x of all) if (first.market.goalsGap[x.team === first.home.abbrev ? 'home' : 'away'] >= 0.4) assert.ok(x.marketWarn, `${x.name} warned`);
+});

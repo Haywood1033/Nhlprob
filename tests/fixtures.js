@@ -155,6 +155,13 @@ function installMockFetch({ now, live = false } = {}) {
     if ((m = u.match(/\/v1\/gamecenter\/(\d+)\/boxscore$/))) { const g = byId.get(m[1]); return g ? ok(boxJson(g)) : notFound; }
     if ((m = u.match(/\/v1\/standings\/(\d{4}-\d\d-\d\d)$/))) return ok({ standings: standingsAt(w, m[1]) });
     if ((m = u.match(/\/v1\/roster\/([A-Z]+)\/current$/))) { const t = w.byAbbrev.get(m[1]); return t ? ok({ forwards: [], defensemen: [], goalies: [...t.G, ...(t.callup ? [t.callup] : [])].map(g => ({ id: g.id, firstName: { default: g.name.split(' ')[0] }, lastName: { default: g.name.split(' ').slice(1).join(' ') } })) }) : notFound; }
+    // ESPN's NHL scoreboard: an ordinary line on each game; the day's first game gets a line that flips
+    // the favorite and expects fewer goals (so both market flags have something to catch).
+    if ((m = u.match(/sports\/hockey\/nhl\/scoreboard\?dates=(\d{8})/))) {
+      const d = `${m[1].slice(0, 4)}-${m[1].slice(4, 6)}-${m[1].slice(6)}`;
+      return ok({ events: (w.days.get(d) || []).map((g, i) => ({ id: g.id, competitions: [{ competitors: [{ homeAway: 'home', team: { abbreviation: g.home.abbrev } }, { homeAway: 'away', team: { abbreviation: g.away.abbrev } }],
+        odds: [i === 0 ? { details: `${g.away.abbrev} -170`, overUnder: 4.5, homeTeamOdds: { moneyLine: 150 }, awayTeamOdds: { moneyLine: -170 }, provider: { name: 'Mock Book' } } : { details: `${g.home.abbrev} -130`, overUnder: 6, homeTeamOdds: { moneyLine: -130 }, awayTeamOdds: { moneyLine: 110 }, provider: { name: 'Mock Book' } }] }] })) });
+    }
     return notFound;
   };
   return { restore: () => { global.fetch = real; }, ...w, byId };

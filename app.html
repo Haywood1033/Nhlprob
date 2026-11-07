@@ -257,6 +257,8 @@ table.data { width: 100%; border-collapse: separate; border-spacing: 0; font-siz
 .play li { margin-bottom: 3px; }
 /* Best plays: Sharp play cards, the slate read, the All-Star board and Risks & fades. */
 .click { cursor: pointer; }
+.mkt-warn { margin: 8px 0 0; font-size: 12px; color: var(--warn); line-height: 1.45; }
+.game-line { padding: 0 16px 10px; font-size: 11.5px; color: var(--ink-3); }
 .gl.missed { color: var(--warn); font-size: 12px; }
 .missed-list { margin: 4px 0 0; padding-left: 18px; font-size: 12.5px; line-height: 1.6; }
 .tlogo { display: inline-block; vertical-align: -0.2em; margin-right: 6px; object-fit: contain; }
@@ -678,6 +680,28 @@ function frozenNote(g) {
   if (g.frozen) return `<span class="muted" data-tip="${esc(`Leans and chances as projected before puck drop (saved ${new Date(g.frozen.savedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' })} ET). Only the score, goals and status update.`)}">· pre-game numbers</span>`;
   return '<span class="muted" data-tip="No pre-game projection was saved for this game (no database at puck drop), so these numbers were recalculated after it started and may differ from what showed before.">· recalculated</span>';
 }
+// The market's moneyline red flag on a slate card (lib/market).
+// The betting line in small print (reference only).
+function lineText(g) {
+  const m = g.market; if (!m) return '';
+  const ml = (t, v) => (v === null || v === undefined ? '' : t + ' ' + (v > 0 ? '+' : '') + v);
+  const parts = [ml(g.away.abbrev, m.awayML), ml(g.home.abbrev, m.homeML), m.total !== null ? 'o/u ' + m.total : ''].filter(Boolean);
+  return parts.length ? '<div class="game-line" data-tip="' + esc('The betting line, shown for reference only. It never feeds the simulation or the leans.') + '">Line ' + esc(parts.join(' · ')) + '</div>' : '';
+}
+// The game breakdown's market note: the line against the simulation, for reference.
+function marketNote(g) {
+  const m = g.market; if (!m) return '';
+  const L = g.leans, side = L.moneyline.side, team = L.moneyline.team;
+  const bits = [];
+  if (m.pHome !== null) bits.push('the line gives ' + team + ' ' + pct(side === 'home' ? m.pHome : 1 - m.pHome, 0) + ' to win, we give ' + pct(L.moneyline.prob, 0) + (m.mlFlag ? ' (a red flag: 7+ points apart)' : ''));
+  if (m.goals && g.teamTotal) bits.push('it expects about ' + m.goals.away.toFixed(1) + '–' + m.goals.home.toFixed(1) + ' (' + g.away.abbrev + '–' + g.home.abbrev + '), we have ' + g.teamTotal.away.mean.toFixed(1) + '–' + g.teamTotal.home.mean.toFixed(1));
+  return bits.length ? '<div><div class="section-t">The market (for reference only)</div><p class="note">' + esc(bits.join('; ')) + '. The line never feeds the simulation; a gap this large can mean the market knows about injuries, lineups or a goalie change.</p></div>' : '';
+}
+function mlWarn(g) {
+  const m = g.market, L = g.leans; if (!m?.mlFlag) return '';
+  const theirs = L.moneyline.side === 'home' ? m.pHome : 1 - m.pHome;
+  return '<span class="tag warn" style="height:20px" data-tip="' + esc('Market disagrees: the line gives ' + L.moneyline.team + ' ' + pct(theirs, 0) + ', we give ' + pct(L.moneyline.prob, 0) + '. Read only as a check; it never moves the lean.') + '">⚠ market</span>';
+}
 function gameCard(g) {
   if (g.unavailable) return `<div class="card game"><div class="game-h">${esc(matchup(g))}</div><div class="card-b note">${esc(g.unavailable)}</div></div>`;
   const L = g.leans, H = leanHits(g), showScore = g.state !== 'pre';
@@ -688,7 +712,7 @@ function gameCard(g) {
   const G = k => g.goalies[k];
   const gtxt = k => (G(k) ? `<b>${esc(G(k).name)}</b> ${(G(k).svPct * 100).toFixed(1)}%${G(k).projection?.confirmed ? '' : G(k).projection?.manual ? ' <span class="muted">set</span>' : ' <span class="muted">proj.</span>'}` : '—');
   return `<div class="card game" data-game="${esc(g.id)}">
-    <div class="game-h">${stateChip(g)}${frozenNote(g)}<span class="spacer"></span>${mlBadge(g)}<span>Model total ${g.total.mean}</span></div>
+    <div class="game-h">${stateChip(g)}${frozenNote(g)}<span class="spacer"></span>${mlBadge(g)}${mlWarn(g)}<span>Model total ${g.total.mean}</span></div>
     ${row(g.away, g.pAway, 'away')}${row(g.home, g.pHome, 'home')}
     <div class="wbar"><i style="width:${g.pAway * 100}%;background:${SB}"></i><i style="width:${g.pHome * 100}%;background:${SA}"></i></div>
     <div class="leans">
@@ -697,6 +721,7 @@ function gameCard(g) {
       ${leanChip('Puck line', `${L.puckLine.team} −1.5`, L.puckLine.prob, H.pl)}
       ${leanChip('First to score', `${L.firstToScore.team} first`, L.firstToScore.prob, H.first)}
     </div>
+    ${lineText(g)}
     ${g.live?.goals?.length ? `<div class="gl" style="display:block;color:var(--ink-2)"><span class="muted">Goals</span> ${g.live.goals.map(x => `${esc((n => { const w = n.split(' '); return w.length > 1 ? `${w[0][0]}. ${w.slice(1).join(' ')}` : n; })(g.players.find(p => p.id === x.playerId)?.name || x.name || ''))} <span class="muted">${esc(x.team)} ${goalTime(x)}${x.emptyNet ? ' EN' : ''}</span>`).join(' · ')}</div>` : ''}
     ${missedNote(g)}
     <div class="gl"><span>${gtxt('away')}</span><span>${gtxt('home')}</span></div></div>`;
@@ -748,6 +773,7 @@ function bestHtml() {
     <div><div class="k">Today’s best goalscorer play${b.locked ? (b.lockedLate ? ` · <span class="muted" data-tip="No pick was saved before the first puck drop, so it was locked on the first load after games started (${esc(new Date(b.lockedLate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }))} ET), choosing only from games that hadn’t started.">locked late, from games not yet started</span>` : ' · <span class="muted" data-tip="Picked from the full slate before the first puck drop and kept for the day, so it doesn’t move to a later game as earlier ones start.">locked at first puck drop</span>') : ''}</div>
       <div class="who" data-player="${b.playerId}" data-game="${esc(b.gameId)}">${teamLogo(b.team, 30)}${esc(b.name)}</div>
       ${b.signals?.length ? `<div style="margin-top:6px;display:flex;gap:8px;align-items:center">${b.sharp ? '<span class="tag pos">🎯 Sharp play</span>' : ''}${tierChip(b.badge)} ${sigIcons(b)} <span class="note">Firing ${b.count} of 8</span></div>` : ''}
+      ${mktWarn(b.marketWarn)}
       <div class="ctx">${esc(b.team)} vs ${esc(b.opp)} · ${esc(puck(g?.start))}${p ? ` · ${p.pos === 'D' ? 'Defense' : 'Forward'}, ${p.toi} min a night` : ''}</div>
       <div class="nums"><div><div class="v">${pct(b.anytime)}</div><div class="l">Anytime goal · fair ${esc(b.fair)}</div></div><div><div class="v">${pct(b.first)}</div><div class="l">First goal · fair ${fair(b.first)}</div></div>${p ? `<div><div class="v">${p.shots.mean}</div><div class="l">Shots expected</div></div>` : ''}</div>
       <div style="margin-top:12px">${pickStatus(b, g)}</div>
@@ -895,12 +921,15 @@ function lockNote(sh) {
 }
 const openAttrs = x => (x.player ? `data-player="${x.player}" data-game="${esc(x.game)}"` : `data-open-game="${esc(x.game)}"`);
 function areaChips(x) { return Object.entries(x.areas || {}).map(([k, v]) => `<span class="tag ${v ? 'pos' : ''}" style="${v ? '' : 'opacity:.55'}">${v ? '✓' : '·'} ${AREA_LABEL[k]}</span>`).join(''); }
+// The market's red flag (lib/market): shown only as a warning, never part of the pick.
+const mktWarn = t => (t ? `<div class="mkt-warn" data-tip="${esc('From the betting line, read only as a check. The market may know about injuries, lineups or a goalie change our data doesn’t show.')}">⚠ ${esc(t)}</div>` : '');
 function sharpCard(x) {
   const g = gameById(x.game);
   return `<div class="card sharp-card click" ${openAttrs(x)}>
     <div class="sc-top"><div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">${tierChip(x.tier)}<span class="note">Firing ${x.count} of 8</span>${x.player && g ? goalTag(g, x.player) : ''}</div>
       <div class="sc-name">${teamLogo(x.team, 22)}${esc(x.name)}</div><div class="play-sub">${esc(x.team)} vs ${esc(x.opp)} · ${gameWhen(g)}</div></div>
       <div class="play-prob"><div class="big">${pct(x.prob)}</div><div class="small">anytime · fair ${esc(x.fair)}</div></div></div>
+    ${mktWarn(x.marketWarn?.text)}
     <div class="sc-areas">${areaChips(x)}</div>
     <div class="sc-sigs">${x.signals.map(s => `<span data-tip="${esc(s.detail)}">${s.icon} ${esc(s.label)}</span>`).join('')}</div>
     ${x.why.length ? `<ul>${x.why.slice(0, 3).map(r => `<li>${esc(r)}</li>`).join('')}</ul>` : ''}
@@ -911,7 +940,7 @@ function bestRow(x, i) {
   const value = x.kind === 'goal' ? pct(x.prob) : `${x.side === 'over' ? 'O' : 'U'} ${x.line}`;
   const meta = x.kind === 'goal' ? `${x.count} signals · season rate ${pct(x.base, 0)}` : `${pct(x.prob, 0)} to hit · season avg ${x.avg.toFixed(1)}`;
   return `<div class="bp-row click" ${openAttrs(x)}><span class="play-rank">${i + 1}</span><span class="bp-kind k-${x.kind}">${KIND_LABEL[x.kind]}</span>
-    <div class="bp-info"><div class="pname">${teamLogo(x.team, 18)}${esc(x.name)}${x.player && x.kind === 'goal' && g ? goalTag(g, x.player) : ''}</div><div class="psub">${esc(x.team)} vs ${esc(x.opp)} · ${gameWhen(g)} · ${esc(meta)}</div></div>
+    <div class="bp-info"><div class="pname">${teamLogo(x.team, 18)}${esc(x.name)}${x.marketWarn ? ' <span class="tag warn" style="height:18px" data-tip="' + esc(x.marketWarn.text) + '">⚠ market</span>' : ''}${x.player && x.kind === 'goal' && g ? goalTag(g, x.player) : ''}</div><div class="psub">${esc(x.team)} vs ${esc(x.opp)} · ${gameWhen(g)} · ${esc(meta)}</div></div>
     <div class="bp-val">${esc(value)}</div><div class="bp-tier">${tierChip(x.tier)}</div></div>`;
 }
 function riskCard(x) {
@@ -1043,6 +1072,11 @@ function calibrationCard(B) {
 }
 async function runBacktestNow() { S.btLoading = true; S.btErr = null; renderAccuracy(); try { S.backtest = await api(`/api/backtest?days=${S.btDays}`); if (S.backtest.calibrationSaved) { S.plays = null; S.playsKey = null; load(); } } catch (err) { S.btErr = err.message; } S.btLoading = false; renderAccuracy(); }
 async function loadGrades() { try { S.grades = await api('/api/grades'); } catch { S.grades = { games: [], note: 'Grades unavailable.' }; } renderAccuracy(); }
+// Replay test: did the market flags (lib/market) pick out misses? By how far the line sat below us.
+function marketCard(M) {
+  const t = (title, rows, what) => '<div class="card"><div class="card-h"><h2>' + title + '</h2></div><div class="table-wrap" style="border:0;border-radius:0"><table class="data"><thead><tr><th class="l">Line vs us</th><th>' + what + '</th><th>We said</th><th>Happened</th></tr></thead><tbody>' + rows.filter(r => r.n).map(r => '<tr><td class="l">' + esc(r.label) + '</td><td>' + r.n.toLocaleString() + '</td><td>' + pct(r.predicted, 1) + '</td><td class="' + (r.won / r.n < r.predicted - 0.02 ? 'edge-neg' : '') + '">' + pct(r.won / r.n, 1) + '</td></tr>').join('') + '</tbody></table></div></div>';
+  return '<div class="section-head"><h2>Does the “market disagrees” flag work?</h2><span class="note">' + M.games + ' replayed games had a pre-game line. The line is read only for this check.</span></div><div class="two" style="align-items:start">' + t('Moneyline leans', M.ml, 'Games') + t('Anytime goal, by his team’s expected goals', M.anytime, 'Player-games') + '</div><p class="note" style="margin-top:8px">If the flagged rows (last in each table) happen clearly less often than we said, the flag earns a place in Risks &amp; fades. If not, it stays a warning or goes.</p>';
+}
 function renderAccuracy() {
   const el = $('#panel-accuracy'), B = S.backtest, G = S.grades;
   // ✓ / ✗ against a simple benchmark (lower is better for every number here).
@@ -1092,6 +1126,7 @@ function renderAccuracy() {
       <div class="table-wrap" style="border:0;border-radius:0"><table class="data"><thead><tr><th class="l">List</th><th>Plays</th><th>Hit</th><th>We predicted</th><th>Their usual rate</th></tr></thead><tbody>
       ${Object.entries(B.bestPlays).map(([k, r]) => `<tr><td class="l">${esc({ sharp: 'Sharp plays (scored)', scorers: 'All-Star and Elite goalscorers (scored)', saves: 'All-Star and Elite saves picks', sog: 'All-Star and Elite shots picks', risks: 'Risks & fades (scored; lower is better)' }[k] || k)}</td><td>${r.n.toLocaleString()}</td><td>${r.n ? pct(r.hit, 0) : '—'}</td><td>${r.n ? pct(r.model, 0) : '—'}</td><td class="muted">${r.n && r.base != null ? pct(r.base, 0) : '—'}</td></tr>`).join('')}
       </tbody></table></div><div class="card-b note">For goalscorers, “their usual rate” is how often each player scores based on his season so far. Our goalscorer lists should beat it, and Risks &amp; fades should fall short of it. Saves and shots picks are checked against a line at the player’s season average. 20 days is a small sample; 60 is steadier.</div></div>` : ''}
+    ${B?.market?.games ? marketCard(B.market) : ""}
     ${B?.tags ? `<div class="card" style="margin-top:16px"><div class="card-h"><h2>Do the tags help?</h2><span class="sub">Anytime goal: how often tagged players scored vs the chance we gave them</span></div>
       <div class="table-wrap" style="border:0;border-radius:0"><table class="data"><thead><tr><th class="l">Tag</th><th>Player-games</th><th>We predicted</th><th>Scored</th><th>Difference</th></tr></thead><tbody>
       ${B.tags.map(t => `<tr><td class="l">${t.badge === 'No tag' ? 'No tag' : tierChip(t.badge)}</td><td>${t.n.toLocaleString()}</td><td>${pct(t.predicted, 0)}</td><td>${pct(t.actual, 0)}</td><td class="${t.actual !== null && t.predicted !== null ? (t.actual > t.predicted ? 'edge-pos' : 'edge-neg') : ''}">${t.actual !== null && t.predicted !== null ? signed((t.actual - t.predicted) * 100, 1) + ' pts' : '—'}</td></tr>`).join('')}
@@ -1146,6 +1181,7 @@ function openGame(id) {
   openDrawer(`<div><h2>${esc(g.away.name)} @ ${esc(g.home.name)}</h2><div class="sub">${esc(puck(g.start))}${g.venue ? ` · ${esc(g.venue)}` : ''}${g.playoff ? ' · Playoffs' : ''}</div></div>`,
     `<div class="kv2"><div><div class="l">${esc(g.away.abbrev)} win</div><div class="v">${pct(g.pAway)}</div><div class="l">fair ${esc(g.fair.away)}</div></div><div><div class="l">${esc(g.home.abbrev)} win</div><div class="v">${pct(g.pHome)}</div><div class="l">fair ${esc(g.fair.home)}</div></div><div><div class="l">Overtime</div><div class="v">${pct(g.overtime, 0)}</div><div class="l">shootout ${pct(g.shootout, 0)}</div></div></div>
     <div><div class="section-t">Goals in the game · model ${g.total.mean}</div>${distSvg(g.total.dist, g.leans.total.line)}<p class="note">Over 5.5 ${pct(g.total.over['5.5'], 0)} · over 6.5 ${pct(g.total.over['6.5'], 0)} · 1st period over 0.5 ${pct(g.firstPeriod.over['0.5'], 0)}</p></div>
+    ${marketNote(g)}
     <div><div class="section-t">Team comparison</div><table class="data"><colgroup><col style="width:32%"><col style="width:36%"><col style="width:32%"></colgroup><thead><tr><th>${esc(g.away.abbrev)}</th><th></th><th>${esc(g.home.abbrev)}</th></tr></thead><tbody>
       <tr>${T('Record (W-L-OT)', t => rec(t.record))}</tr><tr>${T('Shots for / game', t => t.sfPerGame)}</tr><tr>${T('Shots against / game', t => t.saPerGame)}</tr><tr>${T('Goals for / game', t => t.gfPerGame)}</tr><tr>${T('Goals against / game', t => t.gaPerGame)}</tr><tr>${T('Shots tonight (model)', t => t.expectedShots)}</tr>
       <tr>${T('Starter', t => { const G = g.goalies[t === g.home ? 'home' : 'away']; return G ? `${esc(G.name)} ${(G.svPct * 100).toFixed(1)}%` : '—'; })}</tr>
