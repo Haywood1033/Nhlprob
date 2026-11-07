@@ -80,6 +80,7 @@ a:hover { text-decoration: underline; }
 .hero .meta { margin-top: 6px; color: var(--ink-2); font-size: 13px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
 .hero .meta span + span::before { content: ''; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.chips:empty { display: none; }
 .chip { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid var(--line-2); color: var(--ink-2); background: var(--surface); white-space: nowrap; }
 .chip .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 .chip.live { color: var(--pos); border-color: rgba(74, 222, 128, 0.35); background: var(--pos-wash); }
@@ -654,7 +655,7 @@ function renderHero() {
   const live = d.games.filter(g => g.state === 'in').length, pre = d.games.filter(g => g.state === 'pre').length;
   $('#hero').innerHTML = `<h1>NHL · ${esc(fmtDate(d.date))}</h1>
     <div class="meta"><span>${d.games.length} game${d.games.length === 1 ? '' : 's'}</span>${pre ? `<span>${pre} still to start</span>` : ''}<span>League ${d.league.goalsPerGame} goals a game · save ${(d.league.svPct * 100).toFixed(1)}%</span></div>
-    <div class="chips">${live ? `<span class="chip live"><span class="dot"></span>${live} live</span>` : ''}<span class="chip">${d.sims.toLocaleString()} sims per game</span><span class="chip">${d.history.games.toLocaleString()} past games${d.history.source === 'database' ? '' : ' (last few weeks, live)'}</span>${d.snapshot?.saved ? '<span class="chip accent">Projections saved for grading</span>' : ''}${d.calibration?.k && d.calibration.k !== 1 ? `<span class="chip" data-tip="${esc(`Moneyline calibration from the backtest: favorites’ chances stretched ×${Number(d.calibration.k).toFixed(2)} (fitted ×${Number(d.calibration.kFit).toFixed(2)} on ${d.calibration.n} games, shrunk for sample size)`)}">Calibrated ×${Number(d.calibration.k).toFixed(2)}</span>` : ''}</div>`;
+    <div class="chips">${live ? `<span class="chip live"><span class="dot"></span>${live} live</span>` : ''}</div>`;
   $('#updated').textContent = `Updated ${new Date(d.generatedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
 }
 
