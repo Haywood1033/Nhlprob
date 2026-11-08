@@ -166,19 +166,33 @@ test('best plays: saves plays only on a starter we can trust', () => {
   assert.equal(starterReliable({ projection: { starts: 10, of: 12, b2b: true } }), false, 'back-to-back: could be the backup');
 });
 
-test('best plays lock: saved before puck drop, served unchanged after, late lock if nothing saved', async () => {
+test('best plays lock: drafts before puck drop, sealed after, never overwritten, nothing written when the database fails', async () => {
   const { lockSharp } = require('../lib/plays');
-  const mem = new Map(), io = { canSave: true, load: async d => mem.get(d) || null, save: async (d, v) => (mem.set(d, { ...v, savedAt: 'T' }), true) };
+  // An in-memory stand-in with lib/lock's semantics (the real SQL is checked against Postgres separately).
+  const rows = new Map(); let down = false;
+  const lock = {
+    draft: async (d, p) => { if (down) return { state: 'error' }; const r = rows.get(d); if (r?.sealed) return { state: 'locked', payload: r.payload }; rows.set(d, { payload: p, sealed: false }); return { state: 'open' }; },
+    seal: async (d, c) => { if (down) return { state: 'unconfirmed' }; const r = rows.get(d); if (r) { r.sealed = true; return { state: 'locked', payload: r.payload }; } rows.set(d, { payload: c, sealed: true }); return { state: 'late', payload: c }; },
+  };
+  const io = { canSave: true, lock };
   const lists = n => ({ sharp: [{ player: n, bookPrice: { raw: '+200' } }], best: [{ player: n }], risks: [], record: { r: n }, latestDays: 60 });
-  const pre = [{ state: 'pre' }, { state: 'pre' }], started = [{ state: 'in' }, { state: 'pre' }];
+  const pre = [{ state: 'pre', start: '2099-01-01T00:00:00Z' }], started = [{ state: 'in' }, { state: 'pre' }];
   assert.equal((await lockSharp('d1', pre, lists(1), io)).lock.state, 'open');
-  assert.equal(mem.get('d1').sharp[0].bookPrice, undefined, 'a locked play keeps no pasted price');
+  assert.equal(rows.get('d1').payload.sharp[0].bookPrice, undefined, 'a locked play keeps no pasted price');
   const after = await lockSharp('d1', started, lists(2), io);
   assert.equal(after.lock.state, 'locked'); assert.equal(after.sharp[0].player, 1, 'the pre-game list, not a rebuilt one');
   assert.deepEqual(after.record, { r: 2 }, 'the backtest record stays current');
-  const late = await lockSharp('d2', started, lists(3), io);
-  assert.equal(late.lock.state, 'late'); assert.equal((await lockSharp('d2', started, lists(4), io)).sharp[0].player, 3, 'late lock holds');
-  assert.equal((await lockSharp('d3', started, lists(5), { ...io, canSave: false, load: async () => null })).lock.state, 'off');
+  // The database fails mid-slate: nothing is written, the next good read still has the sealed list.
+  down = true; const flaky = await lockSharp('d1', started, lists(9), io);
+  assert.equal(flaky.lock.state, 'unconfirmed'); assert.equal(rows.get('d1').payload.sharp[0].player, 1, 'a failed read never overwrites');
+  down = false; assert.equal((await lockSharp('d1', started, lists(9), io)).sharp[0].player, 1);
+  // A draft attempt after sealing (clock skew) gets the sealed list back, not a save.
+  assert.equal((await lockSharp('d1', pre, lists(7), io)).sharp[0].player, 1);
+  // Nothing saved before puck drop: sealed late, then held.
+  assert.equal((await lockSharp('d2', started, lists(3), io)).lock.state, 'late');
+  assert.equal((await lockSharp('d2', started, lists(4), io)).sharp[0].player, 3, 'late lock holds');
+  // The clock alone seals the day, even if the feed still says every game is pre-game.
+  assert.equal((await lockSharp('d3', [{ state: 'pre', start: '2000-01-01T00:00:00Z' }], lists(5), io)).lock.state, 'late');
 });
 
 test('started games use the box-score lineup: a player who missed the last game is added', async () => {

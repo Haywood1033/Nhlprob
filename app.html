@@ -661,6 +661,13 @@ function renderHero() {
   $('#updated').textContent = `Updated ${new Date(d.generatedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
 }
 
+// The day's locked pick, remembered in this browser: once the server confirms the lock, the page keeps
+// that pick for the date, so a moment when the database doesn't answer can't show a different name.
+function keepLock(d) {
+  const k = 'nhlprob-lock-' + d.date, st = d.best?.lockState;
+  if (d.best && (st === 'locked' || st === 'late')) store.set(k, JSON.stringify(d.best));
+  else if (d.best && st === 'unconfirmed') { try { const b = JSON.parse(store.get(k) || 'null'); if (b) d.best = { ...b, lockState: 'locked', fromBrowser: true }; } catch {} }
+}
 // ── Today: best goalscorer play + slate with leans ──────────────────────────────────────
 function leanChip(label, text, p, hit) { return `<span class="lean ${hit === true ? 'hit' : hit === false ? 'miss' : ''}" data-tip="${esc(`${label}: model ${pct(p)} · fair ${fair(p)}${hit === true ? '<br>Hit' : hit === false ? '<br>Missed' : ''}`)}"><b>${esc(text)}</b><span>${pct(p, 0)}</span></span>`; }
 function leanHits(g) {
@@ -770,7 +777,7 @@ function bestHtml() {
   const g = gameById(b.gameId), p = g?.players.find(x => x.id === b.playerId);
   const R = S.data.bestRemaining;
   return `<div class="card best">
-    <div><div class="k">Today’s best goalscorer play${b.locked ? (b.lockedLate ? ` · <span class="muted" data-tip="No pick was saved before the first puck drop, so it was locked on the first load after games started (${esc(new Date(b.lockedLate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }))} ET), choosing only from games that hadn’t started.">locked late, from games not yet started</span>` : ' · <span class="muted" data-tip="Picked from the full slate before the first puck drop and kept for the day, so it doesn’t move to a later game as earlier ones start.">locked at first puck drop</span>') : ''}</div>
+    <div><div class="k">Today’s best goalscorer play${b.lockState === 'unconfirmed' ? ' · <span class="muted" data-tip="The database didn’t answer, so the lock couldn’t be confirmed. This is the pick from pre-game numbers; refresh in a minute.">lock not confirmed yet</span>' : b.locked ? (b.lockedLate ? ` · <span class="muted" data-tip="No pick was saved before the first puck drop, so it was locked on the first load after games started (${esc(new Date(b.lockedLate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }))} ET), choosing only from games that hadn’t started.">locked late, from games not yet started</span>` : ' · <span class="muted" data-tip="Picked from the full slate before the first puck drop and kept for the day, so it doesn’t move to a later game as earlier ones start.">locked at first puck drop</span>') : ''}</div>
       <div class="who" data-player="${b.playerId}" data-game="${esc(b.gameId)}">${teamLogo(b.team, 30)}${esc(b.name)}</div>
       ${b.signals?.length ? `<div style="margin-top:6px;display:flex;gap:8px;align-items:center">${b.sharp ? '<span class="tag pos">🎯 Sharp play</span>' : ''}${tierChip(b.badge)} ${sigIcons(b)} <span class="note">Firing ${b.count} of 8</span></div>` : ''}
       ${mktWarn(b.marketWarn)}
@@ -917,6 +924,7 @@ function lockNote(sh) {
   if (L.state === 'locked') return '<span class="tag pos" data-tip="Saved before the first puck drop and kept for the day: plays don’t drop off as their games start, and later games can’t reshuffle them.">🔒 Locked at first puck drop</span>';
   if (L.state === 'late') return '<span class="tag warn" data-tip="Nothing was saved before the first puck drop, so the lists locked on the first load after games started, from games not yet started.">🔒 Locked late, from games not yet started</span>';
   if (L.state === 'open') return '<span class="tag" data-tip="Updates until the first puck drop (lineups, starters), then locks for the day.">Locks at first puck drop</span>';
+  if (L.state === 'unconfirmed') return '<span class="tag warn" data-tip="The database didn’t answer, so the lock couldn’t be confirmed and nothing was changed. Refresh in a minute.">Lock not confirmed yet</span>';
   return '<span class="tag warn" data-tip="Locking needs the database (or uses the shared starters): without it, plays drop off as their games start.">Not locked</span>';
 }
 const openAttrs = x => (x.player ? `data-player="${x.player}" data-game="${esc(x.game)}"` : `data-open-game="${esc(x.game)}"`);
@@ -1260,7 +1268,7 @@ $('#refresh').addEventListener('click', () => load(true));
 async function load(force = false) {
   $('#refresh').classList.add('spin');
   // force: skip the CDN's copy (a starter pick just changed the slate).
-  try { S.data = await api('/api/slate', { fresh: force }); S.err = null; if (!S.date) $('#dateInput').value = S.data.date; } catch (err) { S.err = err.message; }
+  try { S.data = await api('/api/slate', { fresh: force }); keepLock(S.data); S.err = null; if (!S.date) $('#dateInput').value = S.data.date; } catch (err) { S.err = err.message; }
   $('#refresh').classList.remove('spin');
   if (force) { S.plays = null; S.playsKey = null; }
   renderAll(); setLive();

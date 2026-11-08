@@ -14,7 +14,7 @@ module.exports = async (req, res) => {
       const { getSlateContext } = require('../lib/slate'), { makeBook } = require('../lib/markets'), { buildPlays, lockSharp } = require('../lib/plays'), st = require('../lib/store');
       const { payload: p, sims } = await getSlateContext();
       // Best plays too, so the day's lists are saved (and lock at puck drop) even if nobody opens the tab.
-      const plays = await lockSharp(p.date, p.games, buildPlays(p, makeBook(sims), [], null).sharp, { canSave: true, load: st.loadDailyPlays, save: st.saveDailyPlays }).catch(err => ({ lock: { state: 'error', error: err.message } }));
+      const plays = await lockSharp(p.date, p.games, buildPlays(p, makeBook(sims), [], null).sharp, { canSave: true, lock: require('../lib/lock').lockFor('nhl_daily_plays') }).catch(err => ({ lock: { state: 'error', error: err.message } }));
       return send(res, 200, { date: p.date, games: p.games.length, pregame: p.games.filter(g => g.state === 'pre').length, snapshot: p.snapshot, bestPlays: plays.lock });
     }
     if (!db.hasDb) return send(res, 400, { error: db.notConnected('history sync has nowhere to save'), seen: db.seenDbVars() });

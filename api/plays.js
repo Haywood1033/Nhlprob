@@ -5,7 +5,8 @@ const { getSlateContext, parseStarters } = require('../lib/slate');
 const { makeBook } = require('../lib/markets');
 const { parseBook } = require('../lib/book');
 const { buildPlays, lockSharp } = require('../lib/plays');
-const { loadBestRecord, loadDailyPlays, saveDailyPlays } = require('../lib/store');
+const { loadBestRecord } = require('../lib/store');
+const { lockFor } = require('../lib/lock');
 const { body, send, fail } = require('./_util');
 
 module.exports = async (req, res) => {
@@ -16,7 +17,7 @@ module.exports = async (req, res) => {
     const parsed = parseBook(b.book || '', payload.games.filter(g => !g.unavailable));
     const out = buildPlays(payload, book, parsed.rows, record);
     // Only the shared view locks: a device's own starter picks (no database) re-simulate games.
-    out.sharp = await lockSharp(payload.date, payload.games, out.sharp, { canSave: !starters.size, load: loadDailyPlays, save: saveDailyPlays });
+    out.sharp = await lockSharp(payload.date, payload.games, out.sharp, { canSave: !starters.size, lock: lockFor('nhl_daily_plays') });
     send(res, 200, { ...out, book: { matched: parsed.rows.length, skipped: parsed.skipped, rows: parsed.rows } });
   } catch (err) { fail(res, err); }
 };
