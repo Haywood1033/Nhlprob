@@ -1046,7 +1046,9 @@ function renderSgp() {
 // ── Accuracy ────────────────────────────────────────────────────────────────────────────
 function storageNote(st) {
   if (!st) return '';
-  if (!st.connected) return '<p class="note" style="margin:0 0 12px">Pick tracking isn’t switched on yet.</p>';
+  // Two different cases: no database set at all, or set but it didn't answer (show why, it's usually temporary).
+  if (!st.connected && st.variable) return '<p class="note" style="margin:0 0 12px;color:var(--warn)">Pick tracking is on, but the database didn’t answer just now (' + esc(st.error || 'no reason given') + '). Saved picks are safe; refresh in a minute.</p>';
+  if (!st.connected) return '<p class="note" style="margin:0 0 12px">Pick tracking isn’t switched on: no database connection is set for this site.</p>';
   return `<p class="note" style="margin:0 0 12px">${st.saved} game prediction${st.saved === 1 ? '' : 's'} saved, ${st.graded} checked so far${st.last ? `. Latest: ${esc(st.last.name)}, saved ${esc(new Date(st.last.savedAt).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }))}` : ''}.</p>`;
 }
 function drawCalibration(el, bins) {
