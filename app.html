@@ -1319,15 +1319,26 @@ function openGame(id) {
 
 // ── Live ────────────────────────────────────────────────────────────────────────────────
 let liveTimer = null;
+// Each game's state as of the previous live poll. A change is judged against THAT, never against the
+// slate: the slate is cached for minutes and lags the live feed, and comparing the two made every
+// reload look like a new change (a reload loop the moment a game went final).
+const liveSeen = new Map();
+let lastStateReload = 0;
+function applyLive(g, lg) { g.state = lg.state; g.home.score = lg.home.score; g.away.score = lg.away.score; g.live = { ...(g.live || {}), period: lg.period, clock: lg.clock, intermission: lg.intermission, goals: lg.goals }; }
 async function pollLive() {
   try {
     const { games } = await api('/api/live');
     let changed = false;
-    for (const lg of games) { const g = gameById(lg.id); if (!g) continue; if (g.state !== lg.state) changed = true; g.state = lg.state; g.home.score = lg.home.score; g.away.score = lg.away.score; g.live = { ...(g.live || {}), period: lg.period, clock: lg.clock, intermission: lg.intermission, goals: lg.goals }; }
+    for (const lg of games) {
+      const prev = liveSeen.get(lg.id);
+      if (prev !== undefined && prev !== lg.state) changed = true;
+      liveSeen.set(lg.id, lg.state);
+      const g = gameById(lg.id); if (g) applyLive(g, lg);
+    }
     if (S.liveStale) { S.liveStale = false; renderHero(); }
-    // A game started or finished: reload the slate so frozen numbers, confirmed lineups and hit / miss
-    // marks appear without a manual refresh.
-    if (changed) return load();
+    // A game started or finished: reload the slate (skipping caches) so frozen numbers, confirmed
+    // lineups and hit / miss marks appear without a manual refresh. At most once a minute.
+    if (changed && Date.now() - lastStateReload > 60000) { lastStateReload = Date.now(); return load(true); }
     if (['today', 'scorers', 'plays'].includes(S.tab)) RENDER[S.tab](); renderHero();
   } catch { if (!S.liveStale) { S.liveStale = true; renderHero(); } }
 }
