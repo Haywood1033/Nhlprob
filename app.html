@@ -44,7 +44,7 @@
   --shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { -webkit-text-size-adjust: 100%; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+html { overflow-anchor: none; -webkit-text-size-adjust: 100%; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 body { background: var(--bg); color: var(--ink); font: 400 14px/1.5 var(--font); min-height: 100vh; -webkit-font-smoothing: antialiased; }
 button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
@@ -661,15 +661,16 @@ function stateChip(g) {
 // ── Hero ─────────────────────────────────────────────────────────────────────────────────
 function renderHero() {
   const d = S.data;
-  if (!d) { $('#hero').innerHTML = S.err ? '<h1>nhlprob</h1><div class="meta"><span>Couldn’t load the slate.</span></div>' : $('#hero').innerHTML; return; }
+  if (!d) { S._heroHtml = null; $('#hero').innerHTML = S.err ? '<h1>nhlprob</h1><div class="meta"><span>Couldn’t load the slate.</span></div>' : $('#hero').innerHTML; return; }
   const live = d.games.filter(g => g.state === 'in').length, pre = d.games.filter(g => g.state === 'pre').length;
   const F = d.freshness || {};
   // Data freshness: what the history runs through, and how much of tonight is confirmed vs projected.
   const fresh = F.latest ? `<span class="chip fresh ${F.stale ? 'warn' : ''}" tabindex="0" data-tip="${esc(F.stale ? `The game history stops at ${shortDate(F.latest)}, but ${shortDate(F.expected)} had finished games: the nightly update didn’t run, so back-to-backs and lineups may be a day stale.` : 'Ratings use every finished game up to this date.')}">${F.stale ? '⚠ ' : ''}Data through ${esc(shortDate(F.latest))}${F.starters?.total ? ` · ${F.starters.confirmed} of ${F.starters.total} starters confirmed` : ''}${F.lineups?.games ? ` · lineups ${F.lineups.confirmed ? `${F.lineups.confirmed} of ${F.lineups.games} confirmed` : 'projected'}` : ''}</span>` : '';
   const mine = d.personal ? `<span class="chip accent" tabindex="0" data-tip="${esc('You changed a starter or a lineup, so these numbers are re-simulated for you only. The shared projection and the Accuracy record don’t use them.')}">Your changes applied <button class="btn ghost" id="resetMine" style="height:20px;padding:0 4px;font-size:11.5px">Reset</button></span>` : '';
-  $('#hero').innerHTML = `<h1>NHL · ${esc(fmtDate(d.date))}${F.today === false ? ' <span class="muted" style="font-size:15px;font-weight:600">· not today</span>' : ''}</h1>
+  const heroHtml = `<h1>NHL · ${esc(fmtDate(d.date))}${F.today === false ? ' <span class="muted" style="font-size:15px;font-weight:600">· not today</span>' : ''}</h1>
     <div class="meta"><span>${d.games.length} game${d.games.length === 1 ? '' : 's'}</span>${pre ? `<span>${pre} still to start</span>` : ''}<span>League ${d.league.goalsPerGame} goals a game · save ${(d.league.svPct * 100).toFixed(1)}%</span></div>
     <div class="chips">${live ? `<span class="chip live"><span class="dot"></span>${live} live</span>` : ''}${S.liveStale ? '<span class="chip warn">Scores may be stale: the live feed isn’t answering</span>' : ''}${fresh}${mine}</div>`;
+  if (heroHtml !== S._heroHtml) { $('#hero').innerHTML = heroHtml; S._heroHtml = heroHtml; }
   $('#updated').textContent = `Updated ${clockTime(d.generatedAt)}`;
   $('#dayToday').hidden = !S.date;
   $('#tab-today').textContent = F.today === false ? `Slate · ${shortDate(d.date)}` : 'Today'; // a past or future date isn't "today"
@@ -824,13 +825,14 @@ function bestHtml() {
 }
 function renderToday() {
   const el = $('#panel-today');
-  if (!S.data) { el.innerHTML = S.err ? stateHtml('err', 'Couldn’t load the slate', 'The slate endpoint returned an error. /api/health shows which source failed.', S.err) : '<div class="skel" style="height:420px"></div>'; return; }
+  if (!S.data) { el._html = null; el.innerHTML = S.err ? stateHtml('err', 'Couldn’t load the slate', 'The slate endpoint returned an error. /api/health shows which source failed.', S.err) : '<div class="skel" style="height:420px"></div>'; return; }
   const d = S.data;
-  el.innerHTML = `${bestHtml()}
+  const html = `${bestHtml()}
     <p class="howto">Each card: win chances, then the model’s leans with their chance (hover or tap for fair and playable prices; + adds a leg to your slip). Model vs market is shown for reference only: the line never feeds the simulation.</p>
     <div class="section-head"><h2>Slate</h2><span class="note">Click a game for the breakdown.</span></div>
     ${d.games.length ? `<div class="games">${d.games.map(gameCard).join('')}</div>` : stateHtml('', 'No games', 'No NHL games on this date.')}
     <p class="note foot">Leans with no prices are the side the model makes more likely, at the standard line nearest its own number. Moneylines include overtime and shootouts. Lineups come from each team’s last game until the box score confirms them.</p>`;
+  if (html !== el._html) { el.innerHTML = html; el._html = html; } // unchanged: leave the page as it is
 }
 
 // ── Goalscorers ─────────────────────────────────────────────────────────────────────────
@@ -1354,7 +1356,7 @@ async function pollLive() {
     // A game started or finished: reload the slate (skipping caches) so frozen numbers, confirmed
     // lineups and hit / miss marks appear without a manual refresh. At most once a minute.
     if (changed && Date.now() - lastStateReload > 60000) { lastStateReload = Date.now(); return load(true); }
-    if (['today', 'scorers', 'plays'].includes(S.tab)) RENDER[S.tab](); renderHero();
+    keepScroll(() => { if (['today', 'scorers', 'plays'].includes(S.tab)) RENDER[S.tab](); renderHero(); });
   } catch { if (!S.liveStale) { S.liveStale = true; renderHero(); } }
 }
 // Poll while the day isn't over: from five minutes before the first puck drop until every game is
@@ -1374,6 +1376,15 @@ function setLive() {
 // ── Wiring ──────────────────────────────────────────────────────────────────────────────
 const RENDER = { today: renderToday, scorers: renderScorers, saves: renderSaves, plays: renderPlays, sgp: renderSgp, accuracy: renderAccuracy };
 function renderAll() { renderHero(); RENDER[S.tab](); }
+// Background updates (live scores every 30 seconds, reloads) rebuild parts of the page. iPhone and
+// iPad browsers can move the page when that happens, pulling a reader at the top back down, so
+// the reader's place is put back right after the update and again on the next frame.
+function keepScroll(fn) {
+  const y = scrollY;
+  fn();
+  if (Math.abs(scrollY - y) > 1) scrollTo(0, y);
+  if (y < 4) requestAnimationFrame(() => { if (scrollY !== y && scrollY < 400) scrollTo(0, y); });
+}
 // Each tab change is a history entry, so Back moves between tabs; arrow keys move along the tab list.
 function setTab(tab, { push = true } = {}) {
   const changed = tab !== S.tab;
@@ -1474,7 +1485,7 @@ async function load(force = false) {
   $('#refresh').classList.remove('spin');
   if (force) { S.plays = null; S.playsKey = null; }
   if (first && S.data) loadDay();
-  renderAll(); setLive(); renderTray(); priceSlip();
+  keepScroll(() => { renderAll(); renderTray(); }); setLive(); priceSlip();
   if (['plays', 'sgp', 'scorers', 'saves'].includes(S.tab) || S.book || Object.keys(S.prices).length) loadPlays(force);
   // A shared link to a player or game opens its breakdown.
   if (first && S.data) { const u = new URL(location.href), pl = u.searchParams.get('player'), gm = u.searchParams.get('game'); if (pl && gm) { drawerUrl = true; openPlayer(pl, gm); } else if (gm) { drawerUrl = true; openGame(gm); } }
