@@ -24,7 +24,9 @@ test('best goalscorer play is locked to the whole slate once a game starts', asy
   const rank = { Elite: 3, 'All-Star': 2, Value: 1 }, better = (a, b) => ((rank[b.p.badge] || 0) - (rank[a.p.badge] || 0) || b.p.anytime - a.p.anytime) > 0;
   const top = all.reduce((a, b) => (better(a, b) ? b : a));
   assert.equal(body.best.playerId, top.p.id, 'chosen from every game, started ones included');
-  assert.equal(body.best.locked, true);
+  // No database in the tests: nothing was saved, so the pick isn't called locked.
+  assert.equal(body.best.locked, false);
+  assert.equal(body.best.lockState, 'unsaved');
   const pre = all.filter(x => x.g.state === 'pre'), topPre = pre.reduce((a, b) => (better(a, b) ? b : a));
   if (topPre.p.id !== top.p.id) assert.equal(body.bestRemaining.playerId, topPre.p.id, 'best still to start reported separately');
   else assert.equal(body.bestRemaining, null);

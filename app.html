@@ -58,7 +58,7 @@ a:hover { text-decoration: underline; }
 /* ── Shell ── */
 .wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
 @media (max-width: 720px) { .wrap { padding: 0 16px; } }
-.topbar { position: sticky; top: 0; z-index: 30; background: rgba(10, 14, 26, 0.92); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.topbar { position: relative; z-index: 30; background: var(--bg); border-bottom: 1px solid var(--line); }
 .topbar .wrap { display: flex; align-items: center; gap: 16px; height: 56px; }
 .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; letter-spacing: -0.01em; white-space: nowrap; }
 .brand svg { color: var(--accent); }
@@ -88,7 +88,7 @@ a:hover { text-decoration: underline; }
 .chip.warn { color: var(--warn); border-color: rgba(251, 191, 36, 0.35); background: var(--warn-wash); }
 .chip small { font-weight: 500; color: var(--ink-3); }
 
-.tabs { position: sticky; top: 56px; z-index: 20; background: var(--bg); border-bottom: 1px solid var(--line); }
+.tabs { position: sticky; top: 0; z-index: 20; background: var(--bg); border-bottom: 1px solid var(--line); }
 .tabs .wrap { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
 .tab { position: relative; height: 46px; padding: 0 14px; background: none; border: 0; color: var(--ink-3); font-weight: 600; font-size: 14px; white-space: nowrap; }
 .tab:hover { color: var(--ink); }
@@ -96,11 +96,9 @@ a:hover { text-decoration: underline; }
 .tab:first-child { margin-left: -14px; }
 .tab[aria-selected="true"]::after { content: ''; position: absolute; left: 14px; right: 14px; bottom: -1px; height: 2px; border-radius: 2px; background: var(--accent); }
 main.wrap { padding-top: 24px; padding-bottom: 64px; }
-/* Short screens (a phone in landscape): two pinned bars would eat a third of the height and cover
-   the top of the content, so only the tabs stay pinned and the top bar scrolls away. */
+/* Only the tabs stay pinned (the top bar scrolls away): two pinned bars let the page slide between
+   them, and on a phone in landscape they'd cover a third of the screen. */
 @media (max-height: 500px) {
-  .topbar { position: relative; backdrop-filter: none; background: var(--bg); }
-  .tabs { top: 0; }
   .tab { height: 40px; }
   .hero { padding-top: 18px; padding-bottom: 14px; }
 }
@@ -679,10 +677,19 @@ function renderHero() {
 
 // The day's locked pick, remembered in this browser: once the server confirms the lock, the page keeps
 // that pick for the date, so a moment when the database doesn't answer can't show a different name.
+// Before the first start it also remembers the pre-game pick, so a day the database can't save the pick
+// still shows the same name after puck drop (marked as not locked, since nothing was saved).
 function keepLock(d) {
   const k = 'nhlprob-lock-' + d.date, st = d.best?.lockState;
-  if (d.best && (st === 'locked' || st === 'late')) store.set(k, JSON.stringify(d.best));
-  else if (d.best && st === 'unconfirmed') { try { const b = JSON.parse(store.get(k) || 'null'); if (b) d.best = { ...b, lockState: 'locked', fromBrowser: true }; } catch {} }
+  if (!d.best) return;
+  let b = null; try { b = JSON.parse(store.get(k) || 'null'); } catch {}
+  const sealed = b && (b.lockState === 'locked' || b.lockState === 'late');
+  if (st === 'locked' || st === 'late') store.set(k, JSON.stringify(d.best));
+  else if (!d.best.started) { if (!sealed) store.set(k, JSON.stringify(d.best)); }
+  else if (st === 'unconfirmed' || st === 'unsaved') {
+    if (sealed) d.best = { ...b, lockState: 'locked', locked: true, fromBrowser: true };
+    else if (b) d.best = { ...b, started: true, locked: false, lockState: st, fromBrowser: true };
+  }
 }
 // ── Today: best goalscorer play + slate with leans ──────────────────────────────────────
 // A lean chip: hit / missed carry a ✓ / ✗ as well as the colour; "+" puts the leg on your slip.
@@ -803,7 +810,7 @@ function bestHtml() {
   const g = gameById(b.gameId), p = g?.players.find(x => x.id === b.playerId);
   const R = S.data.bestRemaining;
   return `<div class="card best">
-    <div><div class="k">${S.data.freshness?.today === false ? `Best goalscorer play · ${esc(shortDate(S.data.date))}` : 'Today’s best goalscorer play'}${b.lockState === 'unconfirmed' ? ' · <span class="muted" data-tip="The database didn’t answer, so the lock couldn’t be confirmed. This is the pick from pre-game numbers; refresh in a minute.">lock not confirmed yet</span>' : b.locked ? (b.lockedLate ? ` · <span class="muted" data-tip="No pick was saved before the first puck drop, so it was locked on the first load after games started (${esc(new Date(b.lockedLate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }))} ET), choosing only from games that hadn’t started.">locked late, from games not yet started</span>` : ' · <span class="muted" data-tip="Picked from the full slate before the first puck drop and kept for the day, so it doesn’t move to a later game as earlier ones start.">locked at first puck drop</span>') : ''}</div>
+    <div><div class="k">${S.data.freshness?.today === false ? `Best goalscorer play · ${esc(shortDate(S.data.date))}` : 'Today’s best goalscorer play'}${b.lockState === 'unconfirmed' ? ' · <span class="muted" data-tip="The database didn’t answer, so the lock couldn’t be confirmed. This is the pick from pre-game numbers; refresh in a minute.">lock not confirmed yet</span>' : b.lockState === 'unsaved' ? ' · <span class="muted" data-tip="Picks couldn’t be saved today, so this one isn’t locked. It’s the pick from pre-game numbers across the whole slate.">not locked today</span>' : b.locked ? (b.lockedLate ? ` · <span class="muted" data-tip="No pick was saved before the first puck drop, so it was locked on the first load after games started (${esc(new Date(b.lockedLate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }))} ET), from pre-game numbers across the whole slate.">locked late</span>` : ' · <span class="muted" data-tip="Picked from the full slate before the first puck drop and kept for the day, so it doesn’t move to a later game as earlier ones start.">locked at first puck drop</span>') : ''}</div>
       <div class="who" data-player="${b.playerId}" data-game="${esc(b.gameId)}" role="button" tabindex="0">${teamLogo(b.team, 30)}${esc(b.name)}</div>
       ${b.signals?.length ? `<div style="margin-top:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">${b.sharp ? '<span class="tag pos">Converging</span>' : ''}${tierChip(b.badge)} <span class="note">Firing ${b.count} of 8 signals</span></div>` : ''}
       ${mktWarn(b.marketWarn)}
