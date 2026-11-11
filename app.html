@@ -1376,14 +1376,28 @@ function setLive() {
 // ── Wiring ──────────────────────────────────────────────────────────────────────────────
 const RENDER = { today: renderToday, scorers: renderScorers, saves: renderSaves, plays: renderPlays, sgp: renderSgp, accuracy: renderAccuracy };
 function renderAll() { renderHero(); RENDER[S.tab](); }
-// Background updates (live scores every 30 seconds, reloads) rebuild parts of the page. iPhone and
-// iPad browsers can move the page when that happens, pulling a reader at the top back down, so
-// the reader's place is put back right after the update and again on the next frame.
+// Background updates (live scores every 30 seconds, reloads) rebuild parts of the page. On iPhone
+// and iPad, rebuilding while a swipe is still coasting snaps the page back to where the swipe was
+// when the rebuild began, so a reader flicking to the top gets thrown back down. Updates wait until
+// the reader's finger is off the screen and the page has been still for a moment, then keep the
+// reader's place.
+let touching = false, lastScroll = 0, idleWait = null;
+addEventListener('scroll', () => { lastScroll = Date.now(); }, { passive: true });
+addEventListener('touchstart', () => { touching = true; }, { passive: true });
+addEventListener('touchend', () => { touching = false; }, { passive: true });
+addEventListener('touchcancel', () => { touching = false; }, { passive: true });
+const idleQueue = [];
 function keepScroll(fn) {
-  const y = scrollY;
-  fn();
-  if (Math.abs(scrollY - y) > 1) scrollTo(0, y);
-  if (y < 4) requestAnimationFrame(() => { if (scrollY !== y && scrollY < 400) scrollTo(0, y); });
+  idleQueue.push(fn);
+  if (idleWait) return;
+  const run = () => {
+    if (touching || Date.now() - lastScroll < 900) { idleWait = setTimeout(run, 300); return; }
+    idleWait = null;
+    const y = scrollY;
+    for (const f of idleQueue.splice(0)) f();
+    if (Math.abs(scrollY - y) > 1) scrollTo(0, y);
+  };
+  run();
 }
 // Each tab change is a history entry, so Back moves between tabs; arrow keys move along the tab list.
 function setTab(tab, { push = true } = {}) {
