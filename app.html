@@ -1506,10 +1506,11 @@ async function load(force = false) {
 }
 // ?debug=1 only (temporary): a scroll log for chasing an iPhone scroll jump. Never shown otherwise.
 if (qs.get('debug') === '1') {
+  if (qs.get('nosticky') === '1') { const st0 = document.createElement('style'); st0.textContent = '.tabs{position:static!important}'; document.head.appendChild(st0); }
   const box = document.createElement('pre'), log = [], t0 = Date.now();
   box.style.cssText = 'position:fixed;left:4px;right:4px;bottom:4px;z-index:99;max-height:45vh;overflow:auto;margin:0;padding:6px;font:10px/1.35 ui-monospace,monospace;background:rgba(0,0,0,.88);color:#9f9;border:1px solid #393;border-radius:6px;white-space:pre-wrap;pointer-events:none';
   document.body.appendChild(box);
-  const vv = window.visualViewport, st = () => `y=${Math.round(scrollY)} ih=${innerHeight}${vv ? ` vvTop=${Math.round(vv.offsetTop)} vvH=${Math.round(vv.height)}` : ''} docH=${document.documentElement.scrollHeight}`;
+  const vv = window.visualViewport, st = () => `y=${Math.round(scrollY)} ih=${innerHeight} iw=${innerWidth}${vv ? ` vvTop=${Math.round(vv.offsetTop)} vvH=${Math.round(vv.height)} zoom=${vv.scale.toFixed(2)}` : ''} docH=${document.documentElement.scrollHeight}`;
   const add = m => { log.push(`${((Date.now() - t0) / 1000).toFixed(1)}s ${m}`); if (log.length > 40) log.shift(); box.textContent = log.join('\n'); };
   add('start ' + st() + ' ' + navigator.userAgent.slice(0, 80));
   let lastY = scrollY, touch = false;
