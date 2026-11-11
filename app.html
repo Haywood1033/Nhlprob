@@ -45,7 +45,7 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { overflow-anchor: none; -webkit-text-size-adjust: 100%; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-body { background: var(--bg); color: var(--ink); font: 400 14px/1.5 var(--font); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+body { overflow-x: clip; background: var(--bg); color: var(--ink); font: 400 14px/1.5 var(--font); min-height: 100vh; -webkit-font-smoothing: antialiased; }
 button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
 a { color: var(--accent); text-decoration: none; }
@@ -333,10 +333,10 @@ details.more[open] summary::before { transform: rotate(90deg); }
 .best .nums .l { font-size: 12px; color: var(--ink-3); }
 .best ul { margin: 12px 0 0 18px; color: var(--ink-2); font-size: 13px; line-height: 1.6; }
 .games { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 12px; }
-@media (max-width: 720px) { .games { grid-template-columns: 1fr; } }
+@media (max-width: 720px) { .games { grid-template-columns: minmax(0, 1fr); } }
 .game { cursor: pointer; transition: border-color 0.15s; }
 .game:hover { border-color: var(--line-2); }
-.game-h { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 12px; color: var(--ink-3); }
+.game-h { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 12px; color: var(--ink-3); }
 .game-h .spacer { flex: 1; }
 .tm { display: grid; grid-template-columns: 28px 44px 1fr auto auto; gap: 10px; align-items: center; padding: 8px 14px; }
 .tm .logo { width: 28px; height: 28px; display: grid; place-items: center; }
@@ -1503,6 +1503,26 @@ async function load(force = false) {
   if (['plays', 'sgp', 'scorers', 'saves'].includes(S.tab) || S.book || Object.keys(S.prices).length) loadPlays(force);
   // A shared link to a player or game opens its breakdown.
   if (first && S.data) { const u = new URL(location.href), pl = u.searchParams.get('player'), gm = u.searchParams.get('game'); if (pl && gm) { drawerUrl = true; openPlayer(pl, gm); } else if (gm) { drawerUrl = true; openGame(gm); } }
+}
+// ?debug=1 only (temporary): a scroll log for chasing an iPhone scroll jump. Never shown otherwise.
+if (qs.get('debug') === '1') {
+  const box = document.createElement('pre'), log = [], t0 = Date.now();
+  box.style.cssText = 'position:fixed;left:4px;right:4px;bottom:4px;z-index:99;max-height:45vh;overflow:auto;margin:0;padding:6px;font:10px/1.35 ui-monospace,monospace;background:rgba(0,0,0,.88);color:#9f9;border:1px solid #393;border-radius:6px;white-space:pre-wrap;pointer-events:none';
+  document.body.appendChild(box);
+  const vv = window.visualViewport, st = () => `y=${Math.round(scrollY)} ih=${innerHeight}${vv ? ` vvTop=${Math.round(vv.offsetTop)} vvH=${Math.round(vv.height)}` : ''} docH=${document.documentElement.scrollHeight}`;
+  const add = m => { log.push(`${((Date.now() - t0) / 1000).toFixed(1)}s ${m}`); if (log.length > 40) log.shift(); box.textContent = log.join('\n'); };
+  add('start ' + st() + ' ' + navigator.userAgent.slice(0, 80));
+  let lastY = scrollY, touch = false;
+  addEventListener('touchstart', () => { touch = true; add('touch down ' + st()); }, { passive: true });
+  addEventListener('touchend', () => { touch = false; add('touch up ' + st()); }, { passive: true });
+  addEventListener('scroll', () => { const y = scrollY; if (Math.abs(y - lastY) > 60) add(`JUMP ${Math.round(lastY)}→${Math.round(y)}${touch ? ' (finger down)' : ''} ${st()}`); lastY = y; }, { passive: true });
+  addEventListener('resize', () => add('resize ' + st()));
+  vv && vv.addEventListener('resize', () => add('vv resize ' + st()));
+  document.addEventListener('focusin', e => add(`focus ${e.target.tagName}.${e.target.className || ''} ${st()}`));
+  const _ks = keepScroll; keepScroll = fn => { add('update queued ' + st()); _ks(() => { add('update runs ' + st()); fn(); add('update done ' + st()); }); };
+  const _st = window.scrollTo; window.scrollTo = (...a) => { add('scrollTo(' + a.join(',') + ') ' + st()); _st.apply(window, a); };
+  addEventListener('pagehide', () => add('pagehide')); addEventListener('pageshow', e => add('pageshow persisted=' + e.persisted + ' ' + st()));
+  setInterval(() => { if (Math.abs(scrollY - lastY) > 60) { add(`DRIFT ${Math.round(lastY)}→${Math.round(scrollY)} ${st()}`); lastY = scrollY; } }, 250);
 }
 S.book = store.get('nhlprob-book') || '';
 S.margin = Number(store.get('nhlprob-margin') ?? 0.05); if (!Number.isFinite(S.margin)) S.margin = 0.05; $('#marginSel').value = String(S.margin);
