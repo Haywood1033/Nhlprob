@@ -104,12 +104,9 @@ main.wrap { padding-top: 24px; padding-bottom: 64px; }
 .card-h h2, .card-h h3 { font-size: 14px; font-weight: 600; }
 .card-h .sub { font-size: 12px; color: var(--ink-3); }
 .card-b { padding: 16px; }
-.stack { display: grid; gap: 16px; }
-.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-@media (max-width: 900px) { .grid-3 { grid-template-columns: 1fr; } }
+
 @media (max-width: 720px) {
   .tiles { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .tiles .tile:nth-child(3) { display: none; }
   .tiles .tile { padding: 12px; }
   .tiles .val { font-size: 16px; }
   .tiles .val small { display: block; margin: 2px 0 0; }
@@ -124,7 +121,7 @@ main.wrap { padding-top: 24px; padding-bottom: 64px; }
 
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
 .toolbar .spacer { flex: 1; }
-.ctl { display: inline-flex; align-items: center; gap: 8px; }
+
 .search { position: relative; flex: 0 1 260px; min-width: 180px; }
 .search input { width: 100%; height: 34px; padding: 0 10px 0 32px; border-radius: var(--r-sm); border: 1px solid var(--line-2); background: var(--surface); font-size: 13px; }
 .search input::placeholder { color: var(--ink-3); }
@@ -133,7 +130,7 @@ main.wrap { padding-top: 24px; padding-bottom: 64px; }
 .seg button { height: 26px; padding: 0 10px; border: 0; border-radius: 5px; background: none; color: var(--ink-3); font-size: 12px; font-weight: 600; white-space: nowrap; }
 .seg button:hover { color: var(--ink); }
 .seg button[aria-pressed="true"] { background: var(--surface-3); color: var(--ink); }
-.seg-label { font-size: 12px; color: var(--ink-3); font-weight: 500; margin-right: -4px; }
+
 .btn { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: var(--r-sm); border: 1px solid var(--line-2); background: var(--surface); font-size: 13px; font-weight: 600; color: var(--ink); white-space: nowrap; }
 .btn:hover { border-color: var(--ink-3); }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: #062420; }
@@ -158,10 +155,10 @@ table.data { width: 100%; border-collapse: separate; border-spacing: 0; font-siz
 .data td.sorted { color: var(--ink); font-weight: 600; }
 .data td.dim { color: var(--ink-3); }
 .data .sticky-1 { position: sticky; left: 0; z-index: 1; background: var(--surface); }
-.data .sticky-2 { position: sticky; left: 44px; z-index: 1; background: var(--surface); box-shadow: 1px 0 0 var(--line); }
+
 .data th.sticky-1, .data th.sticky-2 { z-index: 2; background: var(--surface-2); }
 .data tbody tr.clickable:hover .sticky-1, .data tbody tr.clickable:hover .sticky-2 { background: var(--surface-2); }
-.rank { width: 44px; min-width: 44px; color: var(--ink-3); text-align: center !important; }
+
 .pname { font-weight: 600; color: var(--ink); }
 .psub { font-size: 12px; color: var(--ink-3); margin-top: 1px; display: flex; gap: 8px; align-items: center; }
 .tag { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 7px; border-radius: 4px; font-size: 11.5px; font-weight: 600; border: 1px solid var(--line-2); color: var(--ink-2); white-space: nowrap; }
@@ -170,10 +167,6 @@ table.data { width: 100%; border-collapse: separate; border-spacing: 0; font-siz
 .tag.warn { color: var(--warn); border-color: rgba(251, 191, 36, 0.3); background: var(--warn-wash); }
 .tag.info { color: var(--info); border-color: rgba(96, 165, 250, 0.3); background: var(--info-wash); }
 .tags { display: flex; gap: 4px; justify-content: flex-start; }
-.conf { display: inline-flex; gap: 2px; vertical-align: middle; }
-.conf i { width: 4px; height: 12px; border-radius: 1px; background: var(--line-2); }
-.conf.mid i:nth-child(-n+2), .conf.high i { background: var(--ink-2); }
-.conf.low i:first-child { background: var(--warn); }
 
 /* ── Player drawer ── */
 .scrim { position: fixed; inset: 0; background: rgba(3, 6, 14, 0.6); z-index: 40; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
@@ -186,57 +179,26 @@ table.data { width: 100%; border-collapse: separate; border-spacing: 0; font-siz
 .drawer-h .icon-btn { margin-left: auto; flex: none; }
 .drawer-b { overflow-y: auto; padding: 18px 20px 32px; display: grid; gap: 22px; }
 .section-t { font-size: 12px; font-weight: 600; color: var(--ink-3); margin-bottom: 10px; }
-.kv { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r-sm); overflow: hidden; }
-.kv > div { background: var(--surface); padding: 10px 12px; }
-.kv .k { font-size: 12px; color: var(--ink-3); }
-.kv .v { font-size: 15px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+
 .signal { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; padding: 10px 0; border-bottom: 1px solid var(--line); }
 .signal:last-child { border-bottom: 0; }
 .signal p { font-size: 13px; color: var(--ink-2); }
 
 /* ── Matchups ── */
 .groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
-.group-h { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 12px; color: var(--ink-3); }
-.group-h strong { color: var(--ink); font-size: 13px; font-weight: 600; }
-.group-h .tag { margin-left: auto; }
-.mrow { display: grid; grid-template-columns: 1fr 64px 64px; align-items: center; gap: 8px; padding: 9px 14px; border-bottom: 1px solid var(--line); font-size: 13px; }
-.mrow.with-book { grid-template-columns: minmax(0, 1fr) 50px 48px 36px 54px; gap: 6px; }
-.mrow:last-child { border-bottom: 0; }
-.mrow.head { padding: 7px 14px; font-size: 11.5px; color: var(--ink-3); font-weight: 600; }
-.mrow > :not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
-.mrow .nm { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mrow.fav .nm { font-weight: 700; }
+
 .split { display: flex; gap: 2px; height: 22px; margin: 12px 14px 10px; }
 .split > span { display: grid; place-items: center; min-width: 4px; color: #fff; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; overflow: hidden; white-space: nowrap; }
 .split > span:first-child { border-radius: 4px 0 0 4px; }
 .split > span:last-child { border-radius: 0 4px 4px 0; }
-.sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 7px; vertical-align: 0; flex: none; }
-.group-f { padding: 8px 14px; font-size: 12px; color: var(--ink-3); border-top: 1px solid var(--line); }
-.mrow.pickable { cursor: pointer; }
-.mrow.pickable:hover { background: var(--surface-2); }
-.mrow.picked { background: var(--accent-wash); box-shadow: inset 3px 0 0 var(--accent); }
-.mrow .add { display: inline-grid; place-items: center; width: 18px; height: 18px; margin-right: 6px; border-radius: 4px; border: 1px solid var(--line-2); color: var(--ink-3); font-size: 13px; line-height: 1; vertical-align: -3px; }
-.mrow.picked .add { background: var(--accent); border-color: var(--accent); color: #062420; }
+
 .slip-legs { display: grid; gap: 0; }
 .slip-leg { display: grid; grid-template-columns: 1fr auto auto auto; gap: 14px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); font-size: 13px; }
 .slip-leg:last-child { border-bottom: 0; }
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1px; background: var(--line); border-top: 1px solid var(--line); }
-.stats > div { background: var(--surface); padding: 12px 16px; }
-.stats .k { font-size: 12px; color: var(--ink-3); }
-.stats .v { font-size: 17px; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
-.stats .v small { font-size: 12px; font-weight: 500; color: var(--ink-3); margin-left: 4px; }
-.auto-row { display: grid; grid-template-columns: 1fr auto auto auto auto; gap: 14px; align-items: center; padding: 10px 16px; border-top: 1px solid var(--line); font-size: 13px; }
-@media (max-width: 720px) { .auto-row { grid-template-columns: 1fr auto; } .auto-row .hide-sm { display: none; } .slip-leg { grid-template-columns: 1fr auto auto; } .slip-leg .hide-sm { display: none; } }
+
+@media (max-width: 720px) {   .slip-leg { grid-template-columns: 1fr auto auto; } .slip-leg .hide-sm { display: none; } }
 .lineups { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
-.lu-row { display: grid; grid-template-columns: 1fr 64px 52px; gap: 8px; padding: 7px 14px; border-bottom: 1px solid var(--line); font-size: 13px; }
-.lu-row > :not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
-.lu-row.head { font-size: 11.5px; color: var(--ink-3); font-weight: 600; }
-.lu-f { display: flex; justify-content: space-between; padding: 9px 14px; font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
-.lk { display: inline-flex; gap: 4px; }
-.lk button { width: 26px; height: 24px; border-radius: 5px; border: 1px solid var(--line-2); background: none; color: var(--ink-3); font-size: 12px; font-weight: 700; }
-.lk button:hover { color: var(--ink); border-color: var(--ink-3); }
-.lk button.on-lock { background: var(--pos-wash); border-color: rgba(74, 222, 128, 0.5); color: var(--pos); }
-.lk button.on-ex { background: var(--neg-wash); border-color: rgba(248, 113, 113, 0.5); color: var(--neg); }
+
 .progress { height: 6px; border-radius: 3px; background: var(--surface-3); overflow: hidden; margin-top: 10px; }
 .progress > i { display: block; height: 100%; background: var(--accent); transition: width 0.2s; }
 .callout { border-left: 3px solid var(--accent); background: var(--surface); border-radius: 0 var(--r-sm) var(--r-sm) 0; padding: 12px 16px; color: var(--ink-2); font-size: 13.5px; line-height: 1.6; margin-bottom: 14px; max-width: 110ch; }
@@ -272,7 +234,7 @@ table.data { width: 100%; border-collapse: separate; border-spacing: 0; font-siz
 .sc-top { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
 .sc-name { font-size: 17px; font-weight: 700; margin-top: 6px; }
 .sc-areas { display: flex; gap: 6px; margin: 12px 0 8px; flex-wrap: wrap; }
-.sc-sigs { display: flex; gap: 4px 12px; flex-wrap: wrap; font-size: 12px; color: var(--ink-2); }
+
 .sharp-card ul, .risk-card ul { margin: 10px 0 0; padding-left: 18px; color: var(--ink-2); font-size: 12.5px; line-height: 1.55; }
 .sc-foot { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
 .rec-line { margin: 8px 0 0; font-size: 11.5px; color: var(--ink-3); line-height: 1.6; }
@@ -283,6 +245,7 @@ table.data { width: 100%; border-collapse: separate; border-spacing: 0; font-siz
 .bp-kind.k-goal { color: var(--accent); border-color: rgba(45, 212, 191, 0.4); }
 .bp-kind.k-saves { color: var(--info); border-color: rgba(96, 165, 250, 0.4); }
 .bp-kind.k-sog { color: var(--warn); border-color: rgba(251, 191, 36, 0.4); }
+
 .bp-info { min-width: 0; } .bp-info .psub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bp-val { font-weight: 700; font-variant-numeric: tabular-nums; font-size: 15px; text-align: right; }
 .bp-tier { text-align: right; }
@@ -294,54 +257,23 @@ table.data { width: 100%; border-collapse: separate; border-spacing: 0; font-siz
 .leg { display: flex; justify-content: space-between; gap: 10px; padding: 8px 16px; border-top: 1px solid var(--line); font-size: 13px; }
 .leg span:last-child { color: var(--ink-3); font-variant-numeric: tabular-nums; }
 .alts { padding: 10px 16px 14px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink-3); line-height: 1.6; }
-.mode-banner { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 12px 16px; margin-bottom: 20px; }
+
 .edge-pos { color: var(--pos); font-weight: 600; }
 .edge-neg { color: var(--ink-3); }
 .drop { border: 1px dashed var(--line-2); border-radius: var(--r); padding: 18px; display: flex; flex-wrap: wrap; gap: 14px; align-items: center; color: var(--ink-2); font-size: 13px; }
 .drop.over { border-color: var(--accent); background: var(--accent-wash); }
 .drop code { font-size: 12px; background: var(--surface-2); padding: 2px 6px; border-radius: 4px; color: var(--ink-2); }
 
-/* ── Weather ── */
-.wx-hero { display: grid; grid-template-columns: 1.4fr 1fr; gap: 0; }
-.wx-hero > div { padding: 20px; }
-.wx-hero > div + div { border-left: 1px solid var(--line); }
-@media (max-width: 900px) { .wx-hero { grid-template-columns: 1fr; } .wx-hero > div + div { border-left: 0; border-top: 1px solid var(--line); } }
-.verdict-k { font-size: 12px; font-weight: 600; color: var(--ink-3); }
-.verdict { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin-top: 6px; line-height: 1.25; }
-.verdict-sub { color: var(--ink-2); margin-top: 8px; font-size: 13px; max-width: 60ch; }
-.meter { height: 8px; border-radius: 4px; background: rgba(57, 135, 229, 0.18); overflow: hidden; margin-top: 8px; }
-.meter > i { display: block; height: 100%; background: var(--s1); border-radius: 4px; }
-.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
-.facts .k { font-size: 12px; color: var(--ink-3); }
-.facts .v { font-size: 15px; font-weight: 600; margin-top: 2px; }
 .days { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 @media (max-width: 900px) { .days { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .day { text-align: left; padding: 14px; border-radius: var(--r); border: 1px solid var(--line); background: var(--surface); display: grid; gap: 8px; }
 .day:hover { border-color: var(--line-2); }
 .day[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-.day .dname { display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 13px; }
-.day .dname span { font-size: 12px; color: var(--ink-3); font-weight: 500; }
-.day .dmain { display: flex; align-items: center; gap: 10px; }
-.day .temp { font-size: 20px; font-weight: 700; }
-.day .temp small { font-size: 13px; color: var(--ink-3); font-weight: 500; margin-left: 2px; }
-.day .drow { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--ink-2); white-space: nowrap; }
-.day .drow span:first-child { color: var(--ink-3); }
-.chart-card .card-b { padding: 12px 16px 14px; }
+
 .chart { position: relative; width: 100%; }
 .chart svg { display: block; width: 100%; overflow: visible; }
 .chart text { fill: var(--ink-3); font-size: 11.5px; font-family: var(--font); }
-.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--ink-2); }
-.legend i { display: inline-block; width: 14px; height: 2px; border-radius: 1px; vertical-align: middle; margin-right: 6px; }
-.legend i.band { height: 10px; border-radius: 2px; opacity: 0.35; }
-.legend i.box { width: 10px; height: 10px; border-radius: 2px; }
-.wx-two { display: grid; grid-template-columns: 1fr 300px; gap: 16px; }
-@media (max-width: 900px) { .wx-two { grid-template-columns: 1fr; } }
-.brief { max-width: 74ch; }
-.brief h3 { font-size: 15px; font-weight: 600; margin: 22px 0 8px; }
-.brief h3:first-child { margin-top: 0; }
-.brief p { color: var(--ink-2); font-size: 14px; line-height: 1.65; margin-bottom: 10px; }
-.brief ul { padding-left: 18px; color: var(--ink-2); line-height: 1.65; }
-.brief li { margin-bottom: 6px; }
+
 details.more summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink-2); padding: 12px 16px; list-style: none; display: flex; align-items: center; gap: 6px; }
 details.more summary::before { content: '›'; display: inline-block; transition: transform 0.15s; font-size: 16px; }
 details.more[open] summary::before { transform: rotate(90deg); }
@@ -352,7 +284,7 @@ details.more[open] summary::before { transform: rotate(90deg); }
 .tip .t { font-weight: 600; margin-bottom: 4px; }
 .tip .r { display: flex; justify-content: space-between; gap: 14px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .tip .r b { color: var(--ink); font-weight: 600; }
-.tip .sw { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; }
+
 .skel { background: linear-gradient(90deg, var(--surface) 0%, var(--surface-2) 50%, var(--surface) 100%); background-size: 200% 100%; animation: sh 1.4s infinite; border-radius: var(--r); }
 @keyframes sh { to { background-position: -200% 0; } }
 .state { padding: 48px 24px; text-align: center; color: var(--ink-2); }
@@ -364,74 +296,21 @@ details.more[open] summary::before { transform: rotate(90deg); }
 .note b { color: var(--ink-2); font-weight: 600; }
 .foot { margin-top: 14px; }
 
-/* ── nascarprob additions ── */
+/* ── shared blocks ── */
 .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 @media (max-width: 900px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.tile.card .val.sm { font-size: 16px; }
-.carno { display: inline-grid; place-items: center; min-width: 26px; height: 20px; padding: 0 5px; border-radius: 4px; background: var(--surface-3); color: var(--ink-2); font-size: 11.5px; font-weight: 700; }
+
 .two { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; }
-.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
-@media (max-width: 900px) { .stat-grid { grid-template-columns: 1fr; } }
-.stat-head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 12px; }
-.stat-head .lab { text-align: center; color: var(--ink-3); font-size: 12px; padding-bottom: 6px; }
-.stat-big { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
-.stat-big + .note { margin-top: 2px; }
-.stat-lines { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
-.stat-lines .data td, .stat-lines .data th { padding: 6px 8px; }
+
 @media (max-width: 900px) { .two { grid-template-columns: 1fr; } }
-.hbar-row { display: grid; grid-template-columns: 150px 1fr 56px; gap: 10px; align-items: center; padding: 5px 0; font-size: 13px; cursor: pointer; }
-.hbar-row:hover .nm { color: var(--accent); }
-.hbar-row .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
-.hbar-row .bar { height: 14px; border-radius: 0 4px 4px 0; background: var(--s1); min-width: 2px; }
-.hbar-row .v { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+
 .paste { width: 100%; min-height: 120px; resize: vertical; background: var(--surface-2); border: 1px solid var(--line-2); border-radius: var(--r-sm); padding: 10px 12px; font: 12.5px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--ink); }
 .paste:focus { outline: none; border-color: var(--accent); }
 .skipped { margin-top: 8px; font-size: 12px; color: var(--ink-3); }
 .skipped li { margin-left: 16px; }
-.h2h-pick { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-.h2h-pick .select { min-width: 200px; }
-.big-prob { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-.split-bar { display: flex; height: 26px; border-radius: 5px; overflow: hidden; margin-top: 10px; }
-.split-bar > span { display: grid; place-items: center; color: #fff; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.stackbar { display: flex; height: 10px; border-radius: 3px; overflow: hidden; background: var(--surface-3); min-width: 120px; }
-.stackbar > i { display: block; height: 100%; }
-.live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--pos); display: inline-block; margin-right: 6px; animation: pulse 1.4s infinite; }
-@keyframes pulse { 50% { opacity: 0.35; } }
-.posdelta.up { color: var(--pos); } .posdelta.down { color: var(--neg); }
 
-/* ── ufcprob additions ── */
-.bouts { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; }
-.bout { cursor: pointer; transition: border-color .15s; padding-bottom: 2px; }
-.bout:hover { border-color: var(--line-2); }
-.bout-h { display: flex; justify-content: space-between; padding: 10px 14px 6px; font-size: 12px; color: var(--ink-3); font-weight: 600; }
-.frow { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 6px 14px; }
-.fname { font-weight: 600; font-size: 14px; color: var(--ink-2); }
-.frow.fav .fname { color: var(--ink); }
-.fname.big { font-size: 17px; font-weight: 700; }
-.fprob { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink-2); }
-.frow.fav .fprob { color: var(--ink); }
-.bout-f { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; padding: 10px 14px 12px; font-size: 12px; color: var(--ink-3); }
-.bout-f .spacer { flex: 1; }
-.face { display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 20px; align-items: center; }
-.face .mid { text-align: center; }
-@media (max-width: 720px) { .face { grid-template-columns: 1fr 1fr; } .face .mid { grid-column: 1 / -1; order: 3; } }
-.cmp { display: grid; gap: 10px; }
-.cmp-row { display: grid; grid-template-columns: 52px 1fr 170px 1fr 52px; gap: 10px; align-items: center; font-size: 13px; }
-.cmp-row .v { font-variant-numeric: tabular-nums; font-weight: 600; }
-.cmp-row .v:last-child { text-align: right; }
-.cmp-row .lab { text-align: center; color: var(--ink-3); font-size: 12px; }
-.cmp-row .bar { height: 12px; background: var(--surface-3); border-radius: 3px; overflow: hidden; display: flex; }
-.cmp-row .bar.l { justify-content: flex-end; }
-.cmp-row .bar.l i { background: var(--s1); }
-.cmp-row .bar.r i { background: var(--s2); }
-.cmp-row .bar i { display: block; height: 100%; }
-@media (max-width: 720px) { .cmp-row { grid-template-columns: 40px 1fr 96px 1fr 40px; gap: 6px; } }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.rec-row { display: grid; grid-template-columns: 26px 1fr auto auto; gap: 10px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
-.rec-row:last-child { border-bottom: 0; }
-.rec-row .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.data tr.pair-2 td { border-bottom: 1px solid var(--line-2); }
-.data tr.pair-1 td { border-bottom: 1px dashed var(--line); }
+@keyframes pulse { 50% { opacity: 0.35; } }
+ 
 
 /* ── nhlprob ── */
 .date-input { height: 34px; background: var(--surface); border: 1px solid var(--line-2); border-radius: var(--r-sm); padding: 0 10px; font-size: 13px; font-weight: 500; color-scheme: dark; }
@@ -528,6 +407,51 @@ td.click:hover .pname { text-decoration: underline; }
 .kv2 > div { background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; }
 .kv2 .l { font-size: 12px; color: var(--ink-3); }
 .kv2 .v { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+/* ── Audit pass: prices, slip tray, access ── */
+.daynav { display: inline-flex; gap: 4px; align-items: center; }
+.daynav .icon-btn { width: 30px; height: 34px; }
+.margin-pick { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-3); }
+.margin-pick .select { height: 30px; padding-right: 26px; font-size: 12px; }
+@media (max-width: 720px) { .margin-pick span { display: none; } }
+.notice { display: flex; align-items: center; gap: 10px; justify-content: space-between; margin: 12px 0 0; padding: 8px 12px; border-radius: var(--r-sm); font-size: 13px; border: 1px solid; }
+.notice.warn { color: var(--warn); border-color: rgba(251, 191, 36, 0.35); background: var(--warn-wash); }
+.notice.err { color: var(--neg); border-color: rgba(248, 113, 113, 0.35); background: var(--neg-wash); }
+.notice .btn { height: 26px; padding: 0 6px; color: inherit; }
+.chip.fresh { cursor: default; white-space: normal; height: auto; min-height: 26px; padding: 4px 10px; line-height: 1.35; }
+.btn[hidden], .icon-btn[hidden] { display: none; }
+.addslip { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 5px; border: 1px solid var(--line-2); background: var(--surface-2); color: var(--ink-2); font-size: 14px; font-weight: 700; line-height: 1; flex: none; }
+.addslip:hover { border-color: var(--accent); color: var(--accent); }
+.addslip.on { background: var(--accent); border-color: var(--accent); color: #062420; }
+.pin { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.pin .price-in { width: 64px; }
+.price-in[aria-invalid="true"] { border-color: var(--neg); }
+.target { font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.target b { color: var(--ink); font-weight: 600; }
+.est { font-size: 10.5px; font-weight: 700; letter-spacing: .03em; color: var(--warn); border: 1px dashed rgba(251, 191, 36, 0.5); border-radius: 4px; padding: 0 4px; margin-left: 4px; white-space: nowrap; }
+.tray { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 35; display: flex; align-items: center; gap: 12px; padding: 8px 10px 8px 14px; border-radius: 999px; background: var(--surface-3); border: 1px solid var(--line-2); box-shadow: var(--shadow); font-size: 13px; max-width: calc(100vw - 32px); }
+.tray[hidden] { display: none; }
+.tray b { font-variant-numeric: tabular-nums; }
+.tray .btn { height: 30px; border-radius: 999px; }
+body.has-tray main.wrap { padding-bottom: 96px; }
+.rec-head { display: inline-flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; font-size: 12.5px; color: var(--ink-2); }
+.rec-head b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.rec-head .warnline { color: var(--warn); font-weight: 600; }
+.mm { display: flex; gap: 12px; padding: 0 14px 10px; font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.mm b { color: var(--ink); font-weight: 600; }
+.mm .gap { color: var(--warn); font-weight: 600; }
+.lean .glyph { font-weight: 700; margin-left: 2px; }
+.lean.hit .glyph { color: var(--pos); } .lean.miss .glyph { color: var(--neg); }
+.pm { font-size: 11px; color: var(--ink-3); margin-left: 3px; }
+.data th.sortable button { background: none; border: 0; color: inherit; font: inherit; padding: 0; cursor: pointer; }
+.howto { margin: 0 0 16px; font-size: 12.5px; color: var(--ink-3); line-height: 1.55; max-width: 110ch; }
+.site-foot { border-top: 1px solid var(--line); margin-top: 32px; padding: 18px 0 8px; font-size: 12px; color: var(--ink-3); line-height: 1.6; }
+.site-foot p + p { margin-top: 6px; }
+[role="button"] { cursor: pointer; }
+[role="button"]:focus-visible, .game:focus-visible, .bp-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.lu-btn { height: 22px; padding: 0 7px; border-radius: 4px; border: 1px solid var(--line-2); background: none; color: var(--ink-2); font-size: 11.5px; font-weight: 600; margin-left: 6px; }
+.lu-btn:hover { border-color: var(--accent); color: var(--accent); }
+.fx-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 12px; align-items: center; padding: 9px 16px; border-top: 1px solid var(--line); font-size: 13px; }
+@media (max-width: 720px) { .fx-row { grid-template-columns: 1fr auto; } .fx-row .hide-sm { display: none; } }
 </style>
 </head>
 <body>
@@ -538,10 +462,16 @@ td.click:hover .pname { text-decoration: underline; }
       <span>nhlprob</span>
     </div>
     <div class="picker">
-      <label class="sr-only" for="dateInput">Date</label>
-      <input class="date-input" type="date" id="dateInput">
+      <div class="daynav">
+        <button class="icon-btn" id="dayPrev" aria-label="Previous day" title="Previous day"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg></button>
+        <label class="sr-only" for="dateInput">Date</label>
+        <input class="date-input" type="date" id="dateInput">
+        <button class="icon-btn" id="dayNext" aria-label="Next day" title="Next day"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg></button>
+        <button class="btn ghost" id="dayToday" hidden>Today</button>
+      </div>
     </div>
     <div class="top-meta">
+      <label class="margin-pick" title="How much better than fair odds a price must be before a play is called playable"><span>Margin</span><select class="select" id="marginSel" aria-label="Margin over fair odds"><option value="0">0%</option><option value="0.03">3%</option><option value="0.05">5%</option><option value="0.1">10%</option></select></label>
       <span class="updated" id="updated"></span>
       <button class="icon-btn" id="refresh" title="Refresh" aria-label="Refresh data">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
@@ -554,29 +484,35 @@ td.click:hover .pname { text-decoration: underline; }
   <div class="skel" style="height:30px;width:360px;max-width:100%"></div>
   <div class="skel" style="height:16px;width:480px;max-width:100%;margin-top:10px"></div>
 </section>
+<div class="wrap" id="notice" role="status" aria-live="polite"></div>
 
 <nav class="tabs" aria-label="Sections">
   <div class="wrap" role="tablist">
-    <button class="tab" role="tab" data-tab="today" aria-selected="true">Today</button>
-    <button class="tab" role="tab" data-tab="scorers" aria-selected="false">Goalscorers</button>
-    <button class="tab" role="tab" data-tab="saves" aria-selected="false">Goalie saves</button>
-    <button class="tab" role="tab" data-tab="plays" aria-selected="false">Best plays</button>
-    <button class="tab" role="tab" data-tab="sgp" aria-selected="false">SGP builder</button>
-    <button class="tab" role="tab" data-tab="accuracy" aria-selected="false">Accuracy</button>
+    <button class="tab" role="tab" id="tab-today" aria-controls="panel-today" data-tab="today" aria-selected="true">Today</button>
+    <button class="tab" role="tab" id="tab-scorers" aria-controls="panel-scorers" data-tab="scorers" aria-selected="false" tabindex="-1">Goalscorers</button>
+    <button class="tab" role="tab" id="tab-saves" aria-controls="panel-saves" data-tab="saves" aria-selected="false" tabindex="-1">Goalie saves</button>
+    <button class="tab" role="tab" id="tab-plays" aria-controls="panel-plays" data-tab="plays" aria-selected="false" tabindex="-1">Model picks</button>
+    <button class="tab" role="tab" id="tab-sgp" aria-controls="panel-sgp" data-tab="sgp" aria-selected="false" tabindex="-1">Slip &amp; SGP</button>
+    <button class="tab" role="tab" id="tab-accuracy" aria-controls="panel-accuracy" data-tab="accuracy" aria-selected="false" tabindex="-1">Accuracy</button>
   </div>
 </nav>
 
 <main class="wrap">
-  <section class="panel" id="panel-today" role="tabpanel"></section>
-  <section class="panel" id="panel-scorers" role="tabpanel" hidden></section>
-  <section class="panel" id="panel-saves" role="tabpanel" hidden></section>
-  <section class="panel" id="panel-plays" role="tabpanel" hidden></section>
-  <section class="panel" id="panel-sgp" role="tabpanel" hidden></section>
-  <section class="panel" id="panel-accuracy" role="tabpanel" hidden></section>
+  <section class="panel" id="panel-today" role="tabpanel" aria-labelledby="tab-today"></section>
+  <section class="panel" id="panel-scorers" role="tabpanel" aria-labelledby="tab-scorers" hidden></section>
+  <section class="panel" id="panel-saves" role="tabpanel" aria-labelledby="tab-saves" hidden></section>
+  <section class="panel" id="panel-plays" role="tabpanel" aria-labelledby="tab-plays" hidden></section>
+  <section class="panel" id="panel-sgp" role="tabpanel" aria-labelledby="tab-sgp" hidden></section>
+  <section class="panel" id="panel-accuracy" role="tabpanel" aria-labelledby="tab-accuracy" hidden></section>
+  <footer class="site-foot">
+    <p><b>How to read this.</b> Every number is a chance from simulating each game 15,000 times. “Fair” is the price at which a bet breaks even; “playable at” adds the margin set at the top. A play is only worth taking at a price at least that good. Tags and signals explain a chance; they are not a separate edge. The Accuracy tab shows how these numbers have done, including against the betting market.</p>
+    <p><b>Bet responsibly.</b> This is a model, not a guarantee: most bets lose, and no record here promises future results. Only bet what you can afford to lose. If gambling stops being fun, help is available: 1-800-GAMBLER (US) or ncpgambling.org.</p>
+  </footer>
 </main>
 
 <div class="scrim" id="scrim"></div>
-<aside class="drawer" id="drawer" aria-hidden="true" role="dialog" aria-label="Details"><div class="drawer-h" id="drawerH"></div><div class="drawer-b" id="drawerB"></div></aside>
+<aside class="drawer" id="drawer" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" tabindex="-1"><div class="drawer-h" id="drawerH"></div><div class="drawer-b" id="drawerB"></div></aside>
+<div class="tray" id="tray" hidden role="region" aria-label="Your slip"></div>
 <div class="tip" id="tip" role="tooltip"></div>
 
 <script>
@@ -589,7 +525,9 @@ const S = {
   scorerMode: qs.get('market') || 'anytime', scorerGame: '', scorerPos: '', scorerQ: '', scorerScored: false, scorerTagged: false, scorerSort: 'chance',
   book: '', bpFilter: 'all', plays: null, playsErr: null, playsLoading: false, playsKey: null,
   slip: [], slipRes: null, slipErr: null, slipGame: '', slipMarket: '',
-  backtest: null, btLoading: false, btErr: null, btDays: 20, grades: null,
+  backtest: null, btLoading: false, btErr: null, btDays: 20, grades: null, gradesPage: 0,
+  scorerTeam: '', scorerNotStarted: false, liveStale: false,
+  margin: 0.05, prices: {}, sgpPrice: '',
 };
 
 // ── Helpers ──────────────────────────────────────────────────────────────────────────────
@@ -600,10 +538,29 @@ const signed = (v, d = 2) => (v === null || v === undefined || isNaN(v) ? '—' 
 function american(p) { if (!p || p <= 0 || p >= 1) return '—'; if (p >= 0.5) return `−${Math.round((100 * p) / (1 - p))}`; const v = Math.round((100 * (1 - p)) / p); return v >= 100000 ? '—' : `+${v}`; }
 const fair = p => (p >= 0.02 && p <= 0.98 ? american(p) : '—');
 const decToAmerican = d => (!d || d <= 1 ? '—' : d >= 2 ? `+${Math.round((d - 1) * 100)}` : `−${Math.round(100 / (d - 1))}`);
-function toDecimal(raw) { const s = String(raw || '').trim().replace('−', '-'); if (/^[+-]\d+$/.test(s)) { const a = Number(s); return a > 0 ? 1 + a / 100 : 1 + 100 / Math.abs(a); } const d = Number(s); return Number.isFinite(d) && d > 1 ? d : null; }
+// Same rules as lib/book.js: American with or without a sign (+150, 150, -110), EVEN, or decimal
+// (2.50, at most 51.0). A bare 80 is a typo, not a price.
+function toDecimal(raw) {
+  const s = String(raw || '').trim().replace(/[−–]/g, '-').replace(/\s+/g, '');
+  if (/^(even|evens|ev)$/i.test(s)) return 2;
+  if (/^[+-]\d+(\.0+)?$/.test(s) || /^\d{3,}$/.test(s)) { const a = Number(s); if (Math.abs(a) < 100) return null; return a > 0 ? 1 + a / 100 : 1 + 100 / Math.abs(a); }
+  const d = Number(s); return Number.isFinite(d) && d > 1 && d <= 51 ? d : null;
+}
+// The price a play needs before it's worth taking: fair odds plus the margin you set (top of the page).
+// p 28% at a 5% margin needs 1.05 / 0.28 = 3.75 in decimal, +275 or better.
+function playable(p) { if (!p || p <= 0.005 || p >= 0.99) return '—'; const dec = (1 + S.margin) / p; return dec <= 1.01 ? '—' : decToAmerican(dec); }
+const playTxt = p => (playable(p) === '—' ? '' : `playable at ${playable(p)} or better`);
+// Simulation noise on a chance: about √(p(1−p)/runs).
+const mcSe = p => Math.sqrt(Math.max(p * (1 - p), 1e-6) / Math.max(1, S.data?.sims || 15000));
+// Expected value of a price against a chance, and whether it clears both the 3% bar and two
+// standard errors of simulation noise (the same rule as the server's value lists).
+function evOf(p, raw) { const dec = toDecimal(raw); if (!dec || !p) return null; const ev = p * dec - 1, se = dec * mcSe(p); return { dec, ev, se, clears: ev >= 0.03 && ev >= 2 * se }; }
+const evCell = e => (!e ? '' : `<span class="${e.clears ? 'edge-pos' : 'muted'}" title="Expected profit per $1 · simulation noise ±${e.se.toFixed(3)}">${e.ev >= 0 ? '+' : '−'}$${Math.abs(e.ev).toFixed(2)}${e.clears ? ' ✓' : ''}</span>`);
 const fmtDate = iso => new Date(`${String(iso).slice(0, 10)}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 const shortDate = iso => new Date(`${String(iso).slice(0, 10)}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
-const puck = iso => (iso ? `${new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' })} ET` : '');
+// Puck drop in the viewer's own time zone (with its abbreviation).
+const puck = iso => (iso ? new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }) : '');
+const clockTime = iso => new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
 const ICON = { close: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>', play: '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg>' };
 const SA = 'var(--s1)', SB = 'var(--s2)';
 const rec = r => (r ? `${r.w}-${r.l}-${r.otl ?? 0}` : '—');
@@ -628,18 +585,63 @@ function showTip(html, x, y) {
   tip.style.left = `${Math.max(8, left)}px`; tip.style.top = `${Math.max(8, top)}px`;
 }
 const hideTip = () => tip.classList.remove('on');
-document.addEventListener('mouseover', e => { const el = e.target.closest('[data-tip]'); if (el) { const r = el.getBoundingClientRect(); showTip(el.dataset.tip, r.left, r.bottom - 6); } });
+// Tooltips: hover, keyboard focus, or a tap (touch screens have no hover). Anything critical is also
+// in visible text; the tip adds detail.
+const tipAt = el => { const r = el.getBoundingClientRect(); showTip(el.dataset.tip, r.left, r.bottom - 6); };
+document.addEventListener('mouseover', e => { const el = e.target.closest('[data-tip]'); if (el) tipAt(el); });
 document.addEventListener('mouseout', e => { if (e.target.closest('[data-tip]')) hideTip(); });
+document.addEventListener('focusin', e => { const el = e.target.closest('[data-tip]'); if (el) tipAt(el); else hideTip(); });
+document.addEventListener('focusout', e => { if (e.target.closest('[data-tip]')) hideTip(); });
+let tipFor = null;
+document.addEventListener('pointerup', e => { if (e.pointerType === 'mouse') return; const el = e.target.closest('[data-tip]'); if (!el || e.target.closest('button,input,select,a')) { tipFor = null; return; } if (tipFor === el && tip.classList.contains('on')) { hideTip(); tipFor = null; } else { tipAt(el); tipFor = el; } });
 addEventListener('scroll', hideTip, true);
 function wireTips(el, sel, html) { el.querySelectorAll(sel).forEach(g => { g.addEventListener('mousemove', e => showTip(html(g), e.clientX, e.clientY)); g.addEventListener('mouseleave', hideTip); }); }
 
 // Starter picks kept in this browser (used when no database is connected to share them).
-const picksKey = () => `nhlprob-starters-${S.data?.date || S.date || 'today'}`;
+const dayKey = () => S.data?.date || S.date || 'today';
+const picksKey = () => `nhlprob-starters-${dayKey()}`;
 const localPicks = () => { try { return JSON.parse(store.get(picksKey()) || '{}'); } catch { return {}; } };
 const picksParam = () => Object.entries(localPicks()).map(([t, id]) => `${t}:${id}`).join(',');
-const withDate = p => { const q = [S.date ? `date=${S.date}` : '', picksParam() ? `starters=${encodeURIComponent(picksParam())}` : ''].filter(Boolean).join('&'); return q ? `${p}${p.includes('?') ? '&' : '?'}${q}` : p; };
+// Lineup changes kept in this browser: { TEAM: { ins: [id], outs: [id] } }. They re-simulate this
+// viewer's slate only; the shared projection and the graded record never use them.
+const lineupsKey = () => `nhlprob-lineups-${dayKey()}`;
+const localLineups = () => { try { return JSON.parse(store.get(lineupsKey()) || '{}'); } catch { return {}; } };
+const lineupsParam = () => Object.entries(localLineups()).map(([t, x]) => `${t}:${[...(x.ins || []).map(i => '+' + i), ...(x.outs || []).map(i => '-' + i)].join(',')}`).filter(x => !x.endsWith(':')).join(';');
+const personal = () => !!(picksParam() || lineupsParam());
+const withDate = p => { const q = [S.date ? `date=${S.date}` : '', picksParam() ? `starters=${encodeURIComponent(picksParam())}` : '', lineupsParam() ? `lineups=${encodeURIComponent(lineupsParam())}` : ''].filter(Boolean).join('&'); return q ? `${p}${p.includes('?') ? '&' : '?'}${q}` : p; };
+// The slip (legs for a ticket) and your prices, kept per date in this browser.
+const slipKey = () => `nhlprob-slip-${dayKey()}`, pricesKey = () => `nhlprob-prices-${dayKey()}`;
+function loadDay() { try { S.slip = JSON.parse(store.get(slipKey()) || '[]'); } catch { S.slip = []; } try { S.prices = JSON.parse(store.get(pricesKey()) || '{}'); } catch { S.prices = {}; } S.sgpPrice = store.get(`nhlprob-sgp-${dayKey()}`) || ''; }
+const saveSlip = () => store.set(slipKey(), JSON.stringify(S.slip));
+const savePrices = () => store.set(pricesKey(), JSON.stringify(S.prices));
+const legKey = l => [l.game, l.market, l.side || '', l.line ?? '', l.player ?? '', l.team || ''].join('|');
+const inSlip = l => S.slip.some(x => legKey(x) === legKey(l));
+function toggleSlip(l) { if (inSlip(l)) S.slip = S.slip.filter(x => legKey(x) !== legKey(l)); else S.slip.push(l); saveSlip(); priceSlip(); renderTray(); }
+const slipBtn = (l, label = 'Add to slip') => `<button class="addslip ${inSlip(l) ? 'on' : ''}" data-slip="${esc(JSON.stringify(l))}" aria-pressed="${inSlip(l)}" aria-label="${esc(label)}" title="${inSlip(l) ? 'On your slip: click to remove' : 'Add to your slip'}">${inSlip(l) ? '✓' : '+'}</button>`;
+// Inline prices: one per leg key, typed on any row. They also go to the server as book lines, so the
+// value lists use them; the paste box stays for many at once.
+function inlineBookLines() {
+  const out = [];
+  for (const [k, raw] of Object.entries(S.prices)) {
+    if (!raw || !toDecimal(raw)) continue;
+    const [game, market, side, line, player, team] = k.split('|'), g = gameById(game); if (!g) continue;
+    const p = player ? g.players.find(x => String(x.id) === player) : null;
+    const who = p ? `${p.name} (${p.team}${p.pos === 'D' ? ' D' : ''})` : null;
+    if (market === 'goal' && who) out.push(`${who}, anytime, ${raw}`);
+    else if (market === 'first' && who) out.push(`${who}, first, ${raw}`);
+    else if (market === 'goal2' && who) out.push(`${who}, 2+, ${raw}`);
+    else if (market === 'sog' && who) out.push(`${who}, sog ${side === 'over' ? 'o' : 'u'}${line}, ${raw}`);
+    else if (market === 'ml') out.push(`${side === 'home' ? g.home.abbrev : g.away.abbrev}, ml, ${raw}`);
+    else if (market === 'saves') { const G = g.goalies[team]; if (G) out.push(`${G.name}, saves ${side === 'over' ? 'o' : 'u'}${line}, ${raw}`); }
+  }
+  return out;
+}
+const fullBook = () => [S.book, ...inlineBookLines()].filter(Boolean).join('\n');
+const priceInput = (l, p) => { const k = legKey(l), raw = S.prices[k] || '', e = raw ? evOf(p, raw) : null; return `<span class="pin"><input class="price-in" data-pkey="${esc(k)}" value="${esc(raw)}" placeholder="Price" aria-label="Your price"${raw && !toDecimal(raw) ? ' aria-invalid="true"' : ''}>${e ? evCell(e) : ''}</span>`; };
+// Inline status line (replaces alert()): an aria-live region near the top.
+function notify(msg, kind = 'warn') { const el = $('#notice'); if (!el) return; el.innerHTML = msg ? `<div class="notice ${kind}"><span>${esc(msg)}</span><button class="btn ghost" data-dismiss aria-label="Dismiss">${ICON.close}</button></div>` : ''; }
 async function api(path, { fresh = false } = {}) { const u = withDate(path); const res = await fetch(fresh ? `${u}${u.includes('?') ? '&' : '?'}fresh=${Date.now()}` : u, fresh ? { cache: 'no-store' } : undefined); let b = null; try { b = await res.json(); } catch {} if (!res.ok) throw new Error(b?.error || `${res.status} ${res.statusText}`); return b; }
-async function apiPost(path, payload) { const res = await fetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...payload, date: S.data?.date || S.date || undefined, starters: picksParam() || undefined }) }); let b = null; try { b = await res.json(); } catch {} if (!res.ok) throw new Error(b?.error || `${res.status} ${res.statusText}`); return b; }
+async function apiPost(path, payload) { const res = await fetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...payload, date: S.data?.date || S.date || undefined, starters: picksParam() || undefined, lineups: lineupsParam() || undefined }) }); let b = null; try { b = await res.json(); } catch {} if (!res.ok) throw new Error(b?.error || `${res.status} ${res.statusText}`); return b; }
 const stateHtml = (kind, title, text, detail) => `<div class="card state ${kind === 'err' ? 'err' : ''}"><h3>${esc(title)}</h3><p>${text}</p>${detail ? `<pre>${esc(detail)}</pre>` : ''}</div>`;
 const store = { get: k => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
 // Last-10 strip: bar height = shots, green = scored, gray = no goal.
@@ -655,10 +657,16 @@ function renderHero() {
   const d = S.data;
   if (!d) { $('#hero').innerHTML = S.err ? '<h1>nhlprob</h1><div class="meta"><span>Couldn’t load the slate.</span></div>' : $('#hero').innerHTML; return; }
   const live = d.games.filter(g => g.state === 'in').length, pre = d.games.filter(g => g.state === 'pre').length;
-  $('#hero').innerHTML = `<h1>NHL · ${esc(fmtDate(d.date))}</h1>
+  const F = d.freshness || {};
+  // Data freshness: what the history runs through, and how much of tonight is confirmed vs projected.
+  const fresh = F.latest ? `<span class="chip fresh ${F.stale ? 'warn' : ''}" tabindex="0" data-tip="${esc(F.stale ? `The game history stops at ${shortDate(F.latest)}, but ${shortDate(F.expected)} had finished games: the nightly update didn’t run, so back-to-backs and lineups may be a day stale.` : 'Ratings use every finished game up to this date.')}">${F.stale ? '⚠ ' : ''}Data through ${esc(shortDate(F.latest))}${F.starters?.total ? ` · ${F.starters.confirmed} of ${F.starters.total} starters confirmed` : ''}${F.lineups?.games ? ` · lineups ${F.lineups.confirmed ? `${F.lineups.confirmed} of ${F.lineups.games} confirmed` : 'projected'}` : ''}</span>` : '';
+  const mine = d.personal ? `<span class="chip accent" tabindex="0" data-tip="${esc('You changed a starter or a lineup, so these numbers are re-simulated for you only. The shared projection and the Accuracy record don’t use them.')}">Your changes applied <button class="btn ghost" id="resetMine" style="height:20px;padding:0 4px;font-size:11.5px">Reset</button></span>` : '';
+  $('#hero').innerHTML = `<h1>NHL · ${esc(fmtDate(d.date))}${F.today === false ? ' <span class="muted" style="font-size:15px;font-weight:600">· not today</span>' : ''}</h1>
     <div class="meta"><span>${d.games.length} game${d.games.length === 1 ? '' : 's'}</span>${pre ? `<span>${pre} still to start</span>` : ''}<span>League ${d.league.goalsPerGame} goals a game · save ${(d.league.svPct * 100).toFixed(1)}%</span></div>
-    <div class="chips">${live ? `<span class="chip live"><span class="dot"></span>${live} live</span>` : ''}</div>`;
-  $('#updated').textContent = `Updated ${new Date(d.generatedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+    <div class="chips">${live ? `<span class="chip live"><span class="dot"></span>${live} live</span>` : ''}${S.liveStale ? '<span class="chip warn">Scores may be stale: the live feed isn’t answering</span>' : ''}${fresh}${mine}</div>`;
+  $('#updated').textContent = `Updated ${clockTime(d.generatedAt)}`;
+  $('#dayToday').hidden = !S.date;
+  $('#tab-today').textContent = F.today === false ? `Slate · ${shortDate(d.date)}` : 'Today'; // a past or future date isn't "today"
 }
 
 // The day's locked pick, remembered in this browser: once the server confirms the lock, the page keeps
@@ -669,7 +677,9 @@ function keepLock(d) {
   else if (d.best && st === 'unconfirmed') { try { const b = JSON.parse(store.get(k) || 'null'); if (b) d.best = { ...b, lockState: 'locked', fromBrowser: true }; } catch {} }
 }
 // ── Today: best goalscorer play + slate with leans ──────────────────────────────────────
-function leanChip(label, text, p, hit) { return `<span class="lean ${hit === true ? 'hit' : hit === false ? 'miss' : ''}" data-tip="${esc(`${label}: model ${pct(p)} · fair ${fair(p)}${hit === true ? '<br>Hit' : hit === false ? '<br>Missed' : ''}`)}"><b>${esc(text)}</b><span>${pct(p, 0)}</span></span>`; }
+// A lean chip: hit / missed carry a ✓ / ✗ as well as the colour; "+" puts the leg on your slip.
+function leanChip(label, text, p, hit, leg) { return `<span class="lean ${hit === true ? 'hit' : hit === false ? 'miss' : ''}" tabindex="0" data-tip="${esc(`${label}: model ${pct(p)} · fair ${fair(p)} · ${playTxt(p) || 'no price'}${hit === true ? '<br>Hit' : hit === false ? '<br>Missed' : ''}`)}"><b>${esc(text)}</b><span>${pct(p, 0)}</span>${hit === true ? '<span class="glyph" aria-label="hit">✓</span>' : hit === false ? '<span class="glyph" aria-label="missed">✗</span>' : ''}${leg && g0(leg)?.state === 'pre' ? slipBtn(leg, `Add ${text} to slip`) : ''}</span>`; }
+const g0 = l => gameById(l.game);
 function leanHits(g) {
   if (!g.result) return {};
   const r = g.result, L = g.leans, homeWon = r.home > r.away, total = r.home + r.away;
@@ -693,7 +703,11 @@ function lineText(g) {
   const m = g.market; if (!m) return '';
   const ml = (t, v) => (v === null || v === undefined ? '' : t + ' ' + (v > 0 ? '+' : '') + v);
   const parts = [ml(g.away.abbrev, m.awayML), ml(g.home.abbrev, m.homeML), m.total !== null ? 'o/u ' + m.total : ''].filter(Boolean);
-  return parts.length ? '<div class="game-line" data-tip="' + esc('The betting line, shown for reference only. It never feeds the simulation or the leans.') + '">Line ' + esc(parts.join(' · ')) + '</div>' : '';
+  // Model and market side by side for the favourite: the quickest sanity check there is.
+  const L = g.leans, side = L.moneyline.side, mk = m.pHome === null ? null : side === 'home' ? m.pHome : 1 - m.pHome;
+  const gap = mk === null ? null : L.moneyline.prob - mk;
+  const mm = mk === null ? '' : `<div class="mm"><span>${esc(L.moneyline.team)}: model <b>${pct(L.moneyline.prob, 0)}</b> · market <b>${pct(mk, 0)}</b></span>${Math.abs(gap) >= 0.035 ? `<span class="${m.mlFlag ? 'gap' : ''}">${gap > 0 ? '+' : '−'}${Math.abs(gap * 100).toFixed(0)} pts vs market</span>` : '<span>in line with the market</span>'}</div>`;
+  return mm + (parts.length ? '<div class="game-line">Line ' + esc(parts.join(' · ')) + ' · reference only, never an input</div>' : '');
 }
 // The game breakdown's market note: the line against the simulation, for reference.
 function marketNote(g) {
@@ -718,15 +732,15 @@ function gameCard(g) {
   const row = (t, p, side) => `<div class="tm">${logo(t)}<span class="ab" style="color:${side === 'home' ? SA : SB}">${esc(t.abbrev)}</span><span class="nm"><span class="full">${esc(t.name || '')} · </span>${rec(t.record)}${t.record?.pts !== null && t.record?.pts !== undefined ? ` · ${t.record.pts} pts` : ''}</span>${showScore ? `<span class="sc">${t.score ?? 0}</span>` : '<span></span>'}<span class="pr">${pct(p, 0)}${side === fav && L.moneyline.tier !== 'tossup' ? '<span class="win" title="Projected winner">✓</span>' : ''}</span></div>`;
   const G = k => g.goalies[k];
   const gtxt = k => (G(k) ? `<b>${esc(G(k).name)}</b> ${(G(k).svPct * 100).toFixed(1)}%${G(k).projection?.confirmed ? '' : G(k).projection?.manual ? ' <span class="muted">set</span>' : ' <span class="muted">proj.</span>'}` : '—');
-  return `<div class="card game" data-game="${esc(g.id)}">
+  return `<div class="card game" data-game="${esc(g.id)}" role="button" tabindex="0" aria-label="${esc(`${g.away.name} at ${g.home.name}: open the game breakdown`)}">
     <div class="game-h">${stateChip(g)}${frozenNote(g)}<span class="spacer"></span>${mlBadge(g)}${mlWarn(g)}<span>Model total ${g.total.mean}</span></div>
     ${row(g.away, g.pAway, 'away')}${row(g.home, g.pHome, 'home')}
     <div class="wbar"><i style="width:${g.pAway * 100}%;background:${SB}"></i><i style="width:${g.pHome * 100}%;background:${SA}"></i></div>
     <div class="leans">
-      ${leanChip('Moneyline', `${L.moneyline.team} ML ${L.moneyline.fair}`, L.moneyline.prob, H.ml)}
-      ${L.total.side ? leanChip(`Total ${L.total.line}`, `${L.total.side === 'over' ? 'Over' : 'Under'} ${L.total.line}`, L.total.prob, H.total) : `<span class="lean none" data-tip="${esc(`No total lean: over 5.5 ${pct(g.total.over['5.5'], 0)} · over 6.5 ${pct(g.total.over['6.5'], 0)}<br>A total leans only when the model beats that line’s usual hit rate: under 6.5 or over 5.5 at 58%+, over 6.5 or under 5.5 at 55%+`)}"><b>No total lean</b></span>`}
-      ${leanChip('Puck line', `${L.puckLine.team} −1.5`, L.puckLine.prob, H.pl)}
-      ${leanChip('First to score', `${L.firstToScore.team} first`, L.firstToScore.prob, H.first)}
+      ${leanChip('Moneyline', `${L.moneyline.team} ML ${L.moneyline.fair}`, L.moneyline.prob, H.ml, { game: g.id, market: 'ml', side: L.moneyline.side })}
+      ${L.total.side ? leanChip(`Total ${L.total.line}`, `${L.total.side === 'over' ? 'Over' : 'Under'} ${L.total.line}`, L.total.prob, H.total, { game: g.id, market: 'total', side: L.total.side, line: L.total.line }) : `<span class="lean none" tabindex="0" data-tip="${esc(`No total lean: over 5.5 ${pct(g.total.over['5.5'], 0)} · over 6.5 ${pct(g.total.over['6.5'], 0)}<br>A total leans only when the model beats that line’s usual hit rate: under 6.5 or over 5.5 at 58%+, over 6.5 or under 5.5 at 55%+`)}"><b>No total lean</b></span>`}
+      ${leanChip('Puck line', `${L.puckLine.team} −1.5`, L.puckLine.prob, H.pl, { game: g.id, market: 'pl', side: L.puckLine.side, line: -1.5 })}
+      ${leanChip('First to score', `${L.firstToScore.team} first`, L.firstToScore.prob, H.first, { game: g.id, market: 'first_team', side: L.firstToScore.side })}
     </div>
     ${lineText(g)}
     ${g.live?.goals?.length ? `<div class="gl" style="display:block;color:var(--ink-2)"><span class="muted">Goals</span> ${g.live.goals.map(x => `${esc((n => { const w = n.split(' '); return w.length > 1 ? `${w[0][0]}. ${w.slice(1).join(' ')}` : n; })(g.players.find(p => p.id === x.playerId)?.name || x.name || ''))} <span class="muted">${esc(x.team)} ${goalTime(x)}${x.emptyNet ? ' EN' : ''}</span>`).join(' · ')}</div>` : ''}
@@ -744,12 +758,16 @@ function missedNote(g) {
 }
 function missedSection(g) {
   const M = g.missedLast; if (!M || (!M.home.length && !M.away.length)) return '';
-  const list = (side) => M[side].length ? M[side].map(p => `<li><b>${esc(p.name)}</b> <span class="muted">${p.pos === 'D' ? 'D' : 'F'} · played ${p.played} of the last ${p.of} · out ${p.missed === 1 ? 'the last game' : `the last ${p.missed}`} · ${p.toi} min a night · ${p.season.goals} G in ${p.season.gp} GP</span></li>`).join('') : '<li class="muted">None</li>';
+  const t = side => g[side].abbrev, isIn = (side, id) => (localLineups()[t(side)]?.ins || []).includes(id);
+  const list = (side) => M[side].length ? M[side].map(p => `<li><b>${esc(p.name)}</b> <span class="muted">${p.pos === 'D' ? 'D' : 'F'} · played ${p.played} of the last ${p.of} · out ${p.missed === 1 ? 'the last game' : `the last ${p.missed}`} · ${p.toi} min a night · ${p.season.goals} G in ${p.season.gp} GP</span>${g.state === 'pre' ? (isIn(side, p.id) ? ' <span class="tag pos">marked in</span>' : ` <button class="lu-btn" data-lineup-in="${p.id}" data-team="${esc(t(side))}">He’s playing</button>`) : ''}</li>`).join('') : '<li class="muted">None</li>';
   return `<div><div class="section-t">Missed last game · not in this projection</div><div class="two" style="gap:16px"><div><div class="note" style="font-weight:600">${esc(g.away.abbrev)}</div><ul class="missed-list">${list('away')}</ul></div><div><div class="note" style="font-weight:600">${esc(g.home.abbrev)}</div><ul class="missed-list">${list('home')}</ul></div></div>
-    <p class="note">The projected lineup is each team’s last game, so these regulars aren’t in tonight’s numbers. Some are hurt; if one dresses, he’s added from the box score at puck drop, and his team’s other numbers may shift a little.</p></div>`;
+    <p class="note">The projected lineup is each team’s last game, so these regulars aren’t in tonight’s numbers. If you know one is back, mark him in: the game is re-simulated for you only. Otherwise he’s added from the box score at puck drop.</p></div>`;
 }
 // Signal tags (lib/signals): the tag chip and the eight icons with a tooltip of what's firing.
-const tierChip = b => (b ? `<span class="tier ${b === 'Elite' ? 'elite' : b === 'All-Star' ? 'allstar' : 'value'}">${esc(b)}</span>` : '');
+// Tags are labels for how many signals line up, not value against a price: "Value" reads as a price
+// call, so it shows as "Solid" (the data keeps the original key).
+const TIER_NAME = { Elite: 'Elite', 'All-Star': 'All-Star', Value: 'Solid' };
+const tierChip = b => (b ? `<span class="tier ${b === 'Elite' ? 'elite' : b === 'All-Star' ? 'allstar' : 'value'}" title="${esc(`${b === 'Elite' ? '6+' : b === 'All-Star' ? '5' : '4'} of 8 signals firing: an explanation of the chance, not a separate edge`)}">${esc(TIER_NAME[b] || b)}</span>` : '');
 const sigIcons = p => (p.signals ? `<span class="sigs" data-tip="${esc(`<div class='t'>Firing ${p.count} of 8</div>` + p.signals.map(x => `<div class='r'>${x.on ? '✓' : '·'} ${x.label}: ${x.detail}</div>`).join(''))}">${p.signals.map(x => `<i class="${x.on ? 'on' : ''}">${x.icon}</i>`).join('')}</span>` : '');
 const TIER_RANK = { Elite: 3, 'All-Star': 2, Value: 1 };
 // Tonight's goals, from each game's live goal list (scores feed; refreshed every 30s while games are on).
@@ -777,15 +795,16 @@ function bestHtml() {
   const g = gameById(b.gameId), p = g?.players.find(x => x.id === b.playerId);
   const R = S.data.bestRemaining;
   return `<div class="card best">
-    <div><div class="k">Today’s best goalscorer play${b.lockState === 'unconfirmed' ? ' · <span class="muted" data-tip="The database didn’t answer, so the lock couldn’t be confirmed. This is the pick from pre-game numbers; refresh in a minute.">lock not confirmed yet</span>' : b.locked ? (b.lockedLate ? ` · <span class="muted" data-tip="No pick was saved before the first puck drop, so it was locked on the first load after games started (${esc(new Date(b.lockedLate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }))} ET), choosing only from games that hadn’t started.">locked late, from games not yet started</span>` : ' · <span class="muted" data-tip="Picked from the full slate before the first puck drop and kept for the day, so it doesn’t move to a later game as earlier ones start.">locked at first puck drop</span>') : ''}</div>
-      <div class="who" data-player="${b.playerId}" data-game="${esc(b.gameId)}">${teamLogo(b.team, 30)}${esc(b.name)}</div>
-      ${b.signals?.length ? `<div style="margin-top:6px;display:flex;gap:8px;align-items:center">${b.sharp ? '<span class="tag pos">🎯 Sharp play</span>' : ''}${tierChip(b.badge)} ${sigIcons(b)} <span class="note">Firing ${b.count} of 8</span></div>` : ''}
+    <div><div class="k">${S.data.freshness?.today === false ? `Best goalscorer play · ${esc(shortDate(S.data.date))}` : 'Today’s best goalscorer play'}${b.lockState === 'unconfirmed' ? ' · <span class="muted" data-tip="The database didn’t answer, so the lock couldn’t be confirmed. This is the pick from pre-game numbers; refresh in a minute.">lock not confirmed yet</span>' : b.locked ? (b.lockedLate ? ` · <span class="muted" data-tip="No pick was saved before the first puck drop, so it was locked on the first load after games started (${esc(new Date(b.lockedLate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }))} ET), choosing only from games that hadn’t started.">locked late, from games not yet started</span>` : ' · <span class="muted" data-tip="Picked from the full slate before the first puck drop and kept for the day, so it doesn’t move to a later game as earlier ones start.">locked at first puck drop</span>') : ''}</div>
+      <div class="who" data-player="${b.playerId}" data-game="${esc(b.gameId)}" role="button" tabindex="0">${teamLogo(b.team, 30)}${esc(b.name)}</div>
+      ${b.signals?.length ? `<div style="margin-top:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">${b.sharp ? '<span class="tag pos">Converging</span>' : ''}${tierChip(b.badge)} <span class="note">Firing ${b.count} of 8 signals</span></div>` : ''}
       ${mktWarn(b.marketWarn)}
       <div class="ctx">${esc(b.team)} vs ${esc(b.opp)} · ${esc(puck(g?.start))}${p ? ` · ${p.pos === 'D' ? 'Defense' : 'Forward'}, ${p.toi} min a night` : ''}</div>
       <div class="nums"><div><div class="v">${pct(b.anytime)}</div><div class="l">Anytime goal · fair ${esc(b.fair)}</div></div><div><div class="v">${pct(b.first)}</div><div class="l">First goal · fair ${fair(b.first)}</div></div>${p ? `<div><div class="v">${p.shots.mean}</div><div class="l">Shots expected</div></div>` : ''}</div>
+      <p class="target" style="margin-top:8px">Anytime goal <b>${esc(playTxt(b.anytime) || '—')}</b> (fair ${esc(b.fair)} + ${Math.round(S.margin * 100)}% margin)${g?.state === 'pre' ? ` ${slipBtn({ game: b.gameId, market: 'goal', player: b.playerId }, `Add ${b.name} anytime goal to slip`)}` : ''}</p>
       <div style="margin-top:12px">${pickStatus(b, g)}</div>
       ${R ? `<p class="note" style="margin-top:10px">Best still to start: <a href="#" data-player="${R.playerId}" data-game="${esc(R.gameId)}">${esc(R.name)}</a> (${esc(R.team)} vs ${esc(R.opp)}, ${esc(puck(gameById(R.gameId)?.start))}) ${pct(R.anytime)}</p>` : ''}
-      <p class="note" style="margin-top:8px">${b.sharp ? 'A Sharp play: an All-Star or Elite tag with workload, matchup and form all firing. The top of the Best plays tab.' : 'No Sharp play tonight, so this is the strongest tag on the slate (Elite, then All-Star, then Value), then signals, then the anytime chance.'}</p></div>
+      <p class="note" style="margin-top:8px">The highest anytime chance on the slate. A chance, not a price call: it’s only a bet at the playable price or better.${b.sharp ? ' Workload, matchup and form also line up for him.' : ''}</p></div>
     <div><div class="section-t">Why</div><ul>${b.reasons.map(r => `<li>${esc(r)}</li>`).join('')}</ul>${p ? `<div class="section-t" style="margin-top:14px">Last 10 games · bar height = shots, green = scored, gray = no goal</div>${spark(p.last10)}` : ''}</div></div>`;
 }
 function renderToday() {
@@ -793,37 +812,47 @@ function renderToday() {
   if (!S.data) { el.innerHTML = S.err ? stateHtml('err', 'Couldn’t load the slate', 'The slate endpoint returned an error. /api/health shows which source failed.', S.err) : '<div class="skel" style="height:420px"></div>'; return; }
   const d = S.data;
   el.innerHTML = `${bestHtml()}
-    <div class="section-head"><h2>Slate</h2><span class="note">Win chances, then the model’s leans. Click a game for the breakdown.</span></div>
+    <p class="howto">Each card: win chances, then the model’s leans with their chance (hover or tap for fair and playable prices; + adds a leg to your slip). Model vs market is shown for reference only: the line never feeds the simulation.</p>
+    <div class="section-head"><h2>Slate</h2><span class="note">Click a game for the breakdown.</span></div>
     ${d.games.length ? `<div class="games">${d.games.map(gameCard).join('')}</div>` : stateHtml('', 'No games', 'No NHL games on this date.')}
     <p class="note foot">Leans with no prices are the side the model makes more likely, at the standard line nearest its own number. Moneylines include overtime and shootouts. Lineups come from each team’s last game until the box score confirms them.</p>`;
 }
 
 // ── Goalscorers ─────────────────────────────────────────────────────────────────────────
-const SCORER_MODES = { anytime: ['Anytime goal', p => p.anytime, p => p.fair.anytime], first: ['First goalscorer', p => p.first, p => fair(p.first)], two: ['2+ goals', p => p.twoPlus, p => fair(p.twoPlus)], sog: ['Shots on goal (3+)', p => p.shots.over['2.5'], p => fair(p.shots.over['2.5'])] };
+const SCORER_MODES = { anytime: ['Anytime goal', p => p.anytime, p => p.fair.anytime, 'goal'], first: ['First goalscorer', p => p.first, p => fair(p.first), 'first'], two: ['2+ goals', p => p.twoPlus, p => fair(p.twoPlus), 'goal2'], sog: ['Shots on goal (3+)', p => p.shots.over['2.5'], p => fair(p.shots.over['2.5']), 'sog'] };
+const SCORER_SORTS = { chance: null, shots: p => p.shots.mean, shpct: p => p.shPct, toi: p => p.toi, goals: p => p.season.goals, tag: p => (TIER_RANK[p.badge] || 0) * 10 + (p.count || 0) };
+const SCORER_LIMIT = 150;
+function scorerLeg(p) { const m = SCORER_MODES[S.scorerMode][3]; return m === 'sog' ? { game: p.game.id, market: 'sog', player: p.id, side: 'over', line: 2.5 } : { game: p.game.id, market: m, player: p.id }; }
 function renderScorers() {
   const el = $('#panel-scorers');
   if (!S.data) { el.innerHTML = '<div class="skel" style="height:420px"></div>'; return; }
+  // Keep the reader's place: a live poll re-renders this table every 30 seconds.
+  const prevWrap = el.querySelector('.table-wrap'), keep = prevWrap ? { left: prevWrap.scrollLeft, top: prevWrap.scrollTop } : null;
   const [label, val, fo] = SCORER_MODES[S.scorerMode];
   const q = S.scorerQ.trim().toLowerCase();
-  const rows = allPlayers().filter(p => (!S.scorerTagged || p.badge) && (!S.scorerScored || goalsBy(p.game, p.id).length) && (!S.scorerGame || p.game.id === S.scorerGame) && (!S.scorerPos || (S.scorerPos === 'D' ? p.pos === 'D' : p.pos !== 'D')) && (!q || p.name.toLowerCase().includes(q))).sort((a, b) => (S.scorerSort === 'tag' ? (TIER_RANK[b.badge] || 0) - (TIER_RANK[a.badge] || 0) || b.count - a.count : 0) || val(b) - val(a)).slice(0, 150);
-  const priced = new Map((S.plays?.book?.rows || []).filter(r => ['goal', 'first', 'goal2'].includes(r.market)).map(r => [`${r.market}|${r.player}`, r]));
-  const bookKey = { anytime: 'goal', first: 'first', two: 'goal2' }[S.scorerMode];
-  const firstNote = S.scorerMode === 'first' ? `<div class="callout">First goalscorer counts the first goal of the game, overtime included (shootouts don’t count). In each game the chances add up to 100% with the small chance of no goal at all. ${ready().filter(g => g.state === 'pre').map(g => `${g.leans.firstToScore.team} score first ${pct(g.leans.firstToScore.prob, 0)}`).slice(0, 6).join(' · ')}</div>` : '';
+  const all = allPlayers().filter(p => (!S.scorerTagged || p.badge) && (!S.scorerScored || goalsBy(p.game, p.id).length) && (!S.scorerGame || p.game.id === S.scorerGame) && (!S.scorerTeam || p.team === S.scorerTeam) && (!S.scorerNotStarted || p.game.state === 'pre') && (!S.scorerPos || (S.scorerPos === 'D' ? p.pos === 'D' : p.pos !== 'D')) && (!q || p.name.toLowerCase().includes(q)));
+  const key = SCORER_SORTS[S.scorerSort] || val;
+  const rows = all.sort((a, b) => key(b) - key(a) || val(b) - val(a)).slice(0, SCORER_LIMIT);
+  const long = S.scorerMode === 'first' || S.scorerMode === 'two';
+  const teams = [...new Set(ready().flatMap(g => [g.away.abbrev, g.home.abbrev]))].sort();
+  const sortTh = (k, text, cls = '') => `<th class="sortable ${cls}" ${S.scorerSort === k || (k === 'chance' && !SCORER_SORTS[S.scorerSort]) ? 'aria-sort="descending"' : ''}><button data-ssort="${k}">${text}${S.scorerSort === k ? '<span class="arrow">↓</span>' : ''}</button></th>`;
+  const firstNote = S.scorerMode === 'first' ? `<div class="callout">First goalscorer counts the first goal of the game, overtime included (shootouts don’t count). In each game the chances add up to 100% with the small chance of no goal at all. Long shots carry simulation noise (±, shown next to each chance): a price has to clear it as well as your margin. ${ready().filter(g => g.state === 'pre').map(g => `${g.leans.firstToScore.team} score first ${pct(g.leans.firstToScore.prob, 0)}`).slice(0, 6).join(' · ')}</div>` : '';
   el.innerHTML = `
     <div class="toolbar">
       <label class="sr-only" for="scMode">Market</label><select class="select" id="scMode">${Object.entries(SCORER_MODES).map(([k, [l]]) => `<option value="${k}" ${k === S.scorerMode ? 'selected' : ''}>${l}</option>`).join('')}</select>
       <label class="sr-only" for="scGame">Game</label><select class="select" id="scGame"><option value="">All games</option>${ready().map(g => `<option value="${esc(g.id)}" ${g.id === S.scorerGame ? 'selected' : ''}>${esc(matchup(g))}</option>`).join('')}</select>
+      <label class="sr-only" for="scTeam">Team</label><select class="select" id="scTeam"><option value="">All teams</option>${teams.map(t => `<option value="${esc(t)}" ${t === S.scorerTeam ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select>
       <div class="seg" id="scPos">${[['', 'All'], ['F', 'Forwards'], ['D', 'Defense']].map(([v, l]) => `<button data-v="${v}" aria-pressed="${S.scorerPos === v}">${l}</button>`).join('')}</div>
-      <div class="seg" id="scSort">${[['chance', 'By chance'], ['tag', 'By tag']].map(([v, l]) => `<button data-v="${v}" aria-pressed="${S.scorerSort === v}">${l}</button>`).join('')}</div>
-      <div class="seg"><button id="scTagged" aria-pressed="${S.scorerTagged}">Tagged only</button></div>
-      ${ready().some(g => g.live?.goals?.length) ? `<div class="seg"><button id="scScored" aria-pressed="${S.scorerScored}">Scored tonight</button></div>` : ''}
-      <div class="search"><input class="select" style="width:100%" id="scQ" placeholder="Search players" value="${esc(S.scorerQ)}"></div>
+      <div class="seg"><button id="scNotStarted" aria-pressed="${S.scorerNotStarted}">Not started</button><button id="scTagged" aria-pressed="${S.scorerTagged}">Tagged only</button>${ready().some(g => g.live?.goals?.length) ? `<button id="scScored" aria-pressed="${S.scorerScored}">Scored tonight</button>` : ''}</div>
+      <div class="search"><input class="select" style="width:100%" id="scQ" placeholder="Search players" value="${esc(S.scorerQ)}" aria-label="Search players"></div>
     </div>
     ${firstNote}
-    <div class="table-wrap"><table class="data"><thead><tr><th class="l">Player</th><th class="l">Signals</th><th class="l">Game</th><th>${esc(label)}</th><th>Fair</th>${bookKey && priced.size ? '<th>Book</th><th>EV</th>' : ''}<th>Shots exp.</th><th>Shooting %</th><th>TOI</th><th>Season</th><th class="l">Last 10</th></tr></thead><tbody>
-      ${rows.map(p => { const v = val(p), r = bookKey ? priced.get(`${bookKey}|${p.id}`) : null, ev = r ? v * r.dec - 1 : null; return `<tr><td class="l click" data-player="${p.id}" data-game="${esc(p.game.id)}"><span class="pname">${p.badge ? teamLogo(p.team, 16) : ''}${esc(p.name)}</span>${goalTag(p.game, p.id)}${p.pregame === false ? ' <span class="tag warn" style="height:18px" data-tip="Not in the pre-game projection (it uses each team’s last game), so he’s added from tonight’s box score lineup. His chance is calculated now, from games before today, and wasn’t part of the pre-game picks.">added at puck drop</span>' : ''}<div class="psub">${esc(p.team)} · ${p.pos === 'D' ? 'D' : p.pos}</div></td><td class="l">${tierChip(p.badge)} ${sigIcons(p)}</td><td class="l muted">${esc(matchup(p.game))}${p.game.state === 'in' ? ' · live' : p.game.state === 'post' ? ' · final' : ''}</td><td class="sorted">${pct(v)}</td><td class="dim">${esc(fo(p))}</td>${bookKey && priced.size ? `<td>${r ? esc(r.raw) : '—'}</td><td class="${ev > 0 ? 'edge-pos' : ''}">${ev === null ? '—' : signed(ev, 2)}</td>` : ''}<td>${p.shots.mean}</td><td>${(p.shPct * 100).toFixed(1)}%</td><td>${p.toi}</td><td class="dim">${p.season.goals} G · ${p.season.gp} GP</td><td class="l">${spark(p.last10)}</td></tr>`; }).join('') || '<tr><td colspan="11" class="l muted">No players match.</td></tr>'}
+    <p class="note" style="margin:-4px 0 8px">${all.length > SCORER_LIMIT ? `Showing the top ${SCORER_LIMIT} of ${all.length} players: filter by game or team to see the rest.` : `${all.length} player${all.length === 1 ? '' : 's'}.`} Type your book’s price in a row to see expected value (✓ = clears 3% and the simulation’s noise).</p>
+    <div class="table-wrap"><table class="data"><thead><tr><th class="l sticky-1" style="min-width:170px">Player</th><th class="l">Tag</th><th class="l">Game</th>${sortTh('chance', esc(label))}<th>Fair</th><th>Playable at</th><th class="l">Your price · EV</th>${sortTh('shots', 'Shots exp.')}${sortTh('shpct', 'Shooting %')}${sortTh('toi', 'TOI')}${sortTh('goals', 'Season')}<th class="l">Last 10</th><th><span class="sr-only">Slip</span></th></tr></thead><tbody>
+      ${rows.map(p => { const v = val(p), leg = scorerLeg(p), pre = p.game.state === 'pre'; return `<tr><td class="l click sticky-1" data-player="${p.id}" data-game="${esc(p.game.id)}" role="button" tabindex="0"><span class="pname">${esc(p.name)}</span>${goalTag(p.game, p.id)}${p.pregame === false ? ' <span class="tag warn" style="height:18px" tabindex="0" data-tip="Not in the pre-game projection (it uses each team’s last game), so he’s added from tonight’s box score lineup. His chance is calculated now, from games before today, and wasn’t part of the pre-game picks.">added at puck drop</span>' : ''}<div class="psub">${esc(p.team)} · ${p.pos === 'D' ? 'D' : p.pos}</div></td><td class="l">${tierChip(p.badge)}</td><td class="l muted">${esc(matchup(p.game))}${p.game.state === 'in' ? ' · live' : p.game.state === 'post' ? ' · final' : ''}</td><td class="sorted">${pct(v)}${long ? `<span class="pm">±${(mcSe(v) * 100).toFixed(1)}</span>` : ''}</td><td class="dim">${esc(fo(p))}</td><td>${esc(playable(v))}</td><td class="l">${pre ? priceInput(leg, v) : '<span class="muted">started</span>'}</td><td>${p.shots.mean}</td><td>${(p.shPct * 100).toFixed(1)}%</td><td>${p.toi}</td><td class="dim">${p.season.goals} G · ${p.season.gp} GP</td><td class="l">${spark(p.last10)}</td><td>${pre ? slipBtn(leg, `Add ${p.name} to slip`) : ''}</td></tr>`; }).join('') || '<tr><td colspan="13" class="l muted">No players match.</td></tr>'}
     </tbody></table></div>
-    <p class="note foot">Each skater’s shots come from his shots per 60 × ice time, set against the opponent’s shots allowed. Each shot scores at his shooting % (regressed hard: finishing is mostly noise over a few weeks), scaled by the opposing goalie. Shooting % is regulation shots with a goalie in net; empty-net and overtime goals are modelled on their own.</p>`;
+    <p class="note foot">Each skater’s shots come from his shots per 60 × ice time, set against the opponent’s shots allowed. Each shot scores at his shooting % (regressed toward his position by an amount fitted from the league’s own spread of finishing), scaled by the opposing goalie. Shooting % is regulation shots with a goalie in net; empty-net and overtime goals are modelled on their own. Tags count how many of eight signals fire: they explain a chance, they aren’t a separate edge.</p>`;
+  const w = el.querySelector('.table-wrap'); if (keep && w) { w.scrollLeft = keep.left; w.scrollTop = keep.top; }
 }
 
 // ── Goalie saves ────────────────────────────────────────────────────────────────────────
@@ -851,11 +880,11 @@ function starterPicker(G, g, home) {
 }
 async function setStarterPick(team, id, name) {
   if (S.data?.startersShared) {
-    try { await apiPost('/api/starters', { team, goalieId: id || null, goalieName: name || null }); } catch (err) { alert(`Couldn’t save the starter: ${err.message}`); return; }
+    try { await apiPost('/api/starters', { team, goalieId: id || null, goalieName: name || null }); notify(''); } catch (err) { notify(`Couldn’t save the starter: ${err.message}`, 'err'); return; }
   } else {
     const p = localPicks(); if (id) p[team] = id; else delete p[team]; store.set(picksKey(), JSON.stringify(p));
   }
-  S.slip = []; S.slipRes = null; await load(true);
+  S.slipRes = null; await load(true); // the slip's legs stay; they're re-priced against the new simulation
 }
 function goalieCard(G, g, home) {
   const s = G.saves, opp = home ? g.away : g.home, avg = G.season.savesPerStart;
@@ -867,10 +896,11 @@ function goalieCard(G, g, home) {
       <div style="text-align:right"><div class="big">${s.mean}</div><div class="sub">saves expected</div></div></div>
     ${g.state === 'pre' ? starterPicker(G, g, home) : ''}
     <div class="rng">${rangeSvg(s, Math.max(40, Math.ceil((s.p90 + 4) / 10) * 10))}<p class="note">80% of simulated games: ${s.p10}–${s.p90} saves · median ${s.p50} · ${s.shotsAgainst} shots against expected (${esc(opp.abbrev)} take ${opp.sfPerGame}/game)</p></div>
-    <div class="lines">${s.lines.map(l => `<div class="${near === l.line ? 'near' : ''}" data-tip="${esc(`Over ${l.line}: ${pct(l.over)} (fair ${fair(l.over)})<br>Under: ${pct(1 - l.over)} (fair ${fair(1 - l.over)})`)}">O ${l.line}<b>${pct(l.over, 0)}</b></div>`).join('')}</div>
+    <div class="lines">${s.lines.map(l => `<div class="${near === l.line ? 'near' : ''}" tabindex="0" data-tip="${esc(`Over ${l.line}: ${pct(l.over)} (fair ${fair(l.over)}, ${playTxt(l.over) || 'no price'})<br>Under: ${pct(1 - l.over)} (fair ${fair(1 - l.over)}, ${playTxt(1 - l.over) || 'no price'})`)}">O ${l.line}<b>${pct(l.over, 0)}</b></div>`).join('')}</div>
     ${G.pregameStarter ? `<div class="gl"><span>Pre-game projection had <b>${esc(G.pregameStarter)}</b> starting; these saves numbers are recalculated for the actual starter.</span></div>` : ''}
     <div class="gl"><span>Save % <b>${(G.svPct * 100).toFixed(1)}</b> model · ${G.season.svPct ? `<b>${(G.season.svPct * 100).toFixed(1)}</b> season` : 'no starts yet'}</span><span>${avg ? `Season <b>${avg.toFixed(1)}</b> saves/start` : ''}</span></div>
-    ${lean ? `<div class="gl"><span>Lean vs his season average: <b>${lean.side === 'over' ? 'Over' : 'Under'} ${lean.line}</b> ${pct(lean.p, 0)}</span><span>${priced ? `Your line ${priced.side === 'over' ? 'O' : 'U'} ${priced.line} ${esc(priced.raw)}` : ''}</span></div>` : ''}
+    ${lean ? (() => { const leg = { game: g.id, market: 'saves', team: home ? 'home' : 'away', side: lean.side, line: lean.line }; return `<div class="gl" style="flex-wrap:wrap;align-items:center"><span>Lean: <b>${lean.side === 'over' ? 'Over' : 'Under'} ${lean.line}</b><span class="est" tabindex="0" data-tip="${esc('Estimated line: his season saves per start, rounded to the nearest .5. Books hang theirs close to it, but check the real one: paste it on Model picks or type “o28.5 -115” style lines there.')}">est. line</span> ${pct(lean.p, 0)} · <span class="target">${esc(playTxt(lean.p) || '')}</span></span><span style="display:inline-flex;gap:6px;align-items:center">${g.state === 'pre' ? priceInput(leg, lean.p) + slipBtn(leg, `Add ${G.name} saves to slip`) : ''}</span></div>`; })() : ''}
+    ${priced ? `<div class="gl"><span>Your pasted line ${priced.side === 'over' ? 'O' : 'U'} ${priced.line} ${esc(priced.raw)}</span></div>` : ''}
   </div>`;
 }
 function renderSaves() {
@@ -885,18 +915,19 @@ function renderSaves() {
 // ── Best plays ──────────────────────────────────────────────────────────────────────────
 async function loadPlays(force = false) {
   if (!S.data) return;
-  const key = `${S.data.date}|${S.data.generatedAt}|${S.book}`;
+  const book = fullBook(), key = `${S.data.date}|${S.data.generatedAt}|${book}|${lineupsParam()}`;
   if (!force && (S.playsKey === key || S.playsLoading)) return;
   S.playsKey = key; S.playsLoading = true; S.playsErr = null; renderPlays();
-  try { S.plays = await apiPost('/api/plays', { book: S.book }); } catch (err) { S.playsErr = err.message; }
+  // No prices and no personal changes: the plain GET, which the edge can cache for a minute.
+  try { S.plays = !book && !personal() ? await api('/api/plays') : await apiPost('/api/plays', { book }); } catch (err) { S.playsErr = err.message; }
   S.playsLoading = false; renderPlays(); renderSgp(); if (S.tab === 'scorers') renderScorers(); if (S.tab === 'saves') renderSaves();
 }
 const modeTag = m => (m === 'value' ? '<span class="tag pos">Value · vs your prices</span>' : '<span class="tag">Model ranking</span>');
 const evText = ev => `${ev >= 0 ? '+' : '−'}$${Math.abs(ev).toFixed(2)}`;
 function playCard(x, i) {
-  return `<div class="card play"><div><div class="play-h"><span class="play-rank">${i + 1}</span><div><div class="play-name">${esc(x.title)}${x.badge ? ` ${tierChip(x.badge)}` : ''}${x.player && ['goal', 'goal2', 'first'].includes(x.market) ? goalTag(gameById(x.game), x.player) : ''}</div><div class="play-sub">${esc(x.sub)}</div></div>
-    <div class="play-prob"><div class="big">${pct(x.prob)}</div><div class="small">fair ${esc(x.fairOdds)}</div></div></div>
-    ${x.book ? `<div class="bookline"><span class="tag pos">Book ${esc(x.book.raw)} · EV ${evText(x.book.ev)} per $1</span></div>` : ''}</div>
+  return `<div class="card play"><div><div class="play-h"><span class="play-rank">${i + 1}</span><div><div class="play-name">${esc(x.title)}${x.badge ? ` ${tierChip(x.badge)}` : ''}${x.player && ['goal', 'goal2', 'first'].includes(x.market) ? goalTag(gameById(x.game), x.player) : ''}</div><div class="play-sub">${esc(x.sub)} · ${esc(playTxt(x.prob))}</div></div>
+    <div class="play-prob"><div class="big">${pct(x.prob)}</div><div class="small">fair ${esc(x.fairOdds)} ${slipBtn({ game: x.game, market: x.market, side: x.side, line: x.line, player: x.player, team: x.team })}</div></div></div>
+    ${x.book ? `<div class="bookline"><span class="tag pos">Book ${esc(x.book.raw)} · EV ${evText(x.book.ev)} per $1${x.book.evSe ? ` · noise ±${x.book.evSe.toFixed(3)}` : ''}</span></div>` : ''}</div>
     <ul>${x.reasons.map(r => `<li>${esc(r)}</li>`).join('')}</ul></div>`;
 }
 function sgpCard(t) {
@@ -909,13 +940,16 @@ const SECTION_TITLES = { anytime: 'Anytime goalscorers', first: 'First goalscore
 // Every row opens the player (or, for saves, the game) so a pick flows into the rest of the app.
 const KIND_LABEL = { goal: 'GOAL', saves: 'SAVES', sog: 'SOG' };
 const AREA_LABEL = { workload: 'Workload', matchup: 'Matchup', form: 'Form' };
+// A list's record from the latest replay, for its section header: hit rate, what the model said,
+// the baseline, and the sample size, with a plain warning when the list hasn't beaten its own
+// prediction (or, for risks, hasn't fallen short of season rates).
 function listRecord(r, what) {
-  if (!r) return '';
-  const one = (x, where) => (!x || !x.n ? '' : what === 'scorers'
-    ? `${where}: scored ${pct(x.hit, 0)} vs ${pct(x.model, 0)} the model said and ${pct(x.base, 0)} from season rates (${x.n.toLocaleString()} plays)`
-    : what === 'risks' ? `${where}: scored ${pct(x.hit, 0)} vs ${pct(x.base, 0)} from their season rates (${x.n.toLocaleString()} players)`
-      : `${where}: hit ${pct(x.hit, 0)} at the season-average line, model said ${pct(x.model, 0)} (${x.n.toLocaleString()} plays)`);
-  return r.latest ? esc(one(r.latest, `Record, last backtest (${r.latest.days} days)`)) : '';
+  const x = r?.latest;
+  if (!x || !x.n) return '<span class="rec-head muted">No record yet: the replay test on the Accuracy tab grades this list.</span>';
+  const small = x.n < 100 ? ` <span class="muted">(small sample)</span>` : '';
+  if (what === 'risks') return `<span class="rec-head">Last ${x.days}-day replay: scored <b>${pct(x.hit, 0)}</b> vs <b>${pct(x.base, 0)}</b> from season rates · ${x.n.toLocaleString()} players${small}${x.hit >= x.base ? ' <span class="warnline">· not falling short of season rates: the fades aren’t working</span>' : ''}</span>`;
+  if (what === 'scorers') return `<span class="rec-head">Last ${x.days}-day replay: scored <b>${pct(x.hit, 0)}</b> · model said <b>${pct(x.model, 0)}</b> · season rates <b>${pct(x.base, 0)}</b> · ${x.n.toLocaleString()} plays${small}${x.hit < x.model ? ' <span class="warnline">· hasn’t beaten its own prediction</span>' : ''}</span>`;
+  return `<span class="rec-head">Last ${x.days}-day replay: hit <b>${pct(x.hit, 0)}</b> vs an <i>estimated</i> line (his season average) · model said <b>${pct(x.model, 0)}</b> · ${x.n.toLocaleString()} plays${small}${x.hit < x.model ? ' <span class="warnline">· hasn’t beaten its own prediction</span>' : ''}</span>`;
 }
 // When a play's game is: puck-drop time before it starts, then live / final once it's under way.
 const gameWhen = g => (!g ? '' : g.state === 'in' ? '<span class="tag pos" style="height:18px">Live</span>' : g.state === 'post' ? '<span class="tag" style="height:18px">Final</span>' : esc(puck(g.start)));
@@ -927,7 +961,8 @@ function lockNote(sh) {
   if (L.state === 'unconfirmed') return '<span class="tag warn" data-tip="The database didn’t answer, so the lock couldn’t be confirmed and nothing was changed. Refresh in a minute.">Lock not confirmed yet</span>';
   return '<span class="tag warn" data-tip="Locking needs the database (or uses the shared starters): without it, plays drop off as their games start.">Not locked</span>';
 }
-const openAttrs = x => (x.player ? `data-player="${x.player}" data-game="${esc(x.game)}"` : `data-open-game="${esc(x.game)}"`);
+const openAttrs = x => `${x.player ? `data-player="${x.player}" data-game="${esc(x.game)}"` : `data-open-game="${esc(x.game)}"`} role="button" tabindex="0"`;
+const legOf = x => x.kind === 'goal' ? { game: x.game, market: 'goal', player: x.player } : x.kind === 'sog' ? { game: x.game, market: 'sog', player: x.player, side: x.side, line: x.line } : { game: x.game, market: 'saves', team: x.goalieTeam, side: x.side, line: x.line };
 function areaChips(x) { return Object.entries(x.areas || {}).map(([k, v]) => `<span class="tag ${v ? 'pos' : ''}" style="${v ? '' : 'opacity:.55'}">${v ? '✓' : '·'} ${AREA_LABEL[k]}</span>`).join(''); }
 // The market's red flag (lib/market): shown only as a warning, never part of the pick.
 const mktWarn = t => (t ? `<div class="mkt-warn" data-tip="${esc('From the betting line, read only as a check. The market may know about injuries, lineups or a goalie change our data doesn’t show.')}">⚠ ${esc(t)}</div>` : '');
@@ -939,17 +974,17 @@ function sharpCard(x) {
       <div class="play-prob"><div class="big">${pct(x.prob)}</div><div class="small">anytime · fair ${esc(x.fair)}</div></div></div>
     ${mktWarn(x.marketWarn?.text)}
     <div class="sc-areas">${areaChips(x)}</div>
-    <div class="sc-sigs">${x.signals.map(s => `<span data-tip="${esc(s.detail)}">${s.icon} ${esc(s.label)}</span>`).join('')}</div>
     ${x.why.length ? `<ul>${x.why.slice(0, 3).map(r => `<li>${esc(r)}</li>`).join('')}</ul>` : ''}
-    <div class="sc-foot"><span class="note">Last 10 · green = scored</span>${spark(x.last10)}<span class="note" style="margin-left:auto">Season rate ${pct(x.base, 0)}${x.bookPrice ? ` · your ${esc(x.bookPrice.raw)}` : ''}</span></div></div>`;
+    <p class="target" style="margin-top:8px"><b>${esc(playTxt(x.prob) || '—')}</b>${x.bookPrice ? ` · your ${esc(x.bookPrice.raw)} · EV ${evText(x.bookPrice.ev)}` : ''}</p>
+    <div class="sc-foot"><span class="note">Last 10 · green = scored</span>${spark(x.last10)}<span class="note" style="margin-left:auto">Season rate ${pct(x.base, 0)}</span>${g?.state === 'pre' ? slipBtn(legOf(x), `Add ${x.name} to slip`) : ''}</div></div>`;
 }
 function bestRow(x, i) {
   const g = gameById(x.game);
   const value = x.kind === 'goal' ? pct(x.prob) : `${x.side === 'over' ? 'O' : 'U'} ${x.line}`;
-  const meta = x.kind === 'goal' ? `${x.count} signals · season rate ${pct(x.base, 0)}` : `${pct(x.prob, 0)} to hit · season avg ${x.avg.toFixed(1)}`;
+  const meta = x.kind === 'goal' ? `season rate ${pct(x.base, 0)} · ${playTxt(x.prob)}` : `${pct(x.prob, 0)} to hit · season avg ${x.avg.toFixed(1)} · ${playTxt(x.prob)}`;
   return `<div class="bp-row click" ${openAttrs(x)}><span class="play-rank">${i + 1}</span><span class="bp-kind k-${x.kind}">${KIND_LABEL[x.kind]}</span>
-    <div class="bp-info"><div class="pname">${teamLogo(x.team, 18)}${esc(x.name)}${x.marketWarn ? ' <span class="tag warn" style="height:18px" data-tip="' + esc(x.marketWarn.text) + '">⚠ market</span>' : ''}${x.player && x.kind === 'goal' && g ? goalTag(g, x.player) : ''}</div><div class="psub">${esc(x.team)} vs ${esc(x.opp)} · ${gameWhen(g)} · ${esc(meta)}</div></div>
-    <div class="bp-val">${esc(value)}</div><div class="bp-tier">${tierChip(x.tier)}</div></div>`;
+    <div class="bp-info"><div class="pname">${teamLogo(x.team, 18)}${esc(x.name)}${x.marketWarn ? ' <span class="tag warn" style="height:18px" tabindex="0" data-tip="' + esc(x.marketWarn.text) + '">⚠ market</span>' : ''}${x.player && x.kind === 'goal' && g ? goalTag(g, x.player) : ''}</div><div class="psub">${esc(x.team)} vs ${esc(x.opp)} · ${gameWhen(g)} · ${esc(meta)}</div></div>
+    <div class="bp-val">${esc(value)}${x.kind !== 'goal' ? '<span class="est" title="Estimated line: his season average, rounded to the nearest .5">est.</span>' : ''}</div><div class="bp-tier">${tierChip(x.tier)} ${g?.state === 'pre' ? slipBtn(legOf(x), `Add ${x.name} to slip`) : ''}</div></div>`;
 }
 function riskCard(x) {
   const g = gameById(x.game), flags = x.flags.slice(0, 3);
@@ -962,36 +997,38 @@ function sharpHtml(P) {
   const f = S.bpFilter || 'all', board = sh.best.filter(x => f === 'all' || x.kind === f);
   const counts = { all: sh.best.length, goal: sh.best.filter(x => x.kind === 'goal').length, saves: sh.best.filter(x => x.kind === 'saves').length, sog: sh.best.filter(x => x.kind === 'sog').length };
   return `
-    <div class="section-head" style="margin-top:0"><h2>🎯 Sharp plays</h2><span class="note">${esc(sh.criteria)}</span><span style="flex:1"></span>${lockNote(sh)}</div>
+    <p class="howto">These are the model’s picks, ranked by chance (by value once you add prices). None is a bet on its own: each shows the price it needs (“playable at”). Converging plays are scorers whose workload, matchup and form all line up, which explains the chance; the records below say whether that has paid off.</p>
+    <div class="section-head" style="margin-top:0"><h2>Converging plays</h2>${listRecord(sh.record.sharp, 'scorers')}<span style="flex:1"></span>${lockNote(sh)}</div>
+    <p class="note" style="margin:-6px 0 10px">${esc(sh.criteria)}</p>
     <div class="card slate-read"><div class="k">${sh.lock?.state === 'locked' || sh.lock?.state === 'late' ? 'Pre-game slate read' : 'Tonight’s slate read'}</div><p>${esc(sh.slateRead)}</p></div>
-    <div class="sharp-grid">${sh.sharp.map(sharpCard).join('') || `<div class="card state"><h3>No plays meet the sharp threshold tonight</h3><p>${esc(sh.criteria)}. Most nights have one or two; some have none, and that’s the point. The All-Star board below still has tonight’s strongest plays.</p></div>`}</div>
-    <p class="note rec-line">${listRecord(sh.record.sharp, 'scorers')}</p>
-    <div class="section-head"><h2>Best plays board</h2><span class="note">Every All-Star and Elite play tonight: tag first, then signals, then chance. Click a row for the full breakdown.</span></div>
+    <div class="sharp-grid">${sh.sharp.map(sharpCard).join('') || `<div class="card state"><h3>No converging plays tonight</h3><p>${esc(sh.criteria)}. Some nights have none. The board below still has tonight’s strongest chances.</p></div>`}</div>
+    <div class="section-head"><h2>Model picks board</h2><span class="note">Every All-Star and Elite play tonight, ranked by chance within each market. Click a row for the breakdown.</span></div>
     <div class="toolbar"><div class="seg" id="bpFilter">${[['all', 'All'], ['goal', 'Goalscorers'], ['saves', 'Goalie saves'], ['sog', 'Shots on goal']].map(([v, l]) => `<button data-v="${v}" aria-pressed="${f === v}">${l} <span class="muted">${counts[v]}</span></button>`).join('')}</div></div>
     <div class="card bp-list">${board.map(bestRow).join('') || '<p class="note" style="padding:14px 16px">No All-Star or Elite plays in this market tonight.</p>'}</div>
-    <p class="note rec-line">${[listRecord(sh.record.scorers, 'scorers'), listRecord(sh.record.saves, 'props').replace('Record,', 'Saves,'), listRecord(sh.record.sog, 'props').replace('Record,', 'Shots,')].filter(Boolean).join('<br>')}</p>
-    <p class="note">Goalscorer tags come from the eight signals (see the Goalscorers tab). Saves and shots are tagged by how strongly the model leans against a line at the player’s own season average, which is close to where books hang theirs: Elite is the strongest lean.</p>
-    <div class="section-head"><h2>Risks &amp; fades</h2><span class="note">Near misses with a red flag, and big names the model is well below tonight</span></div>
-    <div class="plays">${sh.risks.map(riskCard).join('') || '<p class="note">No red flags on tonight’s strong plays.</p>'}</div>
-    <p class="note rec-line">${listRecord(sh.record.risks, 'risks')}</p>`;
+    <div class="rec-line" style="display:grid;gap:4px"><div><b class="muted">Goalscorers</b> ${listRecord(sh.record.scorers, 'scorers')}</div><div><b class="muted">Saves</b> ${listRecord(sh.record.saves, 'props')}</div><div><b class="muted">Shots</b> ${listRecord(sh.record.sog, 'props')}</div></div>
+    <p class="note">Goalscorer tags count the eight signals (see the Goalscorers tab). Saves and shots are tagged by how strongly the model leans against an <b>estimated line</b> at the player’s own season average; books hang theirs close to it, but paste the real line to be sure.</p>
+    <div class="section-head"><h2>Risks &amp; fades</h2>${listRecord(sh.record.risks, 'risks')}</div>
+    <p class="note" style="margin:-6px 0 10px">Near misses with a red flag, and big names the model is well below tonight.</p>
+    <div class="plays">${sh.risks.map(riskCard).join('') || '<p class="note">No red flags on tonight’s strong plays.</p>'}</div>`;
 }
 function renderPlays() {
   const el = $('#panel-plays');
   if (!S.data) { el.innerHTML = '<div class="skel" style="height:420px"></div>'; return; }
   const P = S.plays;
-  const bookBox = `<details class="card more" style="margin-top:22px" ${S.book ? 'open' : ''}><summary>Optional: paste book prices to compare</summary><div class="card-b">
-    <textarea class="paste" id="bookText" placeholder="Auston Matthews, anytime, +120&#10;Auston Matthews, sog o3.5, -130&#10;Joseph Woll, saves o27.5, -115&#10;TOR, ml, -150&#10;TOR @ MTL, over 6.5, -110">${esc(S.book)}</textarea>
+  const bookBox = `<details class="card more" style="margin-top:22px" ${S.book ? 'open' : ''}><summary>Paste many prices at once (or type them on any row)</summary><div class="card-b">
+    <textarea class="paste" id="bookText" aria-label="Book prices, one per line" placeholder="Auston Matthews, anytime, +120&#10;Matthews, Auston, first, 900&#10;Elias Pettersson (VAN), sog o2.5, -130&#10;Joseph Woll, saves o27.5, EVEN&#10;TOR, ml, -150&#10;TOR @ MTL, over 6.5, -110">${esc(S.book)}</textarea>
+    <p class="note" style="margin-top:6px">American odds with or without a sign (150 = +150), EVEN, or decimal (2.50). Two players with one name: add the team or position in brackets.</p>
     <div class="toolbar" style="margin:10px 0 0"><button class="btn primary" id="bookApply">Price these</button><button class="btn ghost" id="bookClear">Clear</button>${P?.book ? `<span class="note">${P.book.matched} matched${P.book.skipped.length ? ` · ${P.book.skipped.length} skipped` : ''}</span>` : ''}</div>
     ${P?.book?.skipped.length ? `<ul class="note" style="margin:8px 0 0 18px">${P.book.skipped.slice(0, 8).map(s => `<li>${esc(s.line)}: ${esc(s.why)}</li>`).join('')}</ul>` : ''}</div></details>`;
   if (!P) { el.innerHTML = S.playsErr ? stateHtml('err', 'Couldn’t build the best plays', 'The plays endpoint returned an error.', S.playsErr) : '<div class="skel" style="height:320px"></div>'; return; }
   const valueSections = Object.entries(SECTION_TITLES).map(([k, t]) => [k, t, P.sections[k]]).filter(([, , s]) => s.mode === 'value');
   el.innerHTML = `${sharpHtml(P)}
     ${bookBox}
-    ${valueSections.length ? `<div class="section-head"><h2>Against your prices</h2><span class="tag pos">${pct(P.minEv, 0)}+ expected profit per $1</span></div>${valueSections.map(([, t, s]) => `<div class="section-head"><h3>${t}</h3></div><div class="callout">${esc(s.summary)}</div><div class="plays">${s.items.map(playCard).join('') || '<p class="note">Nothing clears the bar.</p>'}</div>`).join('')}` : ''}
+    ${valueSections.length ? `<div class="section-head"><h2>Against your prices</h2><span class="tag pos">${pct(P.minEv, 0)}+ expected profit per $1, beyond simulation noise</span></div>${valueSections.map(([, t, s]) => `<div class="section-head"><h3>${t}</h3></div><div class="callout">${esc(s.summary)}</div><div class="plays">${s.items.map(playCard).join('') || '<p class="note">Nothing clears the bar.</p>'}</div>`).join('')}` : ''}
     <div class="section-head"><h2>Same-game parlays</h2><span class="tag">Correlated in the simulation</span></div>
     <div class="callout">Two- and three-leg tickets inside one game, built from that game’s leans and ranked by how much the legs help each other. Build your own on the SGP builder tab.</div>
     <div class="tickets">${P.sgp.map(sgpCard).join('') || '<div class="card state"><p>No same-game ticket clears the bar.</p></div>'}</div>
-    <p class="note foot">Only games that haven’t started are included. ${P.sharp?.latestDays ? `Records come from the latest ${P.sharp.latestDays}-day backtest on your stored games, each predicted only from earlier games.` : 'No record yet: run a backtest on the Accuracy tab (database connected) to grade these lists on your real games.'} Saves plays need a confirmed starter, one you set on the Goalie saves tab, or a clear number one (65%+ of recent starts, not a back-to-back).</p>`;
+    <p class="note foot">Only games that haven’t started are included. ${P.sharp?.latestDays ? `Records come from the latest ${P.sharp.latestDays}-day replay on your stored games, each predicted only from earlier games.` : 'No record yet: the replay test on the Accuracy tab (database connected) grades these lists on your real games.'} Saves plays need a confirmed starter, one you set on the Goalie saves tab, or a clear number one (65%+ of recent starts, not a back-to-back).</p>`;
 }
 
 // ── SGP builder ─────────────────────────────────────────────────────────────────────────
@@ -1001,18 +1038,45 @@ function marketOptions(g) {
   o.push([{ market: 'ml', side: 'away' }, `${A} moneyline`], [{ market: 'ml', side: 'home' }, `${H} moneyline`]);
   for (const [side, t] of [['away', A], ['home', H]]) o.push([{ market: 'pl', side, line: -1.5 }, `${t} −1.5`], [{ market: 'pl', side, line: 1.5 }, `${t} +1.5`]);
   for (const line of [5.5, 6.5]) o.push([{ market: 'total', side: 'over', line }, `Over ${line} goals`], [{ market: 'total', side: 'under', line }, `Under ${line} goals`]);
-  for (const [team, t] of [['away', A], ['home', H]]) for (const line of [2.5, 3.5]) o.push([{ market: 'tt', team, side: 'over', line }, `${t} over ${line} goals`]);
+  for (const [team, t] of [['away', A], ['home', H]]) for (const line of [2.5, 3.5]) o.push([{ market: 'tt', team, side: 'over', line }, `${t} over ${line} goals`], [{ market: 'tt', team, side: 'under', line }, `${t} under ${line} goals`]);
   o.push([{ market: 'p1', side: 'over', line: 0.5 }, '1st period over 0.5'], [{ market: 'p1', side: 'over', line: 1.5 }, '1st period over 1.5'], [{ market: 'first_team', side: 'away' }, `${A} score first`], [{ market: 'first_team', side: 'home' }, `${H} score first`]);
   for (const k of ['away', 'home']) { const G = g.goalies[k]; if (!G) continue; for (const l of G.saves.lines) o.push([{ market: 'saves', team: k, side: 'over', line: l.line }, `${G.name} over ${l.line} saves`], [{ market: 'saves', team: k, side: 'under', line: l.line }, `${G.name} under ${l.line} saves`]); }
-  for (const p of g.players.slice(0, 24)) { o.push([{ market: 'goal', player: p.id }, `${p.name} anytime goal`], [{ market: 'first', player: p.id }, `${p.name} first goal`], [{ market: 'goal2', player: p.id }, `${p.name} 2+ goals`]); for (const line of [1.5, 2.5, 3.5]) o.push([{ market: 'sog', player: p.id, side: 'over', line }, `${p.name} over ${line} shots`]); }
+  for (const p of g.players) { o.push([{ market: 'goal', player: p.id }, `${p.name} anytime goal`], [{ market: 'first', player: p.id }, `${p.name} first goal`], [{ market: 'goal2', player: p.id }, `${p.name} 2+ goals`]); for (const line of [1.5, 2.5, 3.5]) o.push([{ market: 'sog', player: p.id, side: 'over', line }, `${p.name} over ${line} shots`], [{ market: 'sog', player: p.id, side: 'under', line }, `${p.name} under ${line} shots`]); }
   return o;
 }
-function legLabel(l) { const g = gameById(l.game); const m = marketOptions(g).find(([x]) => JSON.stringify({ ...x }) === JSON.stringify({ market: l.market, ...(l.side ? { side: l.side } : {}), ...(l.team ? { team: l.team } : {}), ...(l.line !== undefined ? { line: l.line } : {}), ...(l.player ? { player: l.player } : {}) })); return m ? m[1] : l.market; }
+// Any leg, in words (legs come from every tab, so not only from the builder's list).
+function legLabel(l) {
+  const g = gameById(l.game); if (!g) return l.market;
+  const T = side => (side === 'home' ? g.home.abbrev : g.away.abbrev), p = l.player ? g.players.find(x => x.id === Number(l.player)) : null, who = p?.name || 'Player';
+  switch (l.market) {
+    case 'ml': return `${T(l.side)} moneyline`;
+    case 'pl': return `${T(l.side)} ${l.line > 0 ? '+' : '−'}${Math.abs(l.line)}`;
+    case 'total': return `${l.side === 'over' ? 'Over' : 'Under'} ${l.line} goals`;
+    case 'tt': return `${T(l.team)} ${l.side} ${l.line} goals`;
+    case 'p1': return `1st period ${l.side} ${l.line}`;
+    case 'first_team': return `${T(l.side)} score first`;
+    case 'goal': return `${who} anytime goal`;
+    case 'goal2': return `${who} 2+ goals`;
+    case 'first': return `${who} first goal`;
+    case 'sog': return `${who} ${l.side} ${l.line} shots`;
+    case 'saves': return `${g.goalies[l.team]?.name || 'Goalie'} ${l.side} ${l.line} saves`;
+    default: return l.market;
+  }
+}
 async function priceSlip() {
-  if (!S.slip.length) { S.slipRes = null; renderSgp(); return; }
+  // Legs from games that have started can't be priced on pre-game numbers: they stay listed, unpriced.
+  const legs = S.slip.filter(l => gameById(l.game)?.state === 'pre');
+  if (!legs.length) { S.slipRes = null; if (S.tab === 'sgp') renderSgp(); renderTray(); return; }
   S.slipErr = null;
-  try { S.slipRes = await apiPost('/api/sgp', { legs: S.slip.map(({ id, price, ...l }) => ({ ...l, dec: toDecimal(price) || undefined })) }); } catch (err) { S.slipErr = err.message; S.slipRes = null; }
-  renderSgp();
+  try { S.slipRes = await apiPost('/api/sgp', { legs: legs.map(({ price, ...l }) => l) }); S.slipRes.keys = legs.map(legKey); } catch (err) { S.slipErr = err.message; S.slipRes = null; }
+  if (S.tab === 'sgp') renderSgp(); renderTray();
+}
+// The slip tray: on every tab while the slip has legs.
+function renderTray() {
+  const el = $('#tray'), n = S.slip.length, R = S.slipRes;
+  el.hidden = !n; document.body.classList.toggle('has-tray', !!n);
+  if (!n) { el.innerHTML = ''; return; }
+  el.innerHTML = `<span>Slip · <b>${n}</b> leg${n === 1 ? '' : 's'}</span>${R ? `<span><b>${pct(R.joint, 1)}</b> · fair ${esc(fair(R.joint))}</span>` : ''}<button class="btn primary" id="trayOpen">Open slip</button><button class="btn ghost" id="trayClear" aria-label="Clear the slip">Clear</button>`;
 }
 function renderSgp() {
   const el = $('#panel-sgp');
@@ -1022,25 +1086,29 @@ function renderSgp() {
   if (!S.slipGame || !gameById(S.slipGame)) S.slipGame = games[0]?.id || '';
   const g = gameById(S.slipGame), opts = marketOptions(g);
   const R = S.slipRes, gamesInSlip = new Set(S.slip.map(l => l.game)).size;
+  const legProb = l => { const i = R?.keys?.indexOf(legKey(l)); return i >= 0 ? R.legs[i]?.prob : null; };
+  const e = R && S.sgpPrice ? evOf(R.joint, S.sgpPrice) : null;
   el.innerHTML = `
-    <div class="card"><div class="card-h"><h2>Build a ticket</h2><span class="sub">Every leg priced inside the same simulated games</span></div>
-      <div class="slip-add">
-        <select class="select" id="slGame">${games.map(x => `<option value="${esc(x.id)}" ${x.id === S.slipGame ? 'selected' : ''}>${esc(matchup(x))} · ${esc(puck(x.start))}</option>`).join('')}</select>
-        <select class="select" id="slMarket">${opts.map(([v, l], i) => `<option value="${i}">${esc(l)}</option>`).join('')}</select>
-        <button class="btn primary" id="slAdd" ${g ? '' : 'disabled'}>Add leg</button>
-      </div>
-      ${S.slip.length ? `<div class="slip-legs">${S.slip.map((l, i) => { const leg = R?.legs?.[i]; return `<div class="slip-leg"><span>${esc(legLabel(l))} <span class="muted">${esc(matchup(gameById(l.game)))}</span></span><span class="num">${leg ? pct(leg.prob, 1) : ''}</span><input class="price-in" data-price="${i}" placeholder="Price" value="${esc(l.price || '')}" aria-label="Book price for this leg"><button class="btn ghost" data-rm="${i}" aria-label="Remove leg">${ICON.close}</button></div>`; }).join('')}</div>` : '<div class="card-b note">Add legs from one game for a same-game parlay, or from several games (those multiply independently).</div>'}
+    <div class="card"><div class="card-h"><h2>Your slip</h2><span class="sub">Every leg priced inside the same simulated games · kept for this date in this browser</span></div>
+      ${S.slip.length ? `<div class="slip-legs">${S.slip.map((l, i) => { const gg = gameById(l.game), p = legProb(l); return `<div class="slip-leg"><span>${esc(legLabel(l))} <span class="muted">${esc(gg ? matchup(gg) : '')}${gg && gg.state !== 'pre' ? ' · started, not priced' : ''}</span></span><span class="num">${p !== null && p !== undefined ? pct(p, 1) : ''}</span><span class="num muted hide-sm">${p ? `fair ${esc(fair(p))}` : ''}</span><button class="btn ghost" data-rm="${i}" aria-label="Remove ${esc(legLabel(l))}">${ICON.close}</button></div>`; }).join('')}</div>` : '<div class="card-b note">Add legs with the + buttons on any tab (leans, scorers, saves, Model picks), or below. Legs from one game are priced together (their correlation counted); legs from different games multiply.</div>'}
       ${S.slipErr ? `<div class="card-b note" style="color:var(--neg)">${esc(S.slipErr)}</div>` : ''}
       ${R ? `<div class="slip-res" style="border-top:1px solid var(--line)">
-        <div><div class="v">${pct(R.joint, 1)}</div><div class="l">Ticket hits · fair ${fair(R.joint)}</div></div>
+        <div><div class="v">${pct(R.joint, 1)}</div><div class="l">Ticket hits · fair ${fair(R.joint)} · ${esc(playTxt(R.joint) || '—')}</div></div>
         <div><div class="v">${pct(R.independent, 1)}</div><div class="l">If the legs were unrelated</div></div>
         <div><div class="v">×${R.lift ? R.lift.toFixed(2) : '—'}</div><div class="l">${R.lift > 1.03 ? 'Legs help each other' : R.lift < 0.97 ? 'Legs work against each other' : 'Close to independent'}${gamesInSlip > 1 ? ' (cross-game legs are independent)' : ''}</div></div>
-        <div><div class="v">${R.ev !== null && R.ev !== undefined ? evText(R.ev) : '—'}</div><div class="l">${R.bookDecimal ? `EV per $1 at ${R.bookDecimal.toFixed(2)}x (legs multiplied)` : 'Enter a price on every leg for EV'}</div></div>
+        <div><label class="l" for="sgpPrice">Your book’s price for the whole ticket</label><div style="display:flex;gap:8px;align-items:center;margin-top:4px"><input class="price-in" id="sgpPrice" value="${esc(S.sgpPrice)}" placeholder="+450" style="width:90px"${S.sgpPrice && !toDecimal(S.sgpPrice) ? ' aria-invalid="true"' : ''}>${e ? evCell(e) : ''}</div><div class="l" style="margin-top:4px">${e ? (e.clears ? 'Worth it at this price.' : 'Not enough edge at this price (needs 3% and to clear the simulation’s noise).') : 'Books price SGPs with their own correlation adjustment, so enter their one price, not the legs multiplied.'}</div></div>
       </div>` : ''}
+      ${S.slip.length ? '<div class="card-b" style="border-top:1px solid var(--line)"><button class="btn ghost" id="slipClear">Clear the slip</button></div>' : ''}
     </div>
+    <div class="card" style="margin-top:16px"><div class="card-h"><h2>Add a leg by game</h2><span class="sub">Every market for one game, including ones without a + button elsewhere</span></div>
+      <div class="slip-add">
+        <label class="sr-only" for="slGame">Game</label><select class="select" id="slGame">${games.map(x => `<option value="${esc(x.id)}" ${x.id === S.slipGame ? 'selected' : ''}>${esc(matchup(x))} · ${esc(puck(x.start))}</option>`).join('')}</select>
+        <label class="sr-only" for="slMarket">Market</label><select class="select" id="slMarket">${opts.map(([v, l], i) => `<option value="${i}">${esc(l)}</option>`).join('')}</select>
+        <button class="btn primary" id="slAdd" ${g ? '' : 'disabled'}>Add leg</button>
+      </div></div>
     <div class="section-head"><h2>Suggested same-game parlays</h2></div>
     <div class="tickets">${S.plays ? S.plays.sgp.map(sgpCard).join('') || '<div class="card state"><p>No suggestion clears the bar.</p></div>' : '<div class="skel" style="height:140px"></div>'}</div>
-    <p class="note foot">Books price same-game parlays with their own correlation adjustment, usually not the plain product of the legs. Compare their SGP price to the fair odds here, not the multiplied “EV” line.</p>`;
+    <p class="note foot">The ticket’s chance comes from counting how often every leg hit in the same simulated games, so legs that move together (a team’s moneyline and its top scorer) are priced together.</p>`;
 }
 
 // ── Accuracy ────────────────────────────────────────────────────────────────────────────
@@ -1063,25 +1131,39 @@ function drawCalibration(el, bins) {
     ${bins.map((b, i) => `<g data-i="${i}"><circle cx="${x(Math.min(top, b.predicted))}" cy="${y(Math.min(top, b.actual))}" r="12" fill="transparent"/><circle cx="${x(Math.min(top, b.predicted))}" cy="${y(Math.min(top, b.actual))}" r="${Math.min(9, 3 + Math.sqrt(b.n) / 6)}" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/></g>`).join('')}</svg>`;
   wireTips(el, 'g[data-i]', g => { const b = bins[+g.dataset.i]; return `<div class="t">Model ${pct(b.lo, 0)}–${pct(b.hi, 0)}</div><div class="r">Avg predicted <b>${pct(b.predicted)}</b></div><div class="r">Actually scored <b>${pct(b.actual)}</b></div><div class="r">Player-games <b>${b.n.toLocaleString()}</b></div>`; });
 }
-// The backtest's fitted moneyline stretch: what it found, what's applied (shrunk by sample size),
-// whether it was saved, and the honest older-half → newer-half check.
-// The moneyline adjustment the replay test fitted, in plain words.
+// The backtest's moneyline stretch: what it found, the range, whether it passed its held-out check,
+// and what's applied live (only a stretch that passed; otherwise none).
 function calibrationCard(B) {
   const c = B.moneyline.calibration, live = S.data?.calibration;
   if (c.kFit === null) return '';
-  const ex = p => { const q = 1 / (1 + Math.exp(-c.kApplied * Math.log(p / (1 - p)))); return `${pct(p, 0)} becomes ${pct(q, 0)}`; };
-  const chk = c.check, helped = chk && chk.calibrated < chk.raw;
-  const what = c.kFit > 1.02 ? 'Favorites won more often than the model expected, so their win chances are raised a little'
-    : c.kFit < 0.98 ? 'Favorites won less often than the model expected, so their win chances are lowered a little'
-      : 'The model’s win chances already matched how often favorites won, so nothing needs adjusting';
+  const ex = (k, p) => { const q = 1 / (1 + Math.exp(-k * Math.log(p / (1 - p)))); return `${pct(p, 0)} becomes ${pct(q, 0)}`; };
+  const chk = c.check, passed = c.passed ?? (chk && chk.calibrated < chk.raw);
+  const what = c.kFit > 1.02 ? 'Favorites won more often than the model expected' : c.kFit < 0.98 ? 'Favorites won less often than the model expected' : 'The model’s win chances already matched how often favorites won';
   return `<div class="card" style="margin-top:16px"><div class="card-h"><h2>Fine-tuning win chances</h2><span class="sub">Learned from ${c.n} replayed games</span></div><div class="card-b">
-    <p style="margin:0 0 8px;line-height:1.6">${what}${Math.abs(c.kApplied - 1) > 0.01 ? `: a ${ex(0.6)}, and a ${ex(0.65)}.` : '.'} The rest of each game (puck line, scorers, saves) moves with it.</p>
-    ${chk ? `<p class="note">Checked fairly: learned from the older half of the games, then tested on the newer half it hadn’t seen. <b class="${helped ? 'edge-pos' : 'edge-neg'}">${helped ? 'It made the predictions more accurate.' : 'It didn’t make them more accurate.'}</b></p>` : ''}
-    <p class="note">${B.calibrationSaved || (live && live.k !== 1) ? 'This adjustment is now used on the live slate.' : S.data?.startersShared ? (c.n < 150 ? 'It needs at least 150 games before it’s used live.' : 'Not saved yet.') : 'It’s used live once the database is connected.'}</p>
+    <p style="margin:0 0 8px;line-height:1.6">${what}: the fitted stretch is <b>${c.kFit.toFixed(3)}</b>${c.range ? ` (90% range ${c.range.lo.toFixed(2)}–${c.range.hi.toFixed(2)}${c.range.lo <= 1 && c.range.hi >= 1 ? ', which includes no change at all' : ''})` : ''}. Shrunk for sample size it would be ${c.kApplied.toFixed(3)}${Math.abs(c.kApplied - 1) > 0.01 ? `: a ${ex(c.kApplied, 0.6)}` : ''}. The search is capped at 0.7–1.3.</p>
+    ${chk ? `<p class="note">Held-out check: learned from the older ${chk.fitOn} games, scored on the newer ${chk.testedOn}. Log loss ${chk.raw.toFixed(4)} without it, ${chk.calibrated.toFixed(4)} with it (lower is better; it must improve by at least ${(chk.minGain ?? 0.0005).toFixed(4)}). <b class="${passed ? 'edge-pos' : 'edge-neg'}">${passed ? 'Passed: it’s used live.' : 'Failed: no stretch is applied (k = 1).'}</b></p>` : ''}
+    <p class="note">${live ? `Live now: k = ${Number(live.k).toFixed(3)}${live.passed === false ? ' (the last check failed, so no stretch)' : ''}.` : ''} ${S.data?.startersShared ? (c.n < 150 ? 'It needs at least 150 games before it’s saved.' : '') : 'It’s saved once the database is connected.'}</p>
   </div></div>`;
 }
+// Model effects (lib/effects): which fitted pieces are on, and the held-out evidence behind each.
+function effectsCard() {
+  const E = S.data?.effects; if (!E?.length) return '';
+  const d = v => (v === null || v === undefined ? '—' : `${v < 0 ? '−' : '+'}${Math.abs(v).toFixed(4)}`);
+  return `<div class="card" style="margin-top:16px"><div class="card-h"><h2>Model pieces and the evidence for them</h2><span class="sub">Each is switched on only once 300+ replayed games show it helps</span></div>
+    <div class="fx-row note" style="border-top:0"><span>Piece</span><span class="hide-sm">Games tested</span><span class="hide-sm">Change in log loss (moneyline · goalscorers)</span><span>Used</span></div>
+    ${E.map(x => `<div class="fx-row"><span>${esc(x.label)}<div class="note">${esc(x.why)}</div></span><span class="hide-sm num">${x.games.toLocaleString()}</span><span class="hide-sm num">${d(x.dMl)} · ${d(x.dAny)}</span><span>${x.on ? '<span class="tag pos">On</span>' : '<span class="tag">Off</span>'}</span></div>`).join('')}
+    <div class="card-b note" style="border-top:1px solid var(--line)">Negative is better: the piece made the replayed predictions more accurate. The nightly job tests one piece a night over recent games (each game counted once), so the evidence builds up. <button class="btn" id="fxTest" style="margin-left:6px" ${S.fxLoading ? 'disabled' : ''}>${S.fxLoading ? 'Testing…' : 'Test the least-tested piece now'}</button>${S.fxMsg ? ` <span>${esc(S.fxMsg)}</span>` : ''}</div></div>`;
+}
 async function runBacktestNow() { S.btLoading = true; S.btErr = null; renderAccuracy(); try { S.backtest = await api(`/api/backtest?days=${S.btDays}`); if (S.backtest.calibrationSaved) { S.plays = null; S.playsKey = null; load(); } } catch (err) { S.btErr = err.message; } S.btLoading = false; renderAccuracy(); }
-async function loadGrades() { try { S.grades = await api('/api/grades'); } catch { S.grades = { games: [], note: 'Grades unavailable.' }; } renderAccuracy(); }
+// The last stored replay (nightly, or the last button press), so the tab opens with numbers.
+async function loadLatestBacktest() { if (S.backtest || S.btLoading) return; try { const b = await api('/api/backtest?latest=1'); if (!b.none) { S.backtest = b; renderAccuracy(); } } catch {} }
+async function loadGrades(page = 0) { try { const r = await api(`/api/grades?page=${page}`); S.grades = page && S.grades ? { ...r, games: [...S.grades.games, ...r.games] } : r; S.gradesPage = page; } catch { S.grades = S.grades || { games: [], note: 'Grades unavailable.' }; } renderAccuracy(); }
+async function testEffect() {
+  S.fxLoading = true; S.fxMsg = ''; renderAccuracy();
+  try { const fx = await api('/api/backtest?effects=1'); const key = [...fx.detail].sort((a, b) => a.games - b.games)[0].key; const r = await api(`/api/backtest?compare=${key}&days=4`); S.fxMsg = `Tested “${r.label}” on ${r.games} games.`; await load(true); }
+  catch (err) { S.fxMsg = `Couldn’t run it: ${err.message}`; }
+  S.fxLoading = false; renderAccuracy();
+}
 // Replay test: did the market flags (lib/market) pick out misses? By how far the line sat below us.
 function marketCard(M) {
   const t = (title, rows, what) => '<div class="card"><div class="card-h"><h2>' + title + '</h2></div><div class="table-wrap" style="border:0;border-radius:0"><table class="data"><thead><tr><th class="l">Line vs us</th><th>' + what + '</th><th>We said</th><th>Happened</th></tr></thead><tbody>' + rows.filter(r => r.n).map(r => '<tr><td class="l">' + esc(r.label) + '</td><td>' + r.n.toLocaleString() + '</td><td>' + pct(r.predicted, 1) + '</td><td class="' + (r.won / r.n < r.predicted - 0.02 ? 'edge-neg' : '') + '">' + pct(r.won / r.n, 1) + '</td></tr>').join('') + '</tbody></table></div></div>';
@@ -1089,8 +1171,9 @@ function marketCard(M) {
 }
 function renderAccuracy() {
   const el = $('#panel-accuracy'), B = S.backtest, G = S.grades;
-  // ✓ / ✗ against a simple benchmark (lower is better for every number here).
-  const vs = (m, b, what) => (m === null || m === undefined || b === null || b === undefined ? '' : m < b ? `<span class="edge-pos">✓ Better than ${what}</span>` : `<span class="edge-neg">✗ Not better than ${what}</span>`);
+  // Both numbers against a benchmark, not a tick or cross: lower is better for every one here, and
+  // the gap's size matters as much as its direction.
+  const vs = (m, b, what, dp = 3) => (m === null || m === undefined || b === null || b === undefined ? '' : `<span class="${m < b ? 'edge-pos' : 'edge-neg'}">${m.toFixed(dp)}</span> vs ${b.toFixed(dp)} ${what} <span class="muted">(${m < b ? 'better' : 'not better'} by ${Math.abs(b - m).toFixed(dp)})</span>`);
   const tile = (label, value, note) => `<div class="card tile"><div class="lbl">${label}</div><div class="val">${value}</div><div class="note">${note}</div></div>`;
   const avgPred = B ? (() => { const bins = B.anytime.calibration.filter(x => x.n); const n = bins.reduce((s, x) => s + x.n, 0); return n ? bins.reduce((s, x) => s + x.predicted * x.n, 0) / n : null; })() : null;
   const strong = B?.moneyline?.byTier?.find(t => t.tier === 'strong');
@@ -1103,26 +1186,29 @@ function renderAccuracy() {
       ${tile('Favorites that won', `${G.totals.favoritesWon} <small>of ${G.totals.games}</small>`, `${pct(G.totals.favoritesWon / Math.max(1, G.totals.games), 0)} of the teams we favored won`)}
       ${tile('Goal scorers', `${G.totals.anytime.scorers} <small>vs ${G.totals.anytime.expected} expected</small>`, `Across ${G.totals.anytime.players.toLocaleString()} player-games: close numbers mean our goal chances are honest`)}
       ${tile('Goalie saves', `${G.totals.saves.mae?.toFixed(1) ?? '—'} <small>saves off</small>`, `Average miss over ${G.totals.saves.n} starts · inside our range ${pct(G.totals.saves.inRange, 0)} of the time`)}
-      ${tile('Total goals', `${G.totals.totalMae.toFixed(1)} <small>goals off</small>`, 'Average miss on the combined score')}</div>
+      ${tile('Total goals', `${G.totals.totalMae.toFixed(1)} <small>goals off</small>`, 'Average miss on the combined score')}
+      ${G.totals.market ? tile('Against the betting line', `${G.totals.market.modelLogLoss.toFixed(3)} <small>vs ${G.totals.market.marketLogLoss.toFixed(3)}</small>`, `Moneyline log loss, model vs the de-vigged line saved before each of ${G.totals.market.games} games (lower is better). The line is the hardest benchmark there is.`) : ''}</div>
       ${G.totals.byTier ? `<div class="table-wrap" style="margin-bottom:12px"><table class="data"><thead><tr><th class="l">Our moneyline lean</th><th>Games</th><th>We gave the favorite</th><th>Favorite won</th></tr></thead><tbody>${G.totals.byTier.map(t => `<tr><td class="l"><span class="mlb ${t.tier}">${esc(ML_BADGE[t.tier][1])}</span></td><td>${t.n}</td><td>${pct(t.predicted, 0)}</td><td>${pct(t.won, 0)}</td></tr>`).join('')}</tbody></table></div>` : ''}
       <div class="table-wrap"><table class="data"><thead><tr><th class="l">Game</th><th class="l">Final</th><th>Our favorite</th><th>Total goals: ours / actual</th><th>Goal scorers: actual / expected</th><th class="l">First goal</th></tr></thead><tbody>
-        ${G.games.map(x => `<tr><td class="l">${esc(x.name)} <span class="muted">${shortDate(x.date)}</span></td><td class="l">${esc(x.final)}</td><td>${x.moneyline.picked ? '<span class="tag pos">Won</span>' : '<span class="tag neg">Lost</span>'}</td><td>${x.total.model} <span class="muted">/ ${x.total.actual}</span></td><td>${x.anytime.scorers} / ${x.anytime.expected}</td><td class="l">${x.first ? `${esc(x.first.name)} <span class="muted">${x.first.p !== null ? `we gave ${pct(x.first.p, 1)}` : 'not in our lineup'}</span>` : '—'}</td></tr>`).join('')}
-      </tbody></table></div>` : G.storage && !G.storage.connected ? '' : `<div class="card state"><p>${esc(G.note || 'No graded games yet: the first appear the morning after the first saved slate.')}</p></div>`}`;
+        ${G.games.map(x => `<tr><td class="l">${esc(x.name)} <span class="muted">${shortDate(x.date)}</span></td><td class="l">${esc(x.final)}</td><td>${x.moneyline.picked ? '<span class="tag pos">✓ Won</span>' : '<span class="tag neg">✗ Lost</span>'}</td><td>${x.total.model} <span class="muted">/ ${x.total.actual}</span></td><td>${x.anytime.scorers} / ${x.anytime.expected}</td><td class="l">${x.first ? `${esc(x.first.name)} <span class="muted">${x.first.p !== null ? `we gave ${pct(x.first.p, 1)}` : 'not in our lineup'}</span>` : '—'}</td></tr>`).join('')}
+      </tbody></table></div>
+      ${G.pages > (S.gradesPage || 0) + 1 ? `<div class="toolbar" style="margin-top:8px"><button class="btn" id="gradesMore">Older games</button><span class="note">Showing ${G.games.length} of ${G.totals.games}; the totals above cover all of them.</span></div>` : ''}` : G.storage && !G.storage.connected ? '' : `<div class="card state"><p>${esc(G.note || 'No graded games yet: the first appear the morning after the first saved slate.')}</p></div>`}`;
 
   // ── Replay test: past game days re-predicted from earlier games only, then checked.
   const replay = `
-    <div class="section-head"><h2>Replay test</h2><span class="note">We re-run past game days using only what was known before each day, then check the predictions against what happened. A bigger sample than the tracked picks.</span><span style="flex:1"></span><div class="seg" id="btDays" title="Game days to replay">${[20, 40, 60].map(n => `<button data-v="${n}" aria-pressed="${S.btDays === n}">${n} days</button>`).join('')}</div><button class="btn ${B ? '' : 'primary'}" id="runBt" ${S.btLoading ? 'disabled' : ''}>${ICON.play} ${S.btLoading ? 'Running…' : B ? 'Run again' : 'Run the test'}</button></div>
+    <div class="section-head"><h2>Replay test</h2><span class="note">We re-run past game days using only what was known before each day, then check the predictions against what happened. A bigger sample than the tracked picks.${B?.savedAt || B?.generatedAt ? ` <b>Last run ${esc(new Date(B.savedAt || B.generatedAt).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }))}${B.trigger ? ` (${B.trigger === 'nightly' ? 'nightly' : 'button'})` : ''}.</b>` : ''}</span><span style="flex:1"></span><div class="seg" id="btDays" title="Game days to replay">${[20, 40, 60].map(n => `<button data-v="${n}" aria-pressed="${S.btDays === n}">${n} days</button>`).join('')}</div><button class="btn ${B ? '' : 'primary'}" id="runBt" ${S.btLoading ? 'disabled' : ''}>${ICON.play} ${S.btLoading ? 'Running…' : B ? 'Run again' : 'Run the test'}</button></div>
     ${S.btErr ? stateHtml('err', 'The replay test didn’t finish', 'Something went wrong running it. Try again in a minute.', S.btErr) : ''}
-    ${!B && !S.btErr ? '<div class="card state"><h3>Not run yet</h3><p>20 days takes about 15–30 seconds, 60 up to a minute. More days gives steadier numbers.</p></div>' : ''}
+    ${!B && !S.btErr ? '<div class="card state"><h3>No stored run yet</h3><p>The nightly job saves one once the database is connected; you can also run it now. 20 days takes about 15–30 seconds, 60 up to a minute.</p></div>' : ''}
     ${B ? `<div class="tiles">
-      ${tile('Favorites that won', pct(B.moneyline.accuracy, 0), `of ${B.games} games over ${B.days} days · ${vs(B.moneyline.logLoss.model, B.moneyline.logLoss.base, 'always picking the home team')}`)}
+      ${tile('Favorites that won', pct(B.moneyline.accuracy, 0), `of ${B.games} games over ${B.days} days · log loss ${vs(B.moneyline.logLoss.model, B.moneyline.logLoss.base, 'for the home team’s usual rate')}`)}
+      ${B.moneyline.vsMarket?.games ? tile('Against the betting line', `${B.moneyline.vsMarket.model.toFixed(3)} <small>vs ${B.moneyline.vsMarket.market.toFixed(3)}</small>`, `Moneyline log loss on ${B.moneyline.vsMarket.games} games with a line (lower is better). ${B.moneyline.vsMarket.model < B.moneyline.vsMarket.market ? 'Beating the market here is rare: treat a small sample with care.' : 'The market is ahead, as it usually is.'}`) : ''}
       ${strong && strong.n ? tile('Strong leans that won', pct(strong.won, 0), `${strong.n} games · we gave them ${pct(strong.predicted, 0)}`) : ''}
-      ${tile('Goal scorers', `${pct(B.anytime.rate, 1)} <small>vs ${pct(avgPred, 1)} predicted</small>`, `How often a player scored vs our average chance · ${vs(B.anytime.logLoss.model, B.anytime.logLoss.naive, 'going by his goals per game')}`)}
-      ${tile('Goalie saves', `${B.saves.mae.model?.toFixed(1) ?? '—'} <small>saves off</small>`, `Average miss · inside our range ${pct(B.saves.inRange, 0)} · ${vs(B.saves.mae.model, B.saves.mae.naive, 'his season average')}`)}
-      ${tile('Shots on goal', `${B.sog.mae.model?.toFixed(2) ?? '—'} <small>shots off</small>`, `Average miss per player · ${vs(B.sog.mae.model, B.sog.mae.naive, 'his season average')}`)}
-      ${tile('Total goals', `${B.totals.mae.model.toFixed(1)} <small>goals off</small>`, `Average miss · ${vs(B.totals.mae.model, B.totals.mae.base, 'the league average')}`)}
-      ${tile('Over / under 6.5', vs(B.totals.brier.over65.model, B.totals.brier.over65.base, 'the usual rate') || '—', `Games went over 6.5 ${pct(B.totals.rate.over65, 0)} of the time; our over/under chances are scored against that`)}
-      ${tile('First goal scorer', pct(B.first.inLineup, 0), `of first scorers were in our projected lineup · ${vs(B.first.logLoss.model, B.first.logLoss.uniform, 'picking at random')}`)}
+      ${tile('Goal scorers', `${pct(B.anytime.rate, 1)} <small>vs ${pct(avgPred, 1)} predicted</small>`, `${B.anytime.n.toLocaleString()} player-games · log loss ${vs(B.anytime.logLoss.model, B.anytime.logLoss.naive, 'for his shrunk season scoring rate')}`)}
+      ${tile('Goalie saves', `${B.saves.mae.model?.toFixed(1) ?? '—'} <small>saves off</small>`, `${B.saves.n} starts · inside our 80% range ${pct(B.saves.inRange, 0)} (should be about 80%) · miss ${vs(B.saves.mae.model, B.saves.mae.naive, 'for his season average', 2)}`)}
+      ${tile('Shots on goal', `${B.sog.mae.model?.toFixed(2) ?? '—'} <small>shots off</small>`, `${B.sog.n.toLocaleString()} player-games · miss ${vs(B.sog.mae.model, B.sog.mae.naive, 'for his season average', 2)}`)}
+      ${tile('Total goals', `${B.totals.mae.model.toFixed(1)} <small>goals off</small>`, `Miss ${vs(B.totals.mae.model, B.totals.mae.base, 'for the league average', 2)}`)}
+      ${tile('Over / under 6.5', `${B.totals.brier.over65.model.toFixed(3)} <small>vs ${B.totals.brier.over65.base.toFixed(3)}</small>`, `Brier score vs always using the usual rate (lower is better); games went over 6.5 ${pct(B.totals.rate.over65, 0)} of the time`)}
+      ${tile('First goal scorer', pct(B.first.inLineup, 0), `of first scorers were in our projected lineup · log loss ${vs(B.first.logLoss.model, B.first.logLoss.share ?? B.first.logLoss.uniform, B.first.logLoss.share !== undefined ? 'for each player’s share of season goals' : 'for an even split')}`)}
     </div>
     <div class="two" style="margin-top:16px;align-items:start">
       <div class="card"><div class="card-h"><h2>When we say X%, does it happen X%?</h2><span class="sub">Anytime goal: dots near the line mean our percentages are honest</span></div><div class="card-b"><div class="chart" id="calChart"></div></div></div>
@@ -1132,25 +1218,50 @@ function renderAccuracy() {
       <div class="table-wrap" style="border:0;border-radius:0"><table class="data"><thead><tr><th class="l">Lean</th><th>Games</th><th>We gave the favorite</th><th>Favorite won</th></tr></thead><tbody>
       ${B.moneyline.byTier.map(t => `<tr><td class="l"><span class="mlb ${t.tier}">${esc(ML_BADGE[t.tier][1])}</span></td><td>${t.n}</td><td>${pct(t.predicted, 0)}</td><td>${pct(t.won, 0)}</td></tr>`).join('')}
       </tbody></table></div></div>` : ''}
-    ${B?.bestPlays ? `<div class="card" style="margin-top:16px"><div class="card-h"><h2>Best plays: how each list did</h2><span class="sub">The same rules as the Best plays tab, checked over these ${B.days} days</span></div>
+    ${B?.bestPlays ? `<div class="card" style="margin-top:16px"><div class="card-h"><h2>Model picks: how each list did</h2><span class="sub">The same rules as the Model picks tab, checked over these ${B.days} days</span></div>
       <div class="table-wrap" style="border:0;border-radius:0"><table class="data"><thead><tr><th class="l">List</th><th>Plays</th><th>Hit</th><th>We predicted</th><th>Their usual rate</th></tr></thead><tbody>
-      ${Object.entries(B.bestPlays).map(([k, r]) => `<tr><td class="l">${esc({ sharp: 'Sharp plays (scored)', scorers: 'All-Star and Elite goalscorers (scored)', saves: 'All-Star and Elite saves picks', sog: 'All-Star and Elite shots picks', risks: 'Risks & fades (scored; lower is better)' }[k] || k)}</td><td>${r.n.toLocaleString()}</td><td>${r.n ? pct(r.hit, 0) : '—'}</td><td>${r.n ? pct(r.model, 0) : '—'}</td><td class="muted">${r.n && r.base != null ? pct(r.base, 0) : '—'}</td></tr>`).join('')}
-      </tbody></table></div><div class="card-b note">For goalscorers, “their usual rate” is how often each player scores based on his season so far. Our goalscorer lists should beat it, and Risks &amp; fades should fall short of it. Saves and shots picks are checked against a line at the player’s season average. 20 days is a small sample; 60 is steadier.</div></div>` : ''}
+      ${Object.entries(B.bestPlays).map(([k, r]) => `<tr><td class="l">${esc({ sharp: 'Converging plays (scored)', scorers: 'All-Star and Elite goalscorers (scored)', saves: 'All-Star and Elite saves picks (vs estimated line)', sog: 'All-Star and Elite shots picks (vs estimated line)', risks: 'Risks & fades (scored; lower is better)' }[k] || k)}</td><td>${r.n.toLocaleString()}</td><td>${r.n ? pct(r.hit, 0) : '—'}</td><td>${r.n ? pct(r.model, 0) : '—'}</td><td class="muted">${r.n && r.base != null ? pct(r.base, 0) : '—'}</td></tr>`).join('')}
+      </tbody></table></div><div class="card-b note">For goalscorers, “their usual rate” is how often each player scores based on his season so far. A list earns its place only if it beats both that and its own prediction; Risks &amp; fades should fall short of it. Saves and shots picks are graded against an <b>estimated</b> line (the player’s season average), not a real book line, so their hit rates aren’t a betting record. 20 days is a small sample; 60 is steadier.</div></div>` : ''}
     ${B?.market?.games ? marketCard(B.market) : ""}
     ${B?.tags ? `<div class="card" style="margin-top:16px"><div class="card-h"><h2>Do the tags help?</h2><span class="sub">Anytime goal: how often tagged players scored vs the chance we gave them</span></div>
       <div class="table-wrap" style="border:0;border-radius:0"><table class="data"><thead><tr><th class="l">Tag</th><th>Player-games</th><th>We predicted</th><th>Scored</th><th>Difference</th></tr></thead><tbody>
       ${B.tags.map(t => `<tr><td class="l">${t.badge === 'No tag' ? 'No tag' : tierChip(t.badge)}</td><td>${t.n.toLocaleString()}</td><td>${pct(t.predicted, 0)}</td><td>${pct(t.actual, 0)}</td><td class="${t.actual !== null && t.predicted !== null ? (t.actual > t.predicted ? 'edge-pos' : 'edge-neg') : ''}">${t.actual !== null && t.predicted !== null ? signed((t.actual - t.predicted) * 100, 1) + ' pts' : '—'}</td></tr>`).join('')}
       ${B.bySignals.map(t => `<tr><td class="l muted">${t.signals} signal${t.signals === '1' ? '' : 's'} firing</td><td>${t.n.toLocaleString()}</td><td>${pct(t.predicted, 0)}</td><td>${pct(t.actual, 0)}</td><td class="${t.actual !== null && t.predicted !== null ? (t.actual > t.predicted ? 'edge-pos' : 'edge-neg') : ''}">${t.actual !== null && t.predicted !== null ? signed((t.actual - t.predicted) * 100, 1) + ' pts' : '—'}</td></tr>`).join('')}
       </tbody></table></div><div class="card-b note">Tagged players should score more often, since tags go to players with good chances. A tag really helps when its players score even more often than we predicted. Small groups swing a lot.</div></div>` : ''}
-    ${B?.moneyline?.calibration ? calibrationCard(B) : ''}`;
+    ${B?.moneyline?.calibration ? calibrationCard(B) : ''}
+    ${effectsCard()}`;
 
   el.innerHTML = tracked + replay;
   if (B && $('#calChart')) drawCalibration($('#calChart'), B.anytime.calibration);
 }
 
 // ── Drawer: player and game breakdowns ──────────────────────────────────────────────────
-function openDrawer(h, b) { $('#drawerH').innerHTML = h + `<button class="icon-btn" id="drawerClose" aria-label="Close">${ICON.close}</button>`; $('#drawerB').innerHTML = b; $('#drawer').classList.add('open'); $('#scrim').classList.add('open'); $('#drawer').setAttribute('aria-hidden', 'false'); }
-function closeDrawer() { $('#drawer').classList.remove('open'); $('#scrim').classList.remove('open'); $('#drawer').setAttribute('aria-hidden', 'true'); }
+// The drawer is a modal dialog: focus moves into it and stays there, returns to where it came from on
+// close, and opening it adds a history entry with the player or game in the URL, so Back closes it
+// and the link can be shared.
+let drawerReturn = null, drawerUrl = false, fromPop = false;
+function openDrawer(h, b, urlParams = null) {
+  const wasOpen = $('#drawer').classList.contains('open');
+  if (!wasOpen) drawerReturn = document.activeElement;
+  $('#drawerH').innerHTML = h.replace('<h2>', '<h2 id="drawerTitle">') + `<button class="icon-btn" id="drawerClose" aria-label="Close">${ICON.close}</button>`; $('#drawerB').innerHTML = b;
+  $('#drawer').classList.add('open'); $('#scrim').classList.add('open'); $('#drawer').setAttribute('aria-hidden', 'false');
+  document.querySelector('main').setAttribute('inert', ''); document.querySelector('.topbar').setAttribute('inert', ''); document.querySelector('.tabs').setAttribute('inert', '');
+  if (urlParams && fromPop) { drawerUrl = true; } else if (urlParams) { const u = new URL(location.href); for (const k of ['player', 'game']) u.searchParams.delete(k); for (const [k, v] of Object.entries(urlParams)) u.searchParams.set(k, v); if (wasOpen && drawerUrl) history.replaceState({ drawer: true }, '', u); else { history.pushState({ drawer: true }, '', u); drawerUrl = true; } }
+  setTimeout(() => $('#drawerClose')?.focus(), 30);
+}
+function closeDrawer({ fromHistory = false } = {}) {
+  if (!$('#drawer').classList.contains('open')) return;
+  $('#drawer').classList.remove('open'); $('#scrim').classList.remove('open'); $('#drawer').setAttribute('aria-hidden', 'true');
+  for (const sel of ['main', '.topbar', '.tabs']) document.querySelector(sel).removeAttribute('inert');
+  if (drawerUrl && !fromHistory) { drawerUrl = false; history.back(); } else drawerUrl = false;
+  if (drawerReturn && document.contains(drawerReturn)) drawerReturn.focus(); drawerReturn = null;
+}
+$('#drawer').addEventListener('keydown', e => {
+  if (e.key !== 'Tab') return;
+  const f = [...$('#drawer').querySelectorAll('button,a[href],input,select,textarea,[tabindex]:not([tabindex="-1"])')].filter(x => !x.disabled && x.offsetParent !== null);
+  if (!f.length) return;
+  if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f.at(-1).focus(); } else if (!e.shiftKey && document.activeElement === f.at(-1)) { e.preventDefault(); f[0].focus(); }
+});
 function barsSvg(rows, key, mark, label) {
   const r = rows.slice(0, 10).reverse(); if (!r.length) return '<p class="note">No games yet.</p>';
   const w = 420, h = 120, mb = 22, mt = 14, bw = (w - 16) / r.length, max = Math.max(4, ...r.map(x => x[key]));
@@ -1158,24 +1269,27 @@ function barsSvg(rows, key, mark, label) {
 }
 function openPlayer(id, gid) {
   const g = gameById(gid), p = g?.players.find(x => x.id === Number(id)); if (!p) return;
+  const pre = g.state === 'pre', leg = (market, extra = {}) => ({ game: g.id, market, player: p.id, ...extra });
+  const mk = (label, prob, l) => `<div><div class="l">${label}</div><div class="v">${pct(prob)}</div><div class="l">fair ${esc(fair(prob))} · ${esc(playable(prob))}</div>${pre ? `<div style="margin-top:6px;display:flex;gap:6px;align-items:center">${priceInput(l, prob)}${slipBtn(l, `Add ${label} to slip`)}</div>` : ''}</div>`;
   const raw = p.season.shots ? p.season.goals / p.season.shots : null;
   const tonight = goalsBy(g, p.id);
   openDrawer(`<div><h2>${esc(p.name)}${goalTag(g, p.id)}</h2><div class="sub">${esc(p.team)} · ${p.pos === 'D' ? 'Defense' : 'Forward'} · vs ${esc(p.opp)} · ${esc(puck(g.start))}${g.state === 'in' ? ' · live' : g.state === 'post' ? ' · final' : ''}</div></div>`,
     `${tonight.length ? `<div class="callout" style="margin:0;border-left-color:var(--pos)">Scored tonight: ${tonight.map(x => `${goalTime(x)}${x.emptyNet ? ' (empty net)' : ''}`).join(', ')}. The chances below are his pre-game numbers.</div>` : ''}${p.pregame === false ? '<div class="callout" style="margin:0">Not in the pre-game lineup projection (a late addition), so these numbers were calculated after puck drop.</div>' : ''}
-    <div><div class="section-t">Signals · firing ${p.count} of 8 ${tierChip(p.badge)}</div><div class="sig-list">${[...p.signals.filter(x => x.on), ...p.signals.filter(x => !x.on)].map(x => `<div class="sig-row ${x.on ? '' : 'off'}"><span>${x.icon}</span><span><b>${esc(x.label)}</b>${x.on ? '' : ' · not firing'} <span class="d">${esc(x.detail)}</span></span></div>`).join('')}</div></div>
-    <div class="kv2"><div><div class="l">Anytime goal</div><div class="v">${pct(p.anytime)}</div><div class="l">fair ${esc(p.fair.anytime)}</div></div><div><div class="l">First goal</div><div class="v">${pct(p.first)}</div><div class="l">fair ${fair(p.first)}</div></div><div><div class="l">2+ goals</div><div class="v">${pct(p.twoPlus)}</div><div class="l">fair ${fair(p.twoPlus)}</div></div></div>
-    <div><div class="section-t">Shots on goal · ${p.shots.mean} expected</div><div class="kv2">${['1.5', '2.5', '3.5'].map(l => `<div><div class="l">Over ${l}</div><div class="v">${pct(p.shots.over[l], 0)}</div><div class="l">fair ${fair(p.shots.over[l])}</div></div>`).join('')}</div></div>
+    ${pre ? `<div class="note">Not playing tonight? <button class="lu-btn" data-lineup-out="${p.id}" data-team="${esc(p.team)}">Mark him out</button> re-simulates this game for you only (not shared, not graded).</div>` : ''}
+    <div><div class="section-t">Chances tonight · fair price · playable at (fair + ${Math.round(S.margin * 100)}%)</div><div class="kv2">${mk('Anytime goal', p.anytime, leg('goal'))}${mk('First goal', p.first, leg('first'))}${mk('2+ goals', p.twoPlus, leg('goal2'))}</div></div>
+    <div><div class="section-t">Signals · firing ${p.count} of 8 ${tierChip(p.badge)} <span class="muted">· an explanation of the chance, not a separate edge</span></div><div class="sig-list">${[...p.signals.filter(x => x.on), ...p.signals.filter(x => !x.on)].map(x => `<div class="sig-row ${x.on ? '' : 'off'}"><span>${x.icon}</span><span><b>${esc(x.label)}</b>${x.on ? '' : ' · not firing'} <span class="d">${esc(x.detail)}</span></span></div>`).join('')}</div></div>
+    <div><div class="section-t">Shots on goal · ${p.shots.mean} expected</div><div class="kv2">${['1.5', '2.5', '3.5'].map(l => mk(`Over ${l}`, p.shots.over[l], leg('sog', { side: 'over', line: Number(l) }))).join('')}</div></div>
     <div><div class="section-t">How the number is built</div><table class="data"><tbody>
       <tr><td class="l">Ice time (recent weighting)</td><td>${p.toi} min</td></tr>
       <tr><td class="l">Shots per 60 (regressed to ${p.pos === 'D' ? 'D' : 'F'} rate)</td><td>${p.shots60}</td></tr>
       <tr><td class="l">Expected shots before matchup</td><td>${p.expShots}</td></tr>
-      <tr><td class="l">Shooting % used</td><td>${(p.shPct * 100).toFixed(1)}%</td></tr>
+      <tr><td class="l">Shooting % used (pulled toward the ${p.pos === 'D' ? 'D' : 'F'} average by ${S.data?.league?.prior?.shPctShots?.[p.pos === 'D' ? 'D' : 'F'] ?? 70} shots’ worth)</td><td>${(p.shPct * 100).toFixed(1)}%</td></tr>
       <tr><td class="l">Raw shooting % this season</td><td>${raw !== null ? `${(raw * 100).toFixed(1)}% (${p.season.goals}/${p.season.shots})` : '—'}</td></tr>
       <tr><td class="l">Opposing goalie</td><td>${p.oppGoalie ? `${esc(p.oppGoalie.name)} ${(p.oppGoalie.svPct * 100).toFixed(1)}%` : '—'}</td></tr>
       <tr><td class="l">Opponent shots allowed</td><td>${(p.team === g.home.abbrev ? g.away : g.home).saPerGame}/game</td></tr>
     </tbody></table></div>
     <div><div class="section-t">Season</div><div class="kv2"><div><div class="l">Games</div><div class="v">${p.season.gp}</div></div><div><div class="l">Goals</div><div class="v">${p.season.goals}</div></div><div><div class="l">Shots/game</div><div class="v">${p.season.gp ? (p.season.shots / p.season.gp).toFixed(1) : '—'}</div></div></div></div>
-    <div><div class="section-t">Last 10 · shots per game (green = scored, gray = no goal)</div>${barsSvg(p.last10, 'shots', x => x.goals > 0, 'Shots, last 10')}</div>`);
+    <div><div class="section-t">Last 10 · shots per game (green = scored, gray = no goal)</div>${barsSvg(p.last10, 'shots', x => x.goals > 0, 'Shots, last 10')}</div>`, { player: p.id, game: g.id });
 }
 function distSvg(dist, line) {
   const w = 420, h = 130, mb = 22, mt = 16, bw = (w - 16) / dist.length, max = Math.max(...dist);
@@ -1187,7 +1301,8 @@ function openGame(id) {
   // One full-width list per team: name on one line, then anytime, first goal, shots.
   const top = side => `<div><div class="section-t">${esc(g[side].abbrev)} likeliest scorers</div><table class="data"><colgroup><col style="width:42%"><col style="width:22%"><col style="width:17%"><col style="width:19%"></colgroup>
     <thead><tr><th class="l">Player</th><th>Anytime</th><th>First</th><th>Shots</th></tr></thead><tbody>
-    ${g.players.filter(p => p.team === g[side].abbrev).slice(0, 5).map(p => `<tr><td class="l click nm" data-player="${p.id}" data-game="${esc(g.id)}" title="${esc(p.name)}"><span class="pname">${p.badge ? teamLogo(p.team, 16) : ''}${esc(p.name)}</span>${goalTag(g, p.id)}</td><td>${pct(p.anytime, 0)}</td><td>${pct(p.first, 0)}</td><td>${p.shots.mean}</td></tr>`).join('')}</tbody></table></div>`;
+    ${g.players.filter(p => p.team === g[side].abbrev).slice(0, 5).map(p => `<tr><td class="l click nm" data-player="${p.id}" data-game="${esc(g.id)}" title="${esc(p.name)}" role="button" tabindex="0"><span class="pname">${p.badge ? teamLogo(p.team, 16) : ''}${esc(p.name)}</span>${goalTag(g, p.id)}</td><td>${pct(p.anytime, 0)}</td><td>${pct(p.first, 0)}</td><td>${p.shots.mean}</td></tr>`).join('')}</tbody></table></div>`;
+  const myChanges = Object.entries(localLineups()).filter(([t]) => t === g.home.abbrev || t === g.away.abbrev);
   openDrawer(`<div><h2>${esc(g.away.name)} @ ${esc(g.home.name)}</h2><div class="sub">${esc(puck(g.start))}${g.venue ? ` · ${esc(g.venue)}` : ''}${g.playoff ? ' · Playoffs' : ''}</div></div>`,
     `<div class="kv2"><div><div class="l">${esc(g.away.abbrev)} win</div><div class="v">${pct(g.pAway)}</div><div class="l">fair ${esc(g.fair.away)}</div></div><div><div class="l">${esc(g.home.abbrev)} win</div><div class="v">${pct(g.pHome)}</div><div class="l">fair ${esc(g.fair.home)}</div></div><div><div class="l">Overtime</div><div class="v">${pct(g.overtime, 0)}</div><div class="l">shootout ${pct(g.shootout, 0)}</div></div></div>
     <div><div class="section-t">Goals in the game · model ${g.total.mean}</div>${distSvg(g.total.dist, g.leans.total.line)}<p class="note">Over 5.5 ${pct(g.total.over['5.5'], 0)} · over 6.5 ${pct(g.total.over['6.5'], 0)} · 1st period over 0.5 ${pct(g.firstPeriod.over['0.5'], 0)}</p></div>
@@ -1198,7 +1313,8 @@ function openGame(id) {
     </tbody></table></div>
     ${top('away')}${top('home')}
     ${missedSection(g)}
-    <p class="note">${esc(g.lineupSource)}.${g.state !== 'pre' ? (g.frozen ? ' Chances and leans are the pre-game projection, frozen at puck drop.' : ' No pre-game projection was saved for this game, so these numbers were recalculated after it started.') : ''}</p>`);
+    ${myChanges.length ? `<div class="callout" style="margin:0">Your lineup changes for this game are applied (for you only). <button class="lu-btn" data-lineup-reset="${esc(g.id)}">Undo them</button></div>` : ''}
+    <p class="note">${esc(g.lineupSource)}.${g.state !== 'pre' ? (g.frozen ? ' Chances and leans are the pre-game projection, frozen at puck drop.' : ' No pre-game projection was saved for this game, so these numbers were recalculated after it started.') : ''}</p>`, { game: g.id });
 }
 
 // ── Live ────────────────────────────────────────────────────────────────────────────────
@@ -1206,9 +1322,14 @@ let liveTimer = null;
 async function pollLive() {
   try {
     const { games } = await api('/api/live');
-    for (const lg of games) { const g = gameById(lg.id); if (!g) continue; g.state = lg.state; g.home.score = lg.home.score; g.away.score = lg.away.score; g.live = { ...(g.live || {}), period: lg.period, clock: lg.clock, intermission: lg.intermission, goals: lg.goals }; }
+    let changed = false;
+    for (const lg of games) { const g = gameById(lg.id); if (!g) continue; if (g.state !== lg.state) changed = true; g.state = lg.state; g.home.score = lg.home.score; g.away.score = lg.away.score; g.live = { ...(g.live || {}), period: lg.period, clock: lg.clock, intermission: lg.intermission, goals: lg.goals }; }
+    if (S.liveStale) { S.liveStale = false; renderHero(); }
+    // A game started or finished: reload the slate so frozen numbers, confirmed lineups and hit / miss
+    // marks appear without a manual refresh.
+    if (changed) return load();
     if (['today', 'scorers', 'plays'].includes(S.tab)) RENDER[S.tab](); renderHero();
-  } catch { /* keep last */ }
+  } catch { if (!S.liveStale) { S.liveStale = true; renderHero(); } }
 }
 // Poll while the day isn't over: from five minutes before the first puck drop until every game is
 // final, so a page opened in the afternoon starts flagging goals on its own.
@@ -1217,7 +1338,9 @@ function setLive() {
   const games = S.data?.games || [];
   if (!games.some(g => g.state !== 'post')) return;
   const firstStart = Math.min(...games.map(g => Date.parse(g.start) || Infinity));
-  const tick = () => { const open = (S.data?.games || []).some(g => g.state !== 'post'); if (!open) { clearInterval(liveTimer); liveTimer = null; return; } if (Date.now() >= firstStart - 5 * 60000) pollLive(); };
+  // Before the first puck drop the slate itself is reloaded every five minutes (lineups, starters).
+  let n = 0;
+  const tick = () => { const open = (S.data?.games || []).some(g => g.state !== 'post'); if (!open) { clearInterval(liveTimer); liveTimer = null; return; } if (Date.now() >= firstStart - 5 * 60000) pollLive(); else if (++n % 10 === 0) load(); };
   liveTimer = setInterval(tick, 30000);
   if (games.some(g => g.state === 'in')) pollLive();
 }
@@ -1225,19 +1348,55 @@ function setLive() {
 // ── Wiring ──────────────────────────────────────────────────────────────────────────────
 const RENDER = { today: renderToday, scorers: renderScorers, saves: renderSaves, plays: renderPlays, sgp: renderSgp, accuracy: renderAccuracy };
 function renderAll() { renderHero(); RENDER[S.tab](); }
-function setTab(tab) {
+// Each tab change is a history entry, so Back moves between tabs; arrow keys move along the tab list.
+function setTab(tab, { push = true } = {}) {
+  const changed = tab !== S.tab;
   S.tab = RENDER[tab] ? tab : 'today';
-  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === S.tab)));
+  document.querySelectorAll('.tab').forEach(b => { const on = b.dataset.tab === S.tab; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
   document.querySelectorAll('.panel').forEach(p => { p.hidden = p.id !== `panel-${S.tab}`; });
-  const u = new URL(location.href); u.searchParams.set('tab', S.tab); history.replaceState(null, '', u);
+  const u = new URL(location.href); u.searchParams.set('tab', S.tab);
+  if (push && changed) history.pushState({ tab: S.tab }, '', u); else history.replaceState(history.state, '', u);
   RENDER[S.tab]();
   if (['plays', 'sgp'].includes(S.tab)) loadPlays();
-  if (S.tab === 'accuracy' && !S.grades) loadGrades();
+  if (S.tab === 'accuracy') { if (!S.grades) loadGrades(); loadLatestBacktest(); }
 }
 document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
+$('.tabs [role="tablist"]').addEventListener('keydown', e => {
+  const tabs = [...document.querySelectorAll('.tab')], i = tabs.indexOf(document.activeElement); if (i < 0) return;
+  const j = e.key === 'ArrowRight' ? (i + 1) % tabs.length : e.key === 'ArrowLeft' ? (i - 1 + tabs.length) % tabs.length : e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : -1;
+  if (j < 0) return; e.preventDefault(); tabs[j].focus(); setTab(tabs[j].dataset.tab);
+});
+addEventListener('popstate', () => {
+  const u = new URL(location.href);
+  if (!u.searchParams.get('player') && !u.searchParams.get('game')) closeDrawer({ fromHistory: true });
+  else { fromPop = true; if (u.searchParams.get('player')) openPlayer(u.searchParams.get('player'), u.searchParams.get('game')); else openGame(u.searchParams.get('game')); fromPop = false; }
+  const t = u.searchParams.get('tab') || 'today'; if (t !== S.tab) setTab(t, { push: false });
+});
+// Lineup changes for this browser: mark a player in or out, or undo a game's changes.
+function changeLineup(team, id, how) {
+  const L = localLineups(), x = L[team] || { ins: [], outs: [] };
+  x.ins = (x.ins || []).filter(i => i !== id); x.outs = (x.outs || []).filter(i => i !== id);
+  if (how === 'in') x.ins.push(id); if (how === 'out') x.outs.push(id);
+  if (x.ins.length || x.outs.length) L[team] = x; else delete L[team];
+  store.set(lineupsKey(), JSON.stringify(L)); closeDrawer(); load(true);
+}
 document.addEventListener('click', e => {
   const t = e.target;
   if (t.closest('#drawerClose') || t === $('#scrim')) return closeDrawer();
+  // Controls inside clickable cards act on their own, without opening the card.
+  const sl = t.closest('[data-slip]'); if (sl) { e.stopPropagation(); toggleSlip(JSON.parse(sl.dataset.slip)); sl.outerHTML = slipBtn(JSON.parse(sl.dataset.slip)); return; }
+  if (t.closest('input,select,textarea,label')) return;
+  if (t.closest('[data-dismiss]')) return notify('');
+  const lin = t.closest('[data-lineup-in]'); if (lin) return changeLineup(lin.dataset.team, Number(lin.dataset.lineupIn), 'in');
+  const lout = t.closest('[data-lineup-out]'); if (lout) return changeLineup(lout.dataset.team, Number(lout.dataset.lineupOut), 'out');
+  const lres = t.closest('[data-lineup-reset]'); if (lres) { const g = gameById(lres.dataset.lineupReset), L = localLineups(); delete L[g.home.abbrev]; delete L[g.away.abbrev]; store.set(lineupsKey(), JSON.stringify(L)); closeDrawer(); return load(true); }
+  if (t.closest('#resetMine')) { store.set(lineupsKey(), '{}'); store.set(picksKey(), '{}'); return load(true); }
+  if (t.closest('#trayOpen')) return setTab('sgp');
+  if (t.closest('#trayClear') || t.closest('#slipClear')) { S.slip = []; saveSlip(); S.slipRes = null; renderTray(); return S.tab === 'sgp' ? renderSgp() : null; }
+  if (t.closest('#gradesMore')) return loadGrades((S.gradesPage || 0) + 1);
+  if (t.closest('#fxTest')) return testEffect();
+  const ss = t.closest('[data-ssort]'); if (ss) { S.scorerSort = ss.dataset.ssort; return renderScorers(); }
+  if (t.closest('#scNotStarted')) { S.scorerNotStarted = !S.scorerNotStarted; return renderScorers(); }
   const pl = t.closest('[data-player]'); if (pl) return openPlayer(pl.dataset.player, pl.dataset.game);
   const gm = t.closest('.game[data-game]'); if (gm) return openGame(gm.dataset.game);
   const og = t.closest('[data-open-game]'); if (og) return openGame(og.dataset.openGame);
@@ -1250,35 +1409,54 @@ document.addEventListener('click', e => {
   if (t.closest('#scScored')) { S.scorerScored = !S.scorerScored; return renderScorers(); }
   if (t.closest('#scTagged')) { S.scorerTagged = !S.scorerTagged; return renderScorers(); }
   const so = t.closest('#scSort button'); if (so) { S.scorerSort = so.dataset.v; return renderScorers(); }
-  if (t.closest('#slAdd')) { const g = gameById(S.slipGame), o = marketOptions(g)[Number($('#slMarket').value)]; if (o) { S.slip.push({ game: g.id, ...o[0] }); priceSlip(); } return; }
-  const rm = t.closest('[data-rm]'); if (rm) { S.slip.splice(Number(rm.dataset.rm), 1); return priceSlip(); }
+  if (t.closest('#slAdd')) { const g = gameById(S.slipGame), o = marketOptions(g)[Number($('#slMarket').value)]; if (o) { const l = { game: g.id, ...o[0] }; if (!inSlip(l)) { S.slip.push(l); saveSlip(); } priceSlip(); } return; }
+  const rm = t.closest('[data-rm]'); if (rm) { S.slip.splice(Number(rm.dataset.rm), 1); saveSlip(); return priceSlip(); }
 });
 document.addEventListener('change', e => {
   const t = e.target;
   if (t.id === 'scMode') { S.scorerMode = t.value; const u = new URL(location.href); u.searchParams.set('market', S.scorerMode); history.replaceState(null, '', u); renderScorers(); }
   if (t.id === 'scGame') { S.scorerGame = t.value; renderScorers(); }
+  if (t.id === 'scTeam') { S.scorerTeam = t.value; renderScorers(); }
+  if (t.id === 'marginSel') { S.margin = Number(t.value); store.set('nhlprob-margin', t.value); renderAll(); }
+  if (t.id === 'sgpPrice') { S.sgpPrice = t.value; store.set(`nhlprob-sgp-${dayKey()}`, t.value); renderSgp(); }
+  // An inline price: saved per date, re-shown everywhere that leg appears, and sent to the server as
+  // a book line (so the value lists use it).
+  if (t.dataset.pkey) { const v = t.value.trim(); if (v) S.prices[t.dataset.pkey] = v; else delete S.prices[t.dataset.pkey]; savePrices(); if (v && !toDecimal(v)) notify(`Couldn’t read the price “${v}”: use +150, 150, -110, EVEN or 2.50.`); else notify(''); RENDER[S.tab](); if (S.plays) loadPlays(true); return; }
   if (t.id === 'slGame') { S.slipGame = t.value; renderSgp(); }
   if (t.dataset.starter) { const o = t.selectedOptions[0]; setStarterPick(t.dataset.starter, t.value ? Number(t.value) : null, o?.dataset.name || null); return; }
-  if (t.dataset.price !== undefined) { S.slip[Number(t.dataset.price)].price = t.value; priceSlip(); }
 });
 document.addEventListener('input', e => { if (e.target.id === 'scQ') { S.scorerQ = e.target.value; clearTimeout(S._qT); S._qT = setTimeout(() => { renderScorers(); const q = $('#scQ'); q.focus(); q.setSelectionRange(q.value.length, q.value.length); }, 180); } });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { if (tip.classList.contains('on')) hideTip(); return closeDrawer(); }
+  // Clickable cards and rows answer Enter and Space like buttons.
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[role="button"]:not(button)')) { e.preventDefault(); e.target.click(); }
+});
 addEventListener('resize', () => { if (S.tab === 'accuracy' && S.backtest) renderAccuracy(); });
-$('#dateInput').addEventListener('change', e => { S.date = e.target.value; const u = new URL(location.href); if (S.date) u.searchParams.set('date', S.date); else u.searchParams.delete('date'); history.replaceState(null, '', u); S.data = null; S.plays = null; S.playsKey = null; S.slip = []; S.slipRes = null; renderAll(); load(); });
+function goDate(d) { S.date = d || ''; $('#dateInput').value = S.date || $('#dateInput').value; const u = new URL(location.href); if (S.date) u.searchParams.set('date', S.date); else u.searchParams.delete('date'); history.replaceState(history.state, '', u); S.data = null; S.plays = null; S.playsKey = null; S.slipRes = null; loadDay(); renderTray(); renderAll(); load(); }
+const shiftDay = (d, n) => new Date(Date.parse(`${d}T12:00:00Z`) + n * 864e5).toISOString().slice(0, 10);
+$('#dateInput').addEventListener('change', e => goDate(e.target.value));
+$('#dayPrev').addEventListener('click', () => goDate(shiftDay(S.data?.date || $('#dateInput').value, -1)));
+$('#dayNext').addEventListener('click', () => goDate(shiftDay(S.data?.date || $('#dateInput').value, 1)));
+$('#dayToday').addEventListener('click', () => goDate(''));
 $('#refresh').addEventListener('click', () => load(true));
 
 async function load(force = false) {
   $('#refresh').classList.add('spin');
   // force: skip the CDN's copy (a starter pick just changed the slate).
+  const first = !S.data;
   try { S.data = await api('/api/slate', { fresh: force }); keepLock(S.data); S.err = null; if (!S.date) $('#dateInput').value = S.data.date; } catch (err) { S.err = err.message; }
   $('#refresh').classList.remove('spin');
   if (force) { S.plays = null; S.playsKey = null; }
-  renderAll(); setLive();
-  if (['plays', 'sgp', 'scorers', 'saves'].includes(S.tab) || S.book) loadPlays(force);
+  if (first && S.data) loadDay();
+  renderAll(); setLive(); renderTray(); priceSlip();
+  if (['plays', 'sgp', 'scorers', 'saves'].includes(S.tab) || S.book || Object.keys(S.prices).length) loadPlays(force);
+  // A shared link to a player or game opens its breakdown.
+  if (first && S.data) { const u = new URL(location.href), pl = u.searchParams.get('player'), gm = u.searchParams.get('game'); if (pl && gm) { drawerUrl = true; openPlayer(pl, gm); } else if (gm) { drawerUrl = true; openGame(gm); } }
 }
 S.book = store.get('nhlprob-book') || '';
+S.margin = Number(store.get('nhlprob-margin') ?? 0.05); if (!Number.isFinite(S.margin)) S.margin = 0.05; $('#marginSel').value = String(S.margin);
 if (S.date) $('#dateInput').value = S.date;
-setTab(S.tab);
+setTab(S.tab, { push: false });
 load();
 </script>
 </body>

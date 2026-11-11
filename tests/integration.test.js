@@ -34,12 +34,12 @@ test('slate: every game simulated, probabilities consistent, best play', async (
   }
   const avg = body.games.reduce((s, g) => s + g.total.mean, 0) / body.games.length;
   assert.ok(Math.abs(avg - body.league.goalsPerGame) < 0.5, `slate total ${avg} vs league ${body.league.goalsPerGame}`);
-  // Every skater carries eight signals; the day's pick is the strongest tag, then the highest chance.
+  // Every skater carries eight signals; the day's pick is the highest chance (tags only break ties).
   const rank = { Elite: 3, 'All-Star': 2, Value: 1 };
   const everyone = body.games.flatMap(g => g.players);
   assert.ok(everyone.every(p => p.signals.length === 8 && p.count === p.signals.filter(s => s.on).length));
   assert.ok(everyone.every(p => !p.badge || (p.count >= 4 && p.anytime >= 0.15)));
-  const top = everyone.sort((a, b) => (rank[b.badge] || 0) - (rank[a.badge] || 0) || b.anytime - a.anytime)[0];
+  const top = everyone.sort((a, b) => b.anytime - a.anytime || (rank[b.badge] || 0) - (rank[a.badge] || 0))[0];
   assert.equal(body.best.playerId, top.id);
   assert.equal(body.best.badge, top.badge);
   assert.equal(body.snapshot.saved, 0);
@@ -225,4 +225,28 @@ test('market (ESPN lines): read only as flags; the simulation and leans never mo
   const plays = (await call('plays', { body: { book: '' } })).body;
   const all = [...plays.sharp.sharp, ...plays.sharp.best, ...plays.sharp.risks].filter(x => x.game === first.id && x.kind === 'goal');
   for (const x of all) if (first.market.goalsGap[x.team === first.home.abbrev ? 'home' : 'away'] >= 0.4) assert.ok(x.marketWarn, `${x.name} warned`);
+});
+
+test('lineups: a viewer marking a player out re-simulates for them only, and nothing is saved', async () => {
+  const base = (await call('slate')).body, g = base.games[0], p = g.players[0];
+  const mine = (await call('slate', { query: { lineups: `${p.team}:-${p.id}` } })).body;
+  const g2 = mine.games.find(x => x.id === g.id);
+  assert.ok(!g2.players.some(x => x.id === p.id), 'marked-out player is gone');
+  assert.equal(mine.personal, true);
+  assert.equal(mine.snapshot.saved, 0);
+  // His teammates pick up the chances he leaves; the shared slate is untouched.
+  const team = ps => ps.filter(x => x.team === p.team && x.id !== p.id).reduce((s, x) => s + x.anytime, 0);
+  assert.ok(team(g2.players) > team(g.players));
+  assert.ok((await call('slate')).body.games[0].players.some(x => x.id === p.id));
+  // The parser ignores junk.
+  const { parseLineups } = require('../lib/slate');
+  assert.equal(parseLineups('bad;TOR:x,+12;MTL:-5').size, 2);
+  assert.deepEqual([...parseLineups('TOR:x,+12').get('TOR').ins], [12]);
+});
+
+test('freshness: the slate says what the history runs through', async () => {
+  const body = (await call('slate')).body;
+  assert.ok(body.freshness.latest && body.freshness.latest < body.date);
+  assert.equal(body.freshness.stale, false);
+  assert.equal(body.freshness.today, true);
 });

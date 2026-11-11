@@ -134,13 +134,21 @@ test('calibration: fit recovers a known stretch; re-weighted games stay consiste
   const { calibrate, stretch } = require('../lib/calibration');
   const { calibrateWins } = require('../lib/simulator');
   const { makeRng } = require('../lib/rng');
-  // Games whose true win chance is the model's stretched by 1.6: the fit should land near 1.6.
-  const rng = makeRng(9), rows = [];
-  for (let i = 0; i < 4000; i++) { const p = 0.35 + 0.3 * rng.uniform(); rows.push({ p, y: rng.uniform() < stretch(p, 1.6) ? 1 : 0, date: `2026-${String(1 + (i % 9)).padStart(2, '0')}-01` }); }
-  const c = calibrate(rows);
-  assert.ok(Math.abs(c.kFit - 1.6) <= 0.15, `fitted ${c.kFit}`);
+  // Games whose true win chance is the model's stretched by 1.25: the fit should land near 1.25.
+  const rng = makeRng(9), mk = (k, n) => { const rows = []; for (let i = 0; i < n; i++) { const p = 0.3 + 0.4 * rng.uniform(); rows.push({ p, y: rng.uniform() < stretch(p, k) ? 1 : 0, date: `2026-${String(1 + (i % 9)).padStart(2, '0')}-01` }); } return rows; };
+  const c = calibrate(mk(1.25, 6000));
+  assert.ok(Math.abs(c.kFit - 1.25) <= 0.1, `fitted ${c.kFit}`);
   assert.ok(c.kApplied > 1 && c.kApplied < c.kFit, 'applied is shrunk toward 1');
   assert.ok(c.check.calibrated < c.check.raw, 'helps on held-out games when the stretch is real');
+  assert.ok(c.passed && c.use === c.kApplied, 'a stretch that passes its held-out check is used');
+  assert.ok(c.range.lo <= c.kFit && c.kFit <= c.range.hi, 'the bootstrap range brackets the fit');
+  // The search is capped at 1.3, however strong the evidence looks.
+  assert.ok(calibrate(mk(2.0, 3000)).kFit <= 1.3);
+  // A model that's already calibrated: whatever stretch the noise suggests must not be applied
+  // unless it beats the held-out games by the minimum margin.
+  const none = calibrate(mk(1, 400));
+  assert.ok(none.use === 1 || none.passed, 'an unproven stretch is never used');
+  assert.ok(none.passed || /didn't improve/.test(none.note));
   // Re-weighting a simulated game: weights average 1, the home win share moves to σ(k·logit p),
   // and every market moves consistently with it.
   const g1 = simulateGame(toyGame(), { sims: 10000, seed: 11 });
