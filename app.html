@@ -709,7 +709,7 @@ function mlBadge(g) { const t = g.leans?.moneyline?.tier; if (!t) return ''; con
 // Started games show their saved pre-game projection; say so (or say nothing was saved).
 function frozenNote(g) {
   if (g.state === 'pre') return '';
-  if (g.frozen) return `<span class="muted" data-tip="${esc(`Leans and chances as projected before puck drop (saved ${new Date(g.frozen.savedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' })} ET). Only the score, goals and status update.`)}">· pre-game numbers</span>`;
+  if (g.frozen) return `<span class="muted" data-tip="${esc(g.frozen.savedAt ? `Leans and chances as projected before puck drop (saved ${new Date(g.frozen.savedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' })} ET). Only the score, goals and status update.` : 'Leans and chances as projected before puck drop, from the same pre-game inputs. Only the score, goals and status update.')}">· pre-game numbers</span>`;
   return '<span class="muted" data-tip="No pre-game projection was saved for this game (no database at puck drop), so these numbers were recalculated after it started and may differ from what showed before.">· recalculated</span>';
 }
 // The market's moneyline red flag on a slate card (lib/market).
@@ -971,10 +971,10 @@ const gameWhen = g => (!g ? '' : g.state === 'in' ? '<span class="tag pos" style
 function lockNote(sh) {
   const L = sh.lock || {};
   if (L.state === 'locked') return '<span class="tag pos" data-tip="Saved before the first puck drop and kept for the day: plays don’t drop off as their games start, and later games can’t reshuffle them.">🔒 Locked at first puck drop</span>';
-  if (L.state === 'late') return '<span class="tag warn" data-tip="Nothing was saved before the first puck drop, so the lists locked on the first load after games started, from games not yet started.">🔒 Locked late, from games not yet started</span>';
+  if (L.state === 'late') return '<span class="tag warn" data-tip="Nothing was saved before the first puck drop, so the lists locked on the first load after games started, from the pre-game numbers.">🔒 Locked late</span>';
   if (L.state === 'open') return '<span class="tag" data-tip="Updates until the first puck drop (lineups, starters), then locks for the day.">Locks at first puck drop</span>';
   if (L.state === 'unconfirmed') return '<span class="tag warn" data-tip="The database didn’t answer, so the lock couldn’t be confirmed and nothing was changed. Refresh in a minute.">Lock not confirmed yet</span>';
-  return '<span class="tag warn" data-tip="Locking needs the database (or uses the shared starters): without it, plays drop off as their games start.">Not locked</span>';
+  return '<span class="tag warn" data-tip="Picks couldn’t be saved today, so these lists aren’t locked. They’re built from pre-game numbers for the whole slate, so started games stay on them.">Not locked today</span>';
 }
 const openAttrs = x => `${x.player ? `data-player="${x.player}" data-game="${esc(x.game)}"` : `data-open-game="${esc(x.game)}"`} role="button" tabindex="0"`;
 const legOf = x => x.kind === 'goal' ? { game: x.game, market: 'goal', player: x.player } : x.kind === 'sog' ? { game: x.game, market: 'sog', player: x.player, side: x.side, line: x.line } : { game: x.game, market: 'saves', team: x.goalieTeam, side: x.side, line: x.line };
