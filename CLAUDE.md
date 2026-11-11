@@ -32,9 +32,11 @@ ufcprob), each its own repo and Vercel project, sharing the same stack and desig
 
 ## Open items
 
-- The production database is disconnected in Vercel ("no database connection is set"): reconnect
-  it to this project, check Production env vars, redeploy, then check `/api/status`. Until then
-  nothing is saved, locked or graded.
+- The production database (Prisma Postgres) is connected to the Vercel project `nhlprob-spgb`
+  (nhlprob-spgb.vercel.app), Production and Preview. A second Vercel project, `nhlprob`
+  (nhlprob.vercel.app), deployed the same repo with no database, so it couldn't save, lock or grade;
+  the owner is deleting it. Check a deployment's `/api/status` before calling its database
+  connected or not: a local run has no database by design.
 - Model effects (team finishing, lineup, back-to-back, home finishing) are off until the nightly
   tests collect evidence. Power play isn't modelled; half-lives are still hand-set.
 - On synthetic data the first-goal "share of season goals" baseline edged out the model; watch
