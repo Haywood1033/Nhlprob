@@ -96,6 +96,14 @@ a:hover { text-decoration: underline; }
 .tab:first-child { margin-left: -14px; }
 .tab[aria-selected="true"]::after { content: ''; position: absolute; left: 14px; right: 14px; bottom: -1px; height: 2px; border-radius: 2px; background: var(--accent); }
 main.wrap { padding-top: 24px; padding-bottom: 64px; }
+/* Short screens (a phone in landscape): two pinned bars would eat a third of the height and cover
+   the top of the content, so only the tabs stay pinned and the top bar scrolls away. */
+@media (max-height: 500px) {
+  .topbar { position: relative; backdrop-filter: none; background: var(--bg); }
+  .tabs { top: 0; }
+  .tab { height: 40px; }
+  .hero { padding-top: 18px; padding-bottom: 14px; }
+}
 .panel[hidden] { display: none; }
 
 /* ── Building blocks ── */
