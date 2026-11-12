@@ -18,7 +18,10 @@ ufcprob), each its own repo and Vercel project, sharing the same stack and desig
   (300+ games, held-out log loss).
 - `lib/calibration.js`: moneyline stretch, used only when it passes its held-out check.
 - `lib/signals.js`, `lib/sharp.js`, `lib/plays.js`, `lib/lean.js`: tags, lists (ranked by chance
-  or value), leans. `lib/market.js`: ESPN lines, a check only.
+  or value), leans. `lib/market.js`: ESPN lines, a check only. `lib/props.js`: DraftKings player
+  props (anytime / first / 2+ goals, shots, saves) from ESPN's public odds feed: default prices for
+  EV and Model picks, saved with the snapshot (each line carries our chance at its exact line) and
+  graded on Accuracy. Never an input. The feed doesn't label over/under: the over is listed first.
 - `lib/lock.js`: write-once locks (`nhl_daily_picks`, `nhl_daily_plays`).
 - `docs/BUILD-READOUT.md`: the model and its known limits in detail.
 - Crons: `/api/sync?cron=1` (history, grading, nightly replay, one effect test),
