@@ -389,7 +389,6 @@ td.click:hover .pname { text-decoration: underline; }
 .slip-res .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .slip-res .l { font-size: 12px; color: var(--ink-3); }
 @media (max-width: 720px) { .slip-res { grid-template-columns: repeat(2, minmax(0, 1fr)); } .slip-res > div:nth-child(2) { border-right: 0; } .slip-res > div:nth-child(-n+2) { border-bottom: 1px solid var(--line); } }
-.pin .dk { font-size: 10px; font-weight: 700; color: var(--ink-3); margin: 0 4px 0 -2px; letter-spacing: 0.02em; }
 .price-in { width: 72px; height: 28px; background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 5px; padding: 0 6px; font-size: 12px; }
 .drawer-b > * { min-width: 0; }
 .drawer-b table.data { table-layout: fixed; }
@@ -644,14 +643,14 @@ function inlineBookLines() {
   return out;
 }
 const fullBook = () => [S.book, ...inlineBookLines()].filter(Boolean).join('\n');
-// DraftKings' line for a bet (saved with the slate, lib/props): the default price when the reader
+// The book's line for a bet (saved with the slate, lib/props): the default price when the reader
 // hasn't typed one. Clearing a typed price goes back to it.
 let dkMap = null, dkFor = null;
 function dkPrice(k) {
   if (dkFor !== S.data) { dkFor = S.data; dkMap = new Map((S.data?.games || []).flatMap(g => (g.props?.rows || []).map(r => [legKey(r), r.raw]))); }
   return dkMap.get(k) || null;
 }
-const priceInput = (l, p) => { const k = legKey(l), own = S.prices[k] || '', dk = own ? null : dkPrice(k), raw = own || dk || '', e = raw ? evOf(p, raw) : null; return `<span class="pin"><input class="price-in" data-pkey="${esc(k)}" value="${esc(raw)}" placeholder="Price" aria-label="${dk ? 'DraftKings price (type your own to replace it)' : 'Your price'}"${own && !toDecimal(own) ? ' aria-invalid="true"' : ''}>${dk ? '<span class="dk" title="DraftKings price">DK</span>' : ''}${e ? evCell(e) : ''}</span>`; };
+const priceInput = (l, p) => { const k = legKey(l), own = S.prices[k] || '', dk = own ? null : dkPrice(k), raw = own || dk || '', e = raw ? evOf(p, raw) : null; return `<span class="pin"><input class="price-in" data-pkey="${esc(k)}" value="${esc(raw)}" placeholder="Price" aria-label="Price"${own && !toDecimal(own) ? ' aria-invalid="true"' : ''}>${e ? evCell(e) : ''}</span>`; };
 // Inline status line (replaces alert()): an aria-live region near the top.
 function notify(msg, kind = 'warn') { const el = $('#notice'); if (!el) return; el.innerHTML = msg ? `<div class="notice ${kind}"><span>${esc(msg)}</span><button class="btn ghost" data-dismiss aria-label="Dismiss">${ICON.close}</button></div>` : ''; }
 async function api(path, { fresh = false } = {}) { const u = withDate(path); const res = await fetch(fresh ? `${u}${u.includes('?') ? '&' : '?'}fresh=${Date.now()}` : u, fresh ? { cache: 'no-store' } : undefined); let b = null; try { b = await res.json(); } catch {} if (!res.ok) throw new Error(b?.error || `${res.status} ${res.statusText}`); return b; }
@@ -952,7 +951,7 @@ const evText = ev => `${ev >= 0 ? '+' : '−'}$${Math.abs(ev).toFixed(2)}`;
 function playCard(x, i) {
   return `<div class="card play"><div><div class="play-h"><span class="play-rank">${i + 1}</span><div><div class="play-name">${esc(x.title)}${x.badge ? ` ${tierChip(x.badge)}` : ''}${x.player && ['goal', 'goal2', 'first'].includes(x.market) ? goalTag(gameById(x.game), x.player) : ''}</div><div class="play-sub">${esc(x.sub)} · ${esc(playTxt(x.prob))}</div></div>
     <div class="play-prob"><div class="big">${pct(x.prob)}</div><div class="small">fair ${esc(x.fairOdds)} ${slipBtn({ game: x.game, market: x.market, side: x.side, line: x.line, player: x.player, team: x.team })}</div></div></div>
-    ${x.book ? `<div class="bookline"><span class="tag pos">${x.book.source ? esc(x.book.source) : 'Book'} ${esc(x.book.raw)} · EV ${evText(x.book.ev)} per $1${x.book.evSe ? ` · noise ±${x.book.evSe.toFixed(3)}` : ''}</span></div>` : ''}</div>
+    ${x.book ? `<div class="bookline"><span class="tag pos">Book ${esc(x.book.raw)} · EV ${evText(x.book.ev)} per $1${x.book.evSe ? ` · noise ±${x.book.evSe.toFixed(3)}` : ''}</span></div>` : ''}</div>
     <ul>${x.reasons.map(r => `<li>${esc(r)}</li>`).join('')}</ul></div>`;
 }
 function sgpCard(t) {
@@ -1000,7 +999,7 @@ function sharpCard(x) {
     ${mktWarn(x.marketWarn?.text)}
     <div class="sc-areas">${areaChips(x)}</div>
     ${x.why.length ? `<ul>${x.why.slice(0, 3).map(r => `<li>${esc(r)}</li>`).join('')}</ul>` : ''}
-    <p class="target" style="margin-top:8px"><b>${esc(playTxt(x.prob) || '—')}</b>${x.bookPrice ? ` · ${x.bookPrice.source ? esc(x.bookPrice.source) : 'your'} ${esc(x.bookPrice.raw)} · EV ${evText(x.bookPrice.ev)}` : ''}</p>
+    <p class="target" style="margin-top:8px"><b>${esc(playTxt(x.prob) || '—')}</b>${x.bookPrice ? ` · at ${esc(x.bookPrice.raw)} · EV ${evText(x.bookPrice.ev)}` : ''}</p>
     <div class="sc-foot"><span class="note">Last 10 · green = scored</span>${spark(x.last10)}<span class="note" style="margin-left:auto">Season rate ${pct(x.base, 0)}</span>${g?.state === 'pre' ? slipBtn(legOf(x), `Add ${x.name} to slip`) : ''}</div></div>`;
 }
 function bestRow(x, i) {
@@ -1194,14 +1193,14 @@ function marketCard(M) {
   const t = (title, rows, what) => '<div class="card"><div class="card-h"><h2>' + title + '</h2></div><div class="table-wrap" style="border:0;border-radius:0"><table class="data"><thead><tr><th class="l">Line vs us</th><th>' + what + '</th><th>We said</th><th>Happened</th></tr></thead><tbody>' + rows.filter(r => r.n).map(r => '<tr><td class="l">' + esc(r.label) + '</td><td>' + r.n.toLocaleString() + '</td><td>' + pct(r.predicted, 1) + '</td><td class="' + (r.won / r.n < r.predicted - 0.02 ? 'edge-neg' : '') + '">' + pct(r.won / r.n, 1) + '</td></tr>').join('') + '</tbody></table></div></div>';
   return '<div class="section-head"><h2>Does the “market disagrees” flag work?</h2><span class="note">' + M.games + ' replayed games had a pre-game line. The line is read only for this check.</span></div><div class="two" style="align-items:start">' + t('Moneyline leans', M.ml, 'Games') + t('Anytime goal, by his team’s expected goals', M.anytime, 'Player-games') + '</div><p class="note" style="margin-top:8px">If the flagged rows (last in each table) happen clearly less often than we said, the flag earns a place in Risks &amp; fades. If not, it stays a warning or goes.</p>';
 }
-// DraftKings' player lines saved before each game, graded after it (lib/grading gradeProps): our
+// The book's player lines saved before each game, graded after it (lib/grading gradeProps): our
 // chance vs the book's for the same bets, and how our 3%+ EV plays did at the book's price.
 function propsRecord(P) {
   if (!P) return '';
   const NAMES = { goal: 'Anytime goal', first: 'First goal', goal2: '2+ goals', sog: 'Shots on goal', saves: 'Goalie saves' };
   const rows = Object.keys(NAMES).filter(k => P[k]).map(k => { const x = P[k]; return `<tr><td class="l">${NAMES[k]}</td><td>${x.n.toLocaleString()}</td><td>${pct(x.won, 1)}</td><td>${pct(x.model, 1)}</td><td>${pct(x.book, 1)}</td><td class="${x.logLoss <= x.bookLogLoss ? 'edge-pos' : ''}">${x.logLoss.toFixed(3)} <span class="muted">/ ${x.bookLogLoss.toFixed(3)}</span></td><td>${x.bets ? `${x.bets} · <span class="${x.roi >= 0 ? 'edge-pos' : 'edge-neg'}">${x.roi >= 0 ? '+' : ''}${(x.roi * 100).toFixed(1)}%</span>` : '—'}</td></tr>`; }).join('');
-  const sh = P.shots ? `<p class="note" style="margin:8px 0 0">Shots on goal, ${P.shots.n.toLocaleString()} lines: ${esc(P.provider)} set <b>${P.shots.line.toFixed(2)}</b> on average, we projected <b>${P.shots.model.toFixed(2)}</b>, and players took <b>${P.shots.actual.toFixed(2)}</b>.</p>` : '';
-  return `<div class="card" style="margin-bottom:12px"><div class="card-h"><h2>Against ${esc(P.provider)} player lines</h2><span class="sub">${P.games} game${P.games === 1 ? '' : 's'} · lines saved before puck drop</span></div>
+  const sh = P.shots ? `<p class="note" style="margin:8px 0 0">Shots on goal, ${P.shots.n.toLocaleString()} lines: the book set <b>${P.shots.line.toFixed(2)}</b> on average, we projected <b>${P.shots.model.toFixed(2)}</b>, and players took <b>${P.shots.actual.toFixed(2)}</b>.</p>` : '';
+  return `<div class="card" style="margin-bottom:12px"><div class="card-h"><h2>Against the book’s player lines</h2><span class="sub">${P.games} game${P.games === 1 ? '' : 's'} · lines saved before puck drop</span></div>
     <div class="table-wrap" style="border:0;border-radius:0"><table class="data"><thead><tr><th class="l">Market</th><th>Bets</th><th>Won</th><th>We said</th><th>Book said</th><th>Log loss: ours / book</th><th>Our 3%+ EV plays · return</th></tr></thead><tbody>${rows}</tbody></table></div>
     <div class="card-b" style="padding-top:8px"><p class="note" style="margin:0">Lower log loss is better. For shots and saves the book’s chance has its margin taken out; goalscorer prices are one-sided, so the book’s chance there still includes its margin. Return is flat $1 bets at the book’s price on every bet where our chance gave 3%+ expected value.</p>${sh}</div></div>`;
 }

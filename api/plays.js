@@ -20,11 +20,11 @@ module.exports = async (req, res) => {
     const [{ payload, sims }, record] = await Promise.all([getSlateContext({ ...(b.date ? { date: b.date } : {}), starters, lineups }), loadBestRecord()]);
     const book = makeBook(sims);
     const parsed = parseBook(b.book || '', payload.games.filter(g => !g.unavailable));
-    // DraftKings' lines (lib/props) are the default prices; a price the reader pasted or typed for
+    // The book's lines (lib/props) are the default prices; a price the reader pasted or typed for
     // the same bet wins. Prices only rank plays by value: they never change a chance.
     const { legKey } = require('../lib/markets');
     const mine = new Set(parsed.rows.map(legKey));
-    const dk = payload.games.filter(g => !g.unavailable && g.props).flatMap(g => g.props.rows).filter(r => !mine.has(legKey(r))).map(r => ({ ...r, source: 'DraftKings' }));
+    const dk = payload.games.filter(g => !g.unavailable && g.props).flatMap(g => g.props.rows).filter(r => !mine.has(legKey(r))).map(r => ({ ...r, source: 'line' }));
     const out = buildPlays(payload, book, [...parsed.rows, ...dk], record);
     // Only the shared view locks: a viewer's own starter picks or lineup changes re-simulate games.
     out.sharp = await lockSharp(payload.date, payload.games, out.sharp, { canSave: !payload.personal, lock: lockFor('nhl_daily_plays') });
