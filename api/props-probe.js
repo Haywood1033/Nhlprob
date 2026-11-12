@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
     const games = await mapLimit(events, 2, async ev => {
       const comp = ev.competitions?.[0] || {};
       const odds = await get(`${CORE}/events/${ev.id}/competitions/${comp.id || ev.id}/odds?limit=50`);
-      const providers = await mapLimit(odds.items || [], 3, async o => {
+      const providers = await mapLimit((odds.items || []).filter(o => param(req, 'raw') !== '1' || o.provider?.id === '100'), 3, async o => {
         const pid = o.provider?.id, name = o.provider?.name;
         if (!pid) return { name, note: 'no provider id' };
         const pb = await get(`${CORE}/events/${ev.id}/competitions/${comp.id || ev.id}/odds/${pid}/propBets?limit=1000`);
@@ -31,7 +31,14 @@ module.exports = async (req, res) => {
           const ath = it.athlete?.$ref ? await get(it.athlete.$ref, 6000) : null;
           return { player: ath?.displayName || null, type: it.type?.name || null, line: it.current?.target?.value ?? it.current?.target ?? null, odds: it.odds?.american?.value ?? it.odds?.american ?? null, raw: Object.keys(it).slice(0, 12) };
         });
-        return { id: pid, name, count: items.length, total: pb.count ?? null, pages: pb.pageCount ?? null, types, samples };
+        // ?raw=1: the full entries for the markets the app models, two of each, player names resolved.
+        let raw = null;
+        if (param(req, 'raw') === '1') {
+          const want = ['Anytime Goalscorer', 'Total Shots on Goal', 'Total Saves', 'First Goalscorer', 'To Score 2+ Goals'];
+          const pick = want.flatMap(t => items.filter(it => it.type?.name === t).slice(0, 2));
+          raw = await mapLimit(pick, 3, async it => ({ player: it.athlete?.$ref ? (await get(it.athlete.$ref, 6000)).displayName || null : null, ...it, competition: undefined, provider: undefined }));
+        }
+        return { id: pid, name, count: items.length, total: pb.count ?? null, pages: pb.pageCount ?? null, types: raw ? undefined : types, samples: raw ? undefined : samples, raw };
       });
       return { game: ev.shortName, id: ev.id, oddsError: odds._error || null, providers };
     });
